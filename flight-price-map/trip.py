@@ -43,8 +43,9 @@ EXTRA_CSS = """
 .hero-p { font-size:17px; color:var(--ink-2); max-width:52ch; margin:18px 0 0; }
 /* The sky band. Canvas rather than SVG because it is a sprite blitter, and
    pixelated rendering so the chunky pixels stay chunky on retina screens. */
-.sky { display:block; width:100%; height:132px; margin-top:26px;
-       image-rendering:pixelated; }
+.sky { display:block; width:100%; height:150px; margin-top:26px;
+       border-radius:10px; border:1px solid var(--rule);
+       image-rendering:pixelated; box-shadow:var(--shadow); }
 
 form.finder {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
@@ -283,30 +284,46 @@ TEMPLATE = """__HEAD__
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  // '.' transparent, B body, A accent, W window.
+  // '.' sky, W fuselage, R livery, D window glass.
   const PLANE = [
-    "...BB...................",
-    "...BBB..................",
-    "...BBBB.................",
-    "...BBBBB................",
-    ".BBBBBBBBBBBBBBBBBBA....",
-    "BBBWBBWBBWBBWBBBBBBBAA..",
-    ".BBBBBBBBBBBBBBBBBBA....",
-    "...BBBBB................",
-    "...BBBB.................",
-    "....BB..................",
+    "....RRR...................",
+    "....RRRR..................",
+    "....RRRRR.................",
+    "....RRRRRR................",
+    "..RRRRRRRRR...............",
+    ".WWWWWWWWWWWWWWWWWWWWWW...",
+    "WWDWWDWWDWWDWWDWWWWWWWWWR.",
+    "WWWWWWWWWWWWWWWWWWWWWWWWRR",
+    ".WWWWWWWWWWWWWWWWWWWWWW...",
+    "...WWWWWWWWWW.............",
+    "....WWWWWWW...............",
+    ".....WWWWW................",
   ];
-  const CLOUD = ["..CCC...", ".CCCCCC.", "CCCCCCCC"];
+  const CLOUD = [
+    "...CCCC.....",
+    ".CCCCCCCCC..",
+    "CCCCCCCCCCCC",
+  ];
+
+  // The band commits to being a scene: a daylit sky, or the same sky at dusk.
+  // It is an illustration rather than a surface, so it carries its own colours
+  // instead of borrowing the page's -- but it paints both, explicitly.
+  const DAY = {sky: ["#8ecdf2", "#d3ecfd"], C: "#ffffff",
+               dot: "rgba(255,255,255,.7)", W: "#ffffff", R: "#e11d48",
+               D: "#334155", trail: "rgba(255,255,255,.85)"};
+  const DUSK = {sky: ["#141d33", "#5b3f4a"], C: "#5a6a86",
+                dot: "rgba(255,255,255,.28)", W: "#f4f1ea", R: "#f43f5e",
+                D: "#1e293b", trail: "rgba(255,255,255,.35)"};
 
   const PX = 5;
-  let W = 0, H = 0, colors = {}, clouds = [], t = 0, raf = null;
+  let W = 0, H = 0, pal = DAY, clouds = [], t = 0, raf = null;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
+  const darkOS = matchMedia("(prefers-color-scheme: dark)");
 
-  function readColors() {
-    const css = getComputedStyle(document.documentElement);
-    const v = n => css.getPropertyValue(n).trim();
-    colors = {B: v("--ink"), A: v("--accent"), W: v("--ground"),
-              C: v("--rule"), dot: v("--rule")};
+  function isDark() {
+    const stamped = document.documentElement.getAttribute("data-theme");
+    if (stamped) return stamped === "dark";
+    return darkOS.matches;
   }
 
   function blit(rows, x, y, px) {
@@ -314,7 +331,7 @@ TEMPLATE = """__HEAD__
       for (let c = 0; c < rows[r].length; c++) {
         const ch = rows[r][c];
         if (ch === ".") continue;
-        ctx.fillStyle = colors[ch] || colors.B;
+        ctx.fillStyle = pal[ch] || pal.W;
         ctx.fillRect(Math.round(x + c * px), Math.round(y + r * px), px, px);
       }
     }
@@ -326,70 +343,66 @@ TEMPLATE = """__HEAD__
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
-    clouds = [0.08, 0.34, 0.58, 0.82].map((frac, i) => ({
+    clouds = [0.06, 0.31, 0.55, 0.79, 0.93].map((frac, i) => ({
       x: frac * W,
-      y: 14 + ((i * 37) % 46),
-      px: i % 2 ? 3 : 4,
-      speed: i % 2 ? 0.18 : 0.32,
+      y: 12 + ((i * 29) % 52),
+      px: [4, 3, 5, 3, 4][i],
+      speed: [0.30, 0.16, 0.38, 0.14, 0.24][i],
     }));
   }
 
-  function frame() {
-    ctx.clearRect(0, 0, W, H);
-    const lane = H * 0.55;
+  function scene(planeX) {
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, pal.sky[0]);
+    grad.addColorStop(1, pal.sky[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
 
-    // The route the plane is flying: a dotted line, like a boarding pass map.
-    ctx.fillStyle = colors.dot;
-    for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 5, PX * 2, PX);
+    const lane = H * 0.56;
+    ctx.fillStyle = pal.dot;
+    for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 6, PX * 2, PX);
 
-    for (const cloud of clouds) {
-      blit(CLOUD, cloud.x, cloud.y, cloud.px);
-      cloud.x -= cloud.speed;
-      if (cloud.x < -CLOUD[0].length * cloud.px) cloud.x = W + 20;
-    }
+    for (const cloud of clouds) blit(CLOUD, cloud.x, cloud.y, cloud.px);
 
-    const span = W + PLANE[0].length * PX + 80;
-    const x = ((t * 1.5) % span) - PLANE[0].length * PX - 40;
-    const bob = Math.sin(t / 42) * PX;
+    const bob = still.matches ? 0 : Math.sin(t / 44) * PX;
     const top = lane - PLANE.length * PX / 2 + bob;
-
-    // Contrail: a few squares off the tail, thinning out behind it.
-    for (let i = 1; i <= 7; i++) {
-      ctx.globalAlpha = 0.30 - i * 0.035;
-      ctx.fillStyle = colors.B;
-      ctx.fillRect(Math.round(x - i * PX * 2.2), Math.round(top + PX * 5),
-                   PX * 1.4, PX);
+    for (let i = 1; i <= 8; i++) {
+      ctx.globalAlpha = 0.5 - i * 0.055;
+      ctx.fillStyle = pal.trail;
+      ctx.fillRect(Math.round(planeX - i * PX * 2.4), Math.round(top + PX * 6.5),
+                   PX * 1.6, PX);
     }
     ctx.globalAlpha = 1;
-    blit(PLANE, x, top, PX);
+    blit(PLANE, planeX, top, PX);
+  }
 
+  function frame() {
+    const span = W + PLANE[0].length * PX + 90;
+    scene(((t * 1.6) % span) - PLANE[0].length * PX - 50);
+    for (const cloud of clouds) {
+      cloud.x -= cloud.speed;
+      if (cloud.x < -CLOUD[0].length * cloud.px) cloud.x = W + 24;
+    }
     t += 1;
     raf = requestAnimationFrame(frame);
   }
 
   function start() {
-    if (raf) cancelAnimationFrame(raf);
-    readColors(); size();
-    if (still.matches) {                 // one composed frame, no motion
-      t = 260; ctx.clearRect(0, 0, W, H);
-      const lane = H * 0.55;
-      ctx.fillStyle = colors.dot;
-      for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 5, PX * 2, PX);
-      clouds.forEach(c => blit(CLOUD, c.x, c.y, c.px));
-      blit(PLANE, W * 0.42, lane - PLANE.length * PX / 2, PX);
-      return;
-    }
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    pal = isDark() ? DUSK : DAY;
+    size();
+    if (still.matches) { scene(W * 0.4); return; }   // one composed frame
     raf = requestAnimationFrame(frame);
   }
 
   addEventListener("resize", start);
   still.addEventListener("change", start);
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", start);
-  // Nothing to animate for a hidden tab, and nothing to animate on the
-  // results view either -- the canvas only exists on the landing page.
+  darkOS.addEventListener("change", start);
+  new MutationObserver(start).observe(document.documentElement,
+    {attributes: true, attributeFilter: ["data-theme"]});
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
-    else if (!document.hidden && !still.matches) start();
+    else if (!document.hidden) start();
   });
   start();
 })();
