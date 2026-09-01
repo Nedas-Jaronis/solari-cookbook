@@ -686,6 +686,29 @@ function datepicker(inputId) {
   const floor = () => input.min ? new Date(input.min + "T00:00:00") : null;
   let shown = new Date();
 
+  // The shell is built once. Navigating repaints only the month name, the
+  // grid and the back button -- rebuilding the whole panel would detach the
+  // very button being clicked, and an outside-click check that runs afterwards
+  // would then decide the click came from outside and shut the panel.
+  panel.innerHTML = `
+    <div class="cal-head">
+      <button type="button" class="cal-nav" data-step="-1"
+        aria-label="Previous month">&lsaquo;</button>
+      <span class="cal-month"></span>
+      <button type="button" class="cal-nav" data-step="1"
+        aria-label="Next month">&rsaquo;</button>
+    </div>
+    <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span>
+      <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+    <div class="cal-grid"></div>
+    <div class="cal-foot">
+      <button type="button" data-jump="today">Today</button>
+      <button type="button" data-close="1">Close</button>
+    </div>`;
+  const monthLabel = panel.querySelector(".cal-month");
+  const gridBox = panel.querySelector(".cal-grid");
+  const backBtn = panel.querySelector('.cal-nav[data-step="-1"]');
+
   function draw() {
     const chosen = input.value ? new Date(input.value + "T00:00:00") : null;
     const min = floor();
@@ -709,22 +732,10 @@ function datepicker(inputId) {
             + `${blocked ? " disabled" : ""} data-iso="${key}">`
             + `${day.getDate()}</button>`;
     }
-    const backOk = !min || new Date(shown.getFullYear(), shown.getMonth(), 0) >= min;
-    panel.innerHTML = `
-      <div class="cal-head">
-        <button type="button" class="cal-nav" data-step="-1"
-          ${backOk ? "" : "disabled"} aria-label="Previous month">&lsaquo;</button>
-        <span class="cal-month">${MONTHS[shown.getMonth()]} ${shown.getFullYear()}</span>
-        <button type="button" class="cal-nav" data-step="1"
-          aria-label="Next month">&rsaquo;</button>
-      </div>
-      <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span>
-        <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
-      <div class="cal-grid">${grid}</div>
-      <div class="cal-foot">
-        <button type="button" data-jump="today">Today</button>
-        <button type="button" data-close="1">Close</button>
-      </div>`;
+    monthLabel.textContent = `${MONTHS[shown.getMonth()]} ${shown.getFullYear()}`;
+    gridBox.innerHTML = grid;
+    backBtn.disabled = !!min
+      && new Date(shown.getFullYear(), shown.getMonth(), 0) < min;
   }
 
   const open = () => {
@@ -759,7 +770,13 @@ function datepicker(inputId) {
   });
 
   document.addEventListener("mousedown", e => {
-    if (!panel.hidden && !cell.contains(e.target)) close();
+    if (panel.hidden) return;
+    // composedPath is fixed when the event is dispatched, so it still tells
+    // the truth about where the click began even if a handler has since
+    // replaced the node it began on.
+    const path = e.composedPath ? e.composedPath() : [];
+    if (path.includes(cell) || cell.contains(e.target)) return;
+    close();
   });
 }
 
