@@ -209,8 +209,8 @@ JS = """
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    puffs = Array.from({length: 240}, (_, i) => ({
-      u: i / 240,
+    puffs = Array.from({length: 130}, (_, i) => ({
+      u: i / 130,
       off: (Math.random() - 0.5) * 30,
       rise: (Math.random() - 0.5) * 0.8,
       size: 5 + Math.random() * 15,
@@ -222,13 +222,27 @@ JS = """
 
   const FAINT = 0.015;      // below this a puff cannot be seen, so skip it
 
-  function scene(u) {
-    ctx.globalAlpha = 1;
-    ctx.drawImage(backdrop, 0, 0, W, H);
+  const fade = u => Math.max(0, Math.min(1, u / 0.12, (1 - u) / 0.14));
+
+  // Two climbs, half a cycle apart. One aircraft alone leaves the sky empty
+  // for a second and a half between leaving the top and the next entering at
+  // the bottom, which reads as a pause and a reset. Overlapping them means
+  // something is always on the way up, and the wrap has nothing to give away.
+  const PHASES = [0, 0.5];
+
+  function flight(u, withHalo) {
+    const seam = fade(u);
+    if (seam < 0.02) return;               // wholly invisible, so no work
 
     const nose = path(u);
-    const R = Math.max(W, H) * 0.38;
-    ctx.drawImage(haloSprite, nose.x - R, nose.y - R, R * 2, R * 2);
+    // The halo is the largest alpha blend in the frame, so only the climb
+    // that is actually lighting the sky draws one; a second, fainter glow
+    // costs as much as the first and is not visible next to it.
+    if (withHalo) {
+      const R = Math.max(W, H) * 0.32;
+      ctx.globalAlpha = seam;
+      ctx.drawImage(haloSprite, nose.x - R, nose.y - R, R * 2, R * 2);
+    }
 
     // Walk back from the newest puff and stop at the first invisible one.
     // They only fade with age, so everything beyond it is invisible too --
@@ -238,7 +252,7 @@ JS = """
     for (let i = last - 1; i >= 0; i--) {
       const puff = puffs[i];
       const age = (u - puff.u) / Math.max(u, 0.001);
-      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5);
+      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5) * seam;
       if (alpha < FAINT) break;
       const at = path(puff.u);
       const r = puff.size * (1 + age * 3.2);
@@ -248,7 +262,6 @@ JS = """
                     at.y + puff.off * 0.4 + puff.rise * age * 90 - r,
                     r * 2, r * 2);
     }
-    ctx.globalAlpha = 1;
 
     // The aircraft, one dot per cell, rotated onto the tangent of the climb.
     const ahead = path(Math.min(u + 0.012, 1));
@@ -258,21 +271,30 @@ JS = """
       const dx = (cell.c - CX) * DOT, dy = (cell.r - CY) * DOT;
       const x = nose.x + dx * cos - dy * sin;
       const y = nose.y + dx * sin + dy * cos;
-      const twinkle = 0.62 + 0.38 * Math.sin(t / 15 + cell.phase);
+      const twinkle = 0.62 + 0.38 * Math.sin(t / 260 + cell.phase);
       const d = cell.edge ? 3.4 : 2.4;
-      ctx.globalAlpha = (cell.edge ? 0.95 : 0.5) * twinkle;
+      ctx.globalAlpha = (cell.edge ? 0.95 : 0.5) * twinkle * seam;
       ctx.fillStyle = cell.edge ? pal.edge : pal.body;
       ctx.fillRect(x - d / 2, y - d / 2, d, d);
       if (cell.edge && twinkle > 0.92) {
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 0.9 * seam;
         ctx.fillStyle = pal.core;
         ctx.fillRect(x - 1, y - 1, 2, 2);
       }
     }
+  }
+
+  function scene(u) {
+    ctx.globalAlpha = 1;
+    ctx.drawImage(backdrop, 0, 0, W, H);
+    const at = PHASES.map(phase => (u + phase) % 1);
+    const lead = at.reduce((best, v) => fade(v) > fade(best) ? v : best, at[0]);
+    for (const v of at) flight(v, v === lead);
     ctx.globalAlpha = 1;
   }
 
-  let slow = 0, lastAt = 0;
+  const CYCLE = 17000;              // ms for one climb, wall clock
+  let slow = 0, lastAt = 0, startAt = 0;
 
   function frame(now) {
     const gap = lastAt ? now - lastAt : 16;
@@ -282,8 +304,9 @@ JS = """
     slow = gap > 34 ? slow + 1 : 0;
     if (slow > 120) { cancelAnimationFrame(raf); raf = null; scene(0.58); return; }
 
-    t += 1;
-    scene(Math.min((t / 780) % 1.15, 1));
+    if (!startAt) startAt = now;
+    t = now - startAt;
+    scene(((now - startAt) / CYCLE) % 1);
     raf = requestAnimationFrame(frame);
   }
 
@@ -292,7 +315,7 @@ JS = """
     pal = isDark() ? NIGHT : DAY;
     size();
     if (still.matches) { scene(0.58); return; }   // one composed frame
-    slow = 0; lastAt = 0;
+    slow = 0; lastAt = 0; startAt = 0;
     raf = requestAnimationFrame(frame);
   }
 
