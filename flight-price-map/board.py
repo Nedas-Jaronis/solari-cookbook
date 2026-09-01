@@ -71,7 +71,7 @@ TEMPLATE = """__HEAD__
   <header class="mast">
     <h1>Fare Board</h1>
     <div class="sub">__ROUTE__<br>
-      <span class="eyebrow">__WHEN__</span></div>
+      <span class="eyebrow" data-read-at="__READ_ISO__">__WHEN__</span></div>
   </header>
 
   <div class="stats" id="tiles"></div>
@@ -139,6 +139,7 @@ TEMPLATE = """__HEAD__
     on Solari cloud browsers.
   </footer>
 </div>
+__AGE__
 
 <script type="application/json" id="data">__DATA__</script>
 <script>
@@ -450,6 +451,8 @@ def main() -> None:
             .replace("__EXTRA__", EXTRA_CSS)
             .replace("__ROUTE__", route)
             .replace("__WHEN__", when)
+            .replace("__READ_ISO__", base.get("generated_at", ""))
+            .replace("__AGE__", theme.AGE)
             .replace("__DATA__", json.dumps(data).replace("<", "\\u003c")))
 
     (HERE / args.out).write_text(

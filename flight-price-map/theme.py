@@ -205,6 +205,12 @@ footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--rule);
 footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
               background:var(--raise); padding:1px 6px; border-radius:3px; }
 .empty { color:var(--ink-3); padding:12px 0; }
+.age { font-family:"IBM Plex Mono", monospace; font-size:10.5px;
+       letter-spacing:.08em; text-transform:uppercase; padding:1px 7px;
+       border-radius:999px; background:var(--raise); color:var(--ink-3);
+       border:1px solid var(--rule); white-space:nowrap; }
+.age.stale { background:var(--warn-bg); color:var(--warn);
+             border-color:transparent; }
 """.replace("__DARK__", DARK)
 
 
@@ -213,6 +219,32 @@ def head(title: str) -> str:
     return f"<title>{title}</title>\n" \
            f'<link rel="stylesheet" href="{FONTS}">\n' \
            f"<style>{CSS}</style>\n"
+
+
+AGE = """
+<script>
+/* Committed pages carry a snapshot, and a snapshot with only a timestamp on it
+   reads as current forever. Any element with data-read-at says out loud how
+   old it is, and says it louder once the fares are worth distrusting. */
+(() => {
+  // Exposed, because a page that renders its timestamp later than page load
+  // has to be able to ask for the badge when it does.
+  window.stampAge = el => {
+    const then = Date.parse(el.dataset.readAt || "");
+    if (!then) return;
+    el.querySelectorAll(".age").forEach(old => old.remove());
+    const n = Math.floor((Date.now() - then) / 86400000);
+    const how = n < 1 ? "today" : n === 1 ? "yesterday" : n + " days ago";
+    const tag = document.createElement("span");
+    tag.className = "age" + (n >= 2 ? " stale" : "");
+    tag.textContent = n < 2 ? how : how + " — fares will have moved since";
+    el.appendChild(document.createTextNode(" "));
+    el.appendChild(tag);
+  };
+  document.querySelectorAll("[data-read-at]").forEach(window.stampAge);
+})();
+</script>
+"""
 
 
 def standalone(page: str) -> str:

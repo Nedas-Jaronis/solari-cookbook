@@ -218,7 +218,7 @@ TEMPLATE = """{head}
   <header class="mast">
     <h1>{origin} &rarr; {destination}</h1>
     <div class="sub">{date} &middot; {trip}<br>
-      <span class="eyebrow">read {generated}</span></div>
+      <span class="eyebrow" data-read-at="{generated}">read {generated}</span></div>
   </header>
 
   <div class="hero">
@@ -292,7 +292,7 @@ def main() -> None:
     args = ap.parse_args()
 
     data = json.loads((HERE / args.src).read_text(encoding="utf-8"))
-    page = build(data, args.title)
+    page = build(data, args.title) + theme.AGE
     (HERE / args.out).write_text(
         theme.standalone(page) if args.standalone else page, encoding="utf-8")
     ok = sum(1 for r in data["results"] if r.get("ok"))

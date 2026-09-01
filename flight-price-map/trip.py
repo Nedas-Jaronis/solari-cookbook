@@ -382,6 +382,7 @@ __WHEN_CELLS__
   <div class="flights" id="flights"></div>
 </section>
 
+__AGE__
   <footer>
     Fares are read from each site&rsquo;s own public results page and move
     constantly. We do not sell tickets and take no commission.__BOARD_LINK__
@@ -701,7 +702,13 @@ function renderTrip() {
     D.live ? SNAPSHOT_LIVE : SNAPSHOT_STORED;
   document.getElementById("route-h").innerHTML =
     `${esc(t.from_label)} <span style="color:var(--ink-3)">&rarr;</span> ${esc(t.to_label)}`;
-  document.getElementById("read-at").textContent = "prices read " + t.read_at;
+  const readAt = document.getElementById("read-at");
+  readAt.textContent = "prices read " + t.read_at;
+  // Live results are seconds old; a committed snapshot is not, and should say so.
+  if (!D.live) {
+    readAt.dataset.readAt = t.read_at.replace(" ", "T") + "Z";
+    if (window.stampAge) window.stampAge(readAt);
+  }
   document.getElementById("summary").innerHTML = [
     ["From", t.from_full], ["To", t.to_label + ", any airport"],
     ["Depart", t.date_label],
@@ -1019,6 +1026,7 @@ def main() -> None:
             .replace("__HEAD__", theme.head("Fare Board"))
             .replace("__EXTRA__", EXTRA_CSS.replace("__STAGE_CSS__", sky.CSS))
             .replace("__SKY_JS__", sky.JS)
+            .replace("__AGE__", theme.AGE)
             .replace("__WHEN_CELLS__", WHEN_LIVE if args.live else WHEN_STORED)
             .replace("__DEF_FROM__",
                      "New York JFK (JFK)" if args.live else lead["from_full"])

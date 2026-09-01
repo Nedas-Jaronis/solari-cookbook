@@ -148,7 +148,7 @@ TEMPLATE = """{head}
   <header class="mast">
     <h1>Is that price real?</h1>
     <div class="sub">{origin} &rarr; {destination} &middot; {date}<br>
-      <span class="eyebrow">checked {generated}</span></div>
+      <span class="eyebrow" data-read-at="{generated}">checked {generated}</span></div>
   </header>
 
   <div class="hero">
@@ -227,7 +227,7 @@ def main() -> None:
     args = ap.parse_args()
 
     data = json.loads((HERE / args.src).read_text(encoding="utf-8"))
-    page = build(data)
+    page = build(data) + theme.AGE
     (HERE / args.out).write_text(
         theme.standalone(page) if args.standalone else page, encoding="utf-8")
     tested = [c for c in data["checked"] if c.get("delivered") is not None]
