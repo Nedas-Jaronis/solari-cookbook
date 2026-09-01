@@ -3,3 +3,8 @@
 pages/
 *.log
 preview.html
+
+# Tab captures from the interactive check -- regenerated, not documentation.
+shots/board-log.png
+shots/board-countries.png
+shots/board-teasers.png

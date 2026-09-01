@@ -4,7 +4,12 @@ Prices one trip across every major travel site **and every nearby airport at the
 same time**, using Solari's cloud browsers and residential proxy egress, then
 renders the answer as a departure board.
 
-![The fare board for JFK to London](shots/dashboard-light.png)
+![The fare board for JFK to London](shots/board-light.png)
+
+`board.py` builds one dashboard over every run — cheapest fares, the
+country sweep and the advertised-price check — with the data embedded and
+rendered in the browser, so filtering by site, searching and sorting the
+log are instant and need no server.
 
 The point is the parallelism. Checking six sites across five airports is thirty
 searches; done one at a time that is about eight minutes of sitting there
@@ -93,7 +98,7 @@ pip install -r requirements.txt
 cp .env.example .env          # paste your slr_live_ key into it
 
 python compare.py --from JFK --to LHR --date 2026-10-15 --nearby to
-python dashboard.py           # -> dashboard.html
+python board.py               # -> board.html, the dashboard over everything
 
 # same flight, priced from eight countries
 python compare.py --from JFK --to LHR --date 2026-10-15     --sites google kayak momondo --countries us gb de jp ca au sg in
@@ -233,7 +238,8 @@ claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
 airports.py    metro-area airport groups (LON -> LHR LGW STN LTN LCY)
 common.py      shared types, money parsing, block and empty-page detection
-dashboard.py   results.json -> dashboard.html
+board.py       every run -> board.html, one filterable dashboard
+dashboard.py   results.json -> a single-study page
 teaserboard.py teasers.json -> teasers.html
 theme.py       the shared look: tokens, type, chart and table styles
 parse.py       the Google Flights reader
