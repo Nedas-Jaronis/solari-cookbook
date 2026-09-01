@@ -125,7 +125,16 @@ and labelled with the carrier name most sites agree on.
 ```bash
 python trip.py                          # -> trip.html
 python trip.py --board-url <url>        # cross-link to the operator's board
+
+python trip.py --standalone --out preview.html
+python flowtest.py                      # drive the whole flow in a browser
 ```
+
+`flowtest.py` walks the journey a person actually takes — types a route,
+reads the answer, reveals all 57 flights, filters to nonstop, sorts, saves a
+flight and reloads to check it survived, follows a deep link, and asks for a
+route we have not priced. Its expected counts are derived from the run data
+rather than hard-coded, so it keeps telling the truth when the data changes.
 
 ## Run it
 
@@ -282,7 +291,8 @@ teaserboard.py teasers.json -> teasers.html
 theme.py       the shared look: tokens, type, chart and table styles
 parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
-preview.py     dev tool: screenshot the dashboard in both themes
+preview.py     dev tool: screenshot a page in both themes
+flowtest.py    dev tool: drive the traveller flow end to end
 proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```
