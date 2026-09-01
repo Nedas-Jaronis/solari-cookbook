@@ -10,10 +10,9 @@ Built on [Solari](https://getsolari.com) cloud browsers, on a fork of their
 
 ![Searching a route it has never seen](flight-price-map/demo/demo.gif)
 
-Portland to Copenhagen, a route it had never priced: **44 seconds, 14 flights,
-$356** — and the same seat on Kayak and Momondo at the same price. Nothing in
-that recording is staged; it clears the route from the cache first so what you
-are watching is a real search.
+Tampa to Barcelona, a route it had never priced: **12 seconds, four sites,
+$376**. Nothing in that recording is staged — it clears the route from the
+cache first, so what you are watching is a real search happening.
 
 ## What it found
 

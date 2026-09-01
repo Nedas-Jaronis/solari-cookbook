@@ -162,7 +162,7 @@ what ends up in the file.
 
 ```bash
 python server.py                     # in one terminal
-python demo.py --from PDX --to CPH --date 2026-12-15
+python demo.py --from TPA --to BCN --date 2026-12-08
 ```
 
 It writes two files. `demo.webm` is the session exactly as it happened. The gif

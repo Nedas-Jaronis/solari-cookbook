@@ -12,11 +12,12 @@ import airports
 import itineraries
 
 CITY = {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted",
-        "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK",
+        "LTN": "Luton", "LCY": "London City", "JFK": "New York",
         "EWR": "Newark", "LGA": "LaGuardia", "TPA": "Tampa",
         "BCN": "Barcelona", "MAD": "Madrid", "CDG": "Paris CDG",
         "ORY": "Paris Orly", "FCO": "Rome Fiumicino", "AMS": "Amsterdam",
-        "NRT": "Tokyo Narita", "HND": "Tokyo Haneda"}
+        "NRT": "Tokyo Narita", "HND": "Tokyo Haneda", "LIS": "Lisbon",
+        "CPH": "Copenhagen", "DUB": "Dublin", "ATH": "Athens"}
 
 METRO_CITY = {"LON": "London", "NYC": "New York", "PAR": "Paris",
               "TYO": "Tokyo", "MIL": "Milan", "ROM": "Rome", "CHI": "Chicago",

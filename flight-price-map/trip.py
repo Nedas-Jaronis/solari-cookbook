@@ -58,7 +58,8 @@ form.finder {
 }
 .cell { background:var(--panel); padding:11px 16px; flex:1 1 170px;
         display:flex; flex-direction:column; justify-content:center; }
-.cell.narrow { flex:0 1 138px; }
+.cell.narrow { flex:0 1 132px; }
+.cell.wide { flex:1.3 1 190px; }
 .cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
               letter-spacing:.16em; text-transform:uppercase;
               color:var(--ink-3); }
@@ -262,12 +263,12 @@ TEMPLATE = """__HEAD__
       </div>
 
       <form class="finder" id="finder" autocomplete="off">
-        <div class="cell">
+        <div class="cell wide">
           <label for="from">From</label>
           <input id="from" name="from" list="places" placeholder="City or airport"
             value="__DEF_FROM__" required>
         </div>
-        <div class="cell">
+        <div class="cell wide">
           <label for="to">To</label>
           <input id="to" name="to" list="places" placeholder="City or airport"
             value="__DEF_TO__" required>
@@ -1035,7 +1036,7 @@ def main() -> None:
             .replace("__AGE__", theme.AGE)
             .replace("__WHEN_CELLS__", WHEN_LIVE if args.live else WHEN_STORED)
             .replace("__DEF_FROM__",
-                     "New York JFK (JFK)" if args.live else lead["from_full"])
+                     "New York (JFK)" if args.live else lead["from_full"])
             .replace("__DEF_TO__",
                      "Barcelona (BCN)" if args.live else lead["to_label"])
             .replace("__PROOF_PRICE__", money_str(best["price"]))

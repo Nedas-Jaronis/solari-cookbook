@@ -138,17 +138,17 @@ JS = """
 
   const NIGHT = {
     sky: ["#070b16", "#0b1428", "#101d3b"], stars: "#dbe9ff",
-    halo: "91,155,255", core: "#f2f8ff", edge: "#bcd8ff", body: "#6f9fe8",
+    core: "#f2f8ff", edge: "#bcd8ff", body: "#6f9fe8",
     smoke: "224,236,255", smokeMax: 0.34,
   };
   const DAY = {
     sky: ["#d7e7f8", "#e9f2fb", "#f6fafd"], stars: null,
-    halo: "120,170,235", core: "#08152c", edge: "#17376b", body: "#5d84ba",
+    core: "#08152c", edge: "#17376b", body: "#5d84ba",
     smoke: "255,255,255", smokeMax: 0.95,
   };
 
   let W = 0, H = 0, dpr = 1, pal = DAY, puffs = [], t = 0, raf = null;
-  let backdrop = null, puffSprite = null, haloSprite = null;
+  let backdrop = null, puffSprite = null;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   const darkOS = matchMedia("(prefers-color-scheme: dark)");
   const isDark = () => {
@@ -209,24 +209,19 @@ JS = """
     s.fillStyle = g;
     s.fillRect(0, 0, 64, 64);
 
-    // The halo is smooth, so a small sprite scaled up is indistinguishable
-    // from a full-size gradient and costs a fraction of it.
-    haloSprite = layer(256, 256);
-    const h = haloSprite.getContext("2d");
-    const hg = h.createRadialGradient(128, 128, 0, 128, 128, 128);
-    hg.addColorStop(0, "rgba(" + pal.halo + ",.22)");
-    hg.addColorStop(1, "rgba(" + pal.halo + ",0)");
-    h.fillStyle = hg;
-    h.fillRect(0, 0, 256, 256);
   }
 
   function size() {
-    dpr = Math.min(devicePixelRatio || 1, 1.5);
+    // Scenery, so pixels are worth trading for smoothness. A full-height hero
+    // on a large display is several times the area of a banner, and the cost
+    // is per pixel: past a couple of megapixels, drop to 1:1.
+    const area = canvas.clientWidth * canvas.clientHeight;
+    dpr = Math.min(devicePixelRatio || 1, area > 1.7e6 ? 1 : 1.5);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    puffs = Array.from({length: 130}, (_, i) => ({
-      u: i / 130,
+    puffs = Array.from({length: 110}, (_, i) => ({
+      u: i / 110,
       off: (Math.random() - 0.5) * 30,
       rise: (Math.random() - 0.5) * 0.8,
       size: 5 + Math.random() * 15,
@@ -246,19 +241,11 @@ JS = """
   // something is always on the way up, and the wrap has nothing to give away.
   const PHASES = [0, 0.5];
 
-  function flight(u, withHalo) {
+  function flight(u) {
     const seam = fade(u);
     if (seam < 0.02) return;               // wholly invisible, so no work
 
     const nose = path(u);
-    // The halo is the largest alpha blend in the frame, so only the climb
-    // that is actually lighting the sky draws one; a second, fainter glow
-    // costs as much as the first and is not visible next to it.
-    if (withHalo) {
-      const R = Math.max(W, H) * 0.32;
-      ctx.globalAlpha = seam;
-      ctx.drawImage(haloSprite, nose.x - R, nose.y - R, R * 2, R * 2);
-    }
 
     // Walk back from the newest puff and stop at the first invisible one.
     // They only fade with age, so everything beyond it is invisible too --
@@ -303,9 +290,7 @@ JS = """
   function scene(u) {
     ctx.globalAlpha = 1;
     ctx.drawImage(backdrop, 0, 0, W, H);
-    const at = PHASES.map(phase => (u + phase) % 1);
-    const lead = at.reduce((best, v) => fade(v) > fade(best) ? v : best, at[0]);
-    for (const v of at) flight(v, v === lead);
+    for (const phase of PHASES) flight((u + phase) % 1);
     ctx.globalAlpha = 1;
   }
 
