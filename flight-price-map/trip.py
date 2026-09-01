@@ -18,6 +18,7 @@ from collections import defaultdict
 
 import airports
 import itineraries
+import sky
 import theme
 from common import HERE
 
@@ -32,20 +33,7 @@ METRO_CITY = {"LON": "London", "NYC": "New York", "PAR": "Paris",
               "AMS": "Amsterdam", "BER": "Berlin"}
 
 EXTRA_CSS = """
-/* ---------- landing ---------- */
-.hero-wrap { padding:56px 0 20px; }
-.kicker { font-family:"IBM Plex Mono", monospace; font-size:11px;
-          letter-spacing:.2em; text-transform:uppercase; color:var(--accent); }
-.hero-h { font-family:"Saira Condensed", ui-sans-serif, sans-serif;
-          font-weight:700; text-transform:uppercase; letter-spacing:.01em;
-          font-size:clamp(38px,7vw,68px); line-height:.98; margin:14px 0 0;
-          text-wrap:balance; max-width:16ch; }
-.hero-p { font-size:17px; color:var(--ink-2); max-width:52ch; margin:18px 0 0; }
-/* The sky band. Canvas rather than SVG because it is a sprite blitter, and
-   pixelated rendering so the chunky pixels stay chunky on retina screens. */
-.sky { display:block; width:100%; height:150px; margin-top:26px;
-       border-radius:10px; border:1px solid var(--rule);
-       image-rendering:pixelated; box-shadow:var(--shadow); }
+__STAGE_CSS__
 
 form.finder {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
@@ -54,6 +42,7 @@ form.finder {
 }
 .cell { background:var(--panel); padding:11px 16px; flex:1 1 170px;
         display:flex; flex-direction:column; justify-content:center; }
+.cell.narrow { flex:0 1 138px; }
 .cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
               letter-spacing:.16em; text-transform:uppercase;
               color:var(--ink-3); }
@@ -188,15 +177,17 @@ TEMPLATE = """__HEAD__
 
 <!-- ============ landing ============ -->
 <section id="landing">
-  <div class="hero-wrap">
-    <div class="kicker">Fare Board</div>
-    <h1 class="hero-h">The cheapest way there, not the first way you find</h1>
-    <p class="hero-p">One search checks every big booking site and every airport
-      around your destination at the same time, then tells you which flight to
-      take and which site is selling it for least.</p>
+  <div class="stage">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <div class="copy">
+      <div class="kicker">Fare Board</div>
+      <h1 class="hero-h">The cheapest way there, <em>not the first way you
+        find</em></h1>
+      <p class="hero-p">One search checks every big booking site and every
+        airport around your destination at the same time, then tells you which
+        flight to take and which site is selling it for least.</p>
+    </div>
   </div>
-
-  <canvas class="sky" id="sky" aria-hidden="true"></canvas>
 
   <form class="finder" id="finder" autocomplete="off">
     <div class="cell">
@@ -212,6 +203,20 @@ TEMPLATE = """__HEAD__
     <div class="cell">
       <label for="when">Depart</label>
       <select id="when" name="when"></select>
+    </div>
+    <div class="cell narrow">
+      <label for="trip">Trip</label>
+      <select id="trip" name="trip">
+        <option value="oneway">One way</option>
+        <option value="return">Return</option>
+      </select>
+    </div>
+    <div class="cell narrow">
+      <label for="stops">Stops</label>
+      <select id="stops" name="stops">
+        <option value="any">Any</option>
+        <option value="0">Nonstop only</option>
+      </select>
     </div>
     <button class="go" type="submit">Find the fare</button>
   </form>
@@ -277,136 +282,7 @@ TEMPLATE = """__HEAD__
   </footer>
 </div>
 
-<script>
-/* ---------- the sky ---------- */
-(() => {
-  const canvas = document.getElementById("sky");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-
-  // '.' sky, W fuselage, R livery, D window glass.
-  const PLANE = [
-    "....RRR...................",
-    "....RRRR..................",
-    "....RRRRR.................",
-    "....RRRRRR................",
-    "..RRRRRRRRR...............",
-    ".WWWWWWWWWWWWWWWWWWWWWW...",
-    "WWDWWDWWDWWDWWDWWWWWWWWWR.",
-    "WWWWWWWWWWWWWWWWWWWWWWWWRR",
-    ".WWWWWWWWWWWWWWWWWWWWWW...",
-    "...WWWWWWWWWW.............",
-    "....WWWWWWW...............",
-    ".....WWWWW................",
-  ];
-  const CLOUD = [
-    "...CCCC.....",
-    ".CCCCCCCCC..",
-    "CCCCCCCCCCCC",
-  ];
-
-  // The band commits to being a scene: a daylit sky, or the same sky at dusk.
-  // It is an illustration rather than a surface, so it carries its own colours
-  // instead of borrowing the page's -- but it paints both, explicitly.
-  const DAY = {sky: ["#8ecdf2", "#d3ecfd"], C: "#ffffff",
-               dot: "rgba(255,255,255,.7)", W: "#ffffff", R: "#e11d48",
-               D: "#334155", trail: "rgba(255,255,255,.85)"};
-  const DUSK = {sky: ["#141d33", "#5b3f4a"], C: "#5a6a86",
-                dot: "rgba(255,255,255,.28)", W: "#f4f1ea", R: "#f43f5e",
-                D: "#1e293b", trail: "rgba(255,255,255,.35)"};
-
-  const PX = 5;
-  let W = 0, H = 0, pal = DAY, clouds = [], t = 0, raf = null;
-  const still = matchMedia("(prefers-reduced-motion: reduce)");
-  const darkOS = matchMedia("(prefers-color-scheme: dark)");
-
-  function isDark() {
-    const stamped = document.documentElement.getAttribute("data-theme");
-    if (stamped) return stamped === "dark";
-    return darkOS.matches;
-  }
-
-  function blit(rows, x, y, px) {
-    for (let r = 0; r < rows.length; r++) {
-      for (let c = 0; c < rows[r].length; c++) {
-        const ch = rows[r][c];
-        if (ch === ".") continue;
-        ctx.fillStyle = pal[ch] || pal.W;
-        ctx.fillRect(Math.round(x + c * px), Math.round(y + r * px), px, px);
-      }
-    }
-  }
-
-  function size() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    clouds = [0.06, 0.31, 0.55, 0.79, 0.93].map((frac, i) => ({
-      x: frac * W,
-      y: 12 + ((i * 29) % 52),
-      px: [4, 3, 5, 3, 4][i],
-      speed: [0.30, 0.16, 0.38, 0.14, 0.24][i],
-    }));
-  }
-
-  function scene(planeX) {
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, pal.sky[0]);
-    grad.addColorStop(1, pal.sky[1]);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-
-    const lane = H * 0.56;
-    ctx.fillStyle = pal.dot;
-    for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 6, PX * 2, PX);
-
-    for (const cloud of clouds) blit(CLOUD, cloud.x, cloud.y, cloud.px);
-
-    const bob = still.matches ? 0 : Math.sin(t / 44) * PX;
-    const top = lane - PLANE.length * PX / 2 + bob;
-    for (let i = 1; i <= 8; i++) {
-      ctx.globalAlpha = 0.5 - i * 0.055;
-      ctx.fillStyle = pal.trail;
-      ctx.fillRect(Math.round(planeX - i * PX * 2.4), Math.round(top + PX * 6.5),
-                   PX * 1.6, PX);
-    }
-    ctx.globalAlpha = 1;
-    blit(PLANE, planeX, top, PX);
-  }
-
-  function frame() {
-    const span = W + PLANE[0].length * PX + 90;
-    scene(((t * 1.6) % span) - PLANE[0].length * PX - 50);
-    for (const cloud of clouds) {
-      cloud.x -= cloud.speed;
-      if (cloud.x < -CLOUD[0].length * cloud.px) cloud.x = W + 24;
-    }
-    t += 1;
-    raf = requestAnimationFrame(frame);
-  }
-
-  function start() {
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    pal = isDark() ? DUSK : DAY;
-    size();
-    if (still.matches) { scene(W * 0.4); return; }   // one composed frame
-    raf = requestAnimationFrame(frame);
-  }
-
-  addEventListener("resize", start);
-  still.addEventListener("change", start);
-  darkOS.addEventListener("change", start);
-  new MutationObserver(start).observe(document.documentElement,
-    {attributes: true, attributeFilter: ["data-theme"]});
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
-    else if (!document.hidden) start();
-  });
-  start();
-})();
-</script>
+<script>__SKY_JS__</script>
 
 <script type="application/json" id="data">__DATA__</script>
 <script>
@@ -453,6 +329,13 @@ document.getElementById("finder").addEventListener("submit", e => {
   const from = document.getElementById("from").value;
   const to = document.getElementById("to").value;
   const when = document.getElementById("when").value;
+  if (document.getElementById("trip").value === "return") {
+    document.getElementById("nope").innerHTML = `<div class="nope">
+      We have only priced <b>one-way</b> trips so far. Return fares are a
+      different search and we have not run it yet, so there is nothing honest
+      to show you for one.</div>`;
+    return;
+  }
   const trip = findTrip(from, to, when);
   if (!trip) {
     document.getElementById("nope").innerHTML = `<div class="nope">
@@ -464,7 +347,10 @@ document.getElementById("finder").addEventListener("submit", e => {
       </div>`;
     return;
   }
-  location.hash = "#/" + trip.id;
+  const stops = document.getElementById("stops").value;
+  // The choice rides in the URL, so a filtered result is still a link you can
+  // send someone, and the results page can offer to widen it again.
+  location.hash = "#/" + trip.id + (stops === "0" ? "?stops=0" : "");
 });
 
 document.addEventListener("click", e => {
@@ -482,6 +368,10 @@ document.addEventListener("click", e => {
       state[filter] = value;
       document.querySelectorAll(`.pill[data-filter="${filter}"]`).forEach(p =>
         p.setAttribute("aria-pressed", p.dataset.value === value));
+      if (filter === "stops" && state.trip) {
+        history.replaceState(null, "", "#/" + state.trip.id +
+          (value === "0" ? "?stops=0" : ""));   // no hashchange, no re-route
+      }
     }
     renderFlights();
     return;
@@ -605,18 +495,21 @@ function renderFlights() {
 
 /* ---------- routing ---------- */
 function route() {
-  const id = location.hash.replace(/^#\\/?/, "");
+  const raw = location.hash.replace(/^#\\/?/, "");
+  const [id, query] = raw.split("?");
+  const params = new URLSearchParams(query || "");
   const trip = D.trips.find(t => t.id === id);
   const onResults = Boolean(trip);
   document.getElementById("landing").hidden = onResults;
   document.getElementById("results").hidden = !onResults;
   if (onResults) {
     state.trip = trip;
-    state.stops = "any"; state.airport = "all"; state.sort = "price";
+    state.stops = params.get("stops") === "0" ? "0" : "any";
+    state.airport = "all"; state.sort = "price";
     state.saved = false; state.shown = PAGE;
     document.querySelectorAll(".pill[data-filter]").forEach(p =>
       p.setAttribute("aria-pressed",
-        (p.dataset.filter === "stops" && p.dataset.value === "any") ||
+        (p.dataset.filter === "stops" && p.dataset.value === state.stops) ||
         (p.dataset.filter === "sort" && p.dataset.value === "price")));
     renderTrip();
     window.scrollTo(0, 0);
@@ -729,7 +622,8 @@ def main() -> None:
 
     page = (TEMPLATE
             .replace("__HEAD__", theme.head("Fare Board"))
-            .replace("__EXTRA__", EXTRA_CSS)
+            .replace("__EXTRA__", EXTRA_CSS.replace("__STAGE_CSS__", sky.CSS))
+            .replace("__SKY_JS__", sky.JS)
             .replace("__DEF_FROM__", lead["from_full"])
             .replace("__DEF_TO__", lead["to_label"])
             .replace("__PROOF_PRICE__", money_str(best["price"]))

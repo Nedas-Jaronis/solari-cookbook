@@ -97,7 +97,7 @@ python teaserboard.py         # -> teasers.html
 trip: a landing page that asks where you are going, and a result that says
 which flight to take and which site is selling it cheapest.
 
-![The landing page, with a pixel plane crossing the sky band](shots/landing-dark.png)
+![The landing page: an aircraft of glowing pixel dots climbing out on a smoke trail](shots/landing-dark.png)
 
 Submitting the form routes to `#/jfk-lon-2026-10-15`, so a result is a link you
 can send someone. A route we have not priced says so plainly and offers the
@@ -289,6 +289,7 @@ itineraries.py stored fares -> distinct flights, deduplicated
 dashboard.py   results.json -> a single-study page
 teaserboard.py teasers.json -> teasers.html
 theme.py       the shared look: tokens, type, chart and table styles
+sky.py         the hero stage: dot-cloud aircraft, smoke, day and night
 parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot a page in both themes

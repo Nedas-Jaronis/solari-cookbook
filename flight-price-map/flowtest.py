@@ -124,6 +124,41 @@ def main() -> int:
         check("survives a reload",
               page.eval_on_selector(".flight .save", "e=>e.textContent"), "Saved")
 
+        print("\n-- choosing nonstop before searching --")
+        page.goto(url); page.wait_for_timeout(350)
+        page.fill("#from", "New York JFK"); page.fill("#to", "London")
+        page.select_option("#stops", "0")
+        page.click(".go"); page.wait_for_timeout(600)
+        check("pre-filtered to nonstop",
+              page.eval_on_selector("#tally", "e=>e.textContent"),
+              f"{want['nonstop']} of {want['total']} flights")
+        check("the choice rides in the link", page.evaluate("location.hash"),
+              "#/jfk-lon-2026-10-15?stops=0")
+        check("and the pill agrees", page.eval_on_selector(
+            '.pill[data-value="0"]', "e=>e.getAttribute('aria-pressed')"), "true")
+        page.click('.pill[data-value="any"]'); page.wait_for_timeout(250)
+        check("widening drops it from the link",
+              page.evaluate("location.hash"), "#/jfk-lon-2026-10-15")
+        check("and shows everything again",
+              page.eval_on_selector("#tally", "e=>e.textContent"),
+              f"{want['total']} of {want['total']} flights")
+
+        print("\n-- a nonstop deep link --")
+        page.goto(url + "#/jfk-lon-2026-10-15?stops=0"); page.wait_for_timeout(800)
+        check("opens already filtered",
+              page.eval_on_selector("#tally", "e=>e.textContent"),
+              f"{want['nonstop']} of {want['total']} flights")
+
+        print("\n-- a return trip, which we have not priced --")
+        page.goto(url); page.wait_for_timeout(350)
+        page.fill("#from", "New York JFK"); page.fill("#to", "London")
+        page.select_option("#trip", "return")
+        page.click(".go"); page.wait_for_timeout(350)
+        check("says so", page.eval_on_selector(
+            ".nope", "e=>e.textContent.includes('one-way')"), True)
+        check("stays on the search",
+              page.eval_on_selector("#results", "e=>e.hidden"), True)
+
         print("\n-- deep link and back --")
         page.goto(url + "#/jfk-lon-2026-10-15"); page.wait_for_timeout(800)
         check("deep link opens results",
@@ -133,6 +168,10 @@ def main() -> int:
               page.eval_on_selector("#landing", "e=>!e.hidden"), True)
 
         print("\n-- a route we have not priced --")
+        # Reload rather than trusting the last section's state: navigating to
+        # the same URL with a different hash does not reload, so form controls
+        # keep whatever they were last set to.
+        page.reload(); page.wait_for_timeout(700)
         page.fill("#from", "New York JFK"); page.fill("#to", "Paris")
         page.click(".go"); page.wait_for_timeout(350)
         check("says so rather than inventing one", page.eval_on_selector(
