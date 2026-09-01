@@ -151,6 +151,26 @@ so $747 really is the cheapest they offered, but a gap that size against Google
 more likely means a fare class one of them is filtering than a real arbitrage.
 Worth a look before it goes in a post.
 
+## A demo of it working
+
+![Searching a route it has never seen](demo/demo.gif)
+
+`demo.py` drives the live page against the live service and records what
+happens. Nothing is staged: it drops the route from the cache first so the
+recording shows a real search, and whatever the sites do during the take is
+what ends up in the file.
+
+```bash
+python server.py                     # in one terminal
+python demo.py --from PDX --to CPH --date 2026-12-15
+```
+
+It writes two files. `demo.webm` is the session exactly as it happened. The gif
+is the same run with the pacing changed: the wait is filmed as a fixed handful
+of moments however long it takes, so twenty seconds of spinner plays back in
+two. A viewer needs to know the wait exists, not to sit through it -- and a gif
+of a hundred spinner frames is too large to post anyway.
+
 ## Live: any route, on request
 
 Everything above priced a fixed list of routes and baked the answer into a

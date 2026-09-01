@@ -549,10 +549,7 @@ select option { background:var(--panel); color:var(--ink); }
   </header>
 
   <div class="search" id="summary"></div>
-  <p class="snapshot">A snapshot of real fares at the time shown, not a live
-    search &mdash; a published page cannot drive cloud browsers. Airlines move
-    prices constantly, so treat these as where to look, then book on the site
-    named.</p>
+  <p class="snapshot" id="snapshot"></p>
 
   <div class="pick" id="pick"></div>
   <div class="trust" id="trust"></div>
@@ -1163,8 +1160,18 @@ function visible() {
   ).sort((a, b) => (a[state.sort] ?? 1e9) - (b[state.sort] ?? 1e9));
 }
 
+const SNAPSHOT_LIVE =
+  "Searched just now, across every site at once. Airlines move prices "
+  + "constantly, so book on the site named while it is still there.";
+const SNAPSHOT_STORED =
+  "A snapshot of real fares at the time shown, not a live search — a "
+  + "published page cannot drive cloud browsers. Treat these as where to "
+  + "look, then book on the site named.";
+
 function renderTrip() {
   const t = state.trip;
+  document.getElementById("snapshot").textContent =
+    D.live ? SNAPSHOT_LIVE : SNAPSHOT_STORED;
   document.getElementById("route-h").innerHTML =
     `${esc(t.from_label)} <span style="color:var(--ink-3)">&rarr;</span> ${esc(t.to_label)}`;
   document.getElementById("read-at").textContent = "prices read " + t.read_at;
@@ -1211,9 +1218,11 @@ function renderTrip() {
     ${bits.length ? `<p class="pick-why">${bits.join(" ")}</p>` : ""}`;
 
   document.getElementById("trust").innerHTML = `
-    <span><b>${t.sites}</b> booking sites checked</span>
-    <span><b>${t.airports}</b> airports around the destination</span>
-    <span><b>${t.searches}</b> searches in <b>${t.seconds}s</b></span>`;
+    <span><b>${t.sites}</b> booking site${t.sites === 1 ? "" : "s"} checked</span>
+    <span><b>${t.airports}</b> airport${t.airports === 1 ? "" : "s"} around
+      the destination</span>
+    <span><b>${t.searches}</b> search${t.searches === 1 ? "" : "es"} in
+      <b>${t.seconds}s</b></span>`;
 
   const airlines = [...new Set(t.flights.map(f => f.airline).filter(Boolean))].sort();
   document.getElementById("f-airline").innerHTML =
