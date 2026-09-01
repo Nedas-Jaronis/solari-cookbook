@@ -38,15 +38,8 @@ def discover() -> list[str]:
                    for p in glob.glob(str(HERE / "run-*.json")))
     return [n for n in named if (HERE / n).exists()] + extra
 
-CITY = {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted",
-        "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK",
-        "EWR": "Newark", "LGA": "LaGuardia"}
-
-METRO_CITY = {"LON": "London", "NYC": "New York", "PAR": "Paris",
-              "TYO": "Tokyo", "MIL": "Milan", "ROM": "Rome", "CHI": "Chicago",
-              "WAS": "Washington", "BOS": "Boston", "MIA": "Miami",
-              "LAX": "Los Angeles", "SFO": "San Francisco", "TPA": "Tampa",
-              "AMS": "Amsterdam", "BER": "Berlin"}
+CITY = tripslib.CITY
+METRO_CITY = tripslib.METRO_CITY
 
 EXTRA_CSS = """
 __STAGE_CSS__
@@ -54,7 +47,14 @@ __STAGE_CSS__
 form.finder {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
   background:var(--rule); border:1px solid var(--rule); border-radius:10px;
-  overflow:hidden; box-shadow:var(--shadow);
+  box-shadow:var(--shadow);
+}
+/* No overflow:hidden -- the suggestion list has to escape the row. The corners
+   are rounded on the end pieces instead. */
+.finder > :first-child { border-radius:9px 0 0 9px; }
+.finder > .go { border-radius:0 9px 9px 0; }
+@media (max-width:1023px) {
+  .finder > :first-child, .finder > .go { border-radius:9px; }
 }
 .cell { background:var(--panel); padding:11px 16px; flex:1 1 140px;
         display:flex; flex-direction:column; justify-content:center; }
@@ -63,11 +63,55 @@ form.finder {
 .cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
               letter-spacing:.16em; text-transform:uppercase;
               color:var(--ink-3); }
+.cell { position:relative; }
 .cell input, .cell select {
   border:0; background:none; color:var(--ink); font-size:16px; font-weight:500;
-  font-family:inherit; padding:3px 0 0; width:100%;
+  font-family:inherit; padding:3px 0 0; width:100%; line-height:1.35;
 }
 .cell input:focus, .cell select:focus { outline:none; }
+/* The browser draws the calendar button as a dark glyph, which vanishes on a
+   dark field. Invert it there, and let the picker itself follow the theme. */
+input[type="date"] { color-scheme:inherit; cursor:pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor:pointer; opacity:.55; transition:opacity .15s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
+:root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter:invert(1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator {
+    filter:invert(1);
+  }
+}
+
+/* ---- suggestions ---- */
+.options {
+  /* Sized to the longest name it holds rather than to the box it hangs from:
+     "Paris Charles de Gaulle (CDG)" does not fit a 168px field. */
+  position:absolute; left:-1px; top:calc(100% + 5px); z-index:40;
+  width:max-content; min-width:calc(100% + 2px); max-width:340px;
+  margin:0; padding:5px; list-style:none; max-height:270px; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+  box-shadow:0 14px 34px rgba(8,14,26,.35);
+}
+.options li {
+  display:flex; align-items:baseline; gap:9px; padding:8px 11px;
+  border-radius:7px; cursor:pointer; font-size:14px; white-space:nowrap;
+}
+.options li[aria-selected="true"] {
+  background:var(--accent); color:var(--panel);
+}
+.options li[aria-selected="true"] .code { color:var(--panel); opacity:.75; }
+.options li[aria-selected="true"] mark { color:var(--panel);
+                                         text-decoration:underline; }
+.options li .code {
+  font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.06em;
+  color:var(--ink-3); margin-left:auto;
+}
+.options li mark { background:none; color:var(--accent); font-weight:600; }
+.options .none { color:var(--ink-3); padding:10px 11px; cursor:default; }
 /* Native select chrome is a different widget on every platform and none of
    them match this page, so the arrow is ours and drawn in the ink colour. */
 select {
@@ -265,20 +309,24 @@ TEMPLATE = """__HEAD__
       <form class="finder" id="finder" autocomplete="off">
         <div class="cell wide">
           <label for="from">From</label>
-          <input id="from" name="from" list="places" placeholder="City or airport"
-            value="__DEF_FROM__" required>
+          <input id="from" name="from" placeholder="City or airport"
+            value="__DEF_FROM__" required autocomplete="off" role="combobox"
+            aria-expanded="false" aria-autocomplete="list" aria-controls="from-list">
+          <ul class="options" id="from-list" role="listbox" hidden></ul>
         </div>
         <div class="cell wide">
           <label for="to">To</label>
-          <input id="to" name="to" list="places" placeholder="City or airport"
-            value="__DEF_TO__" required>
+          <input id="to" name="to" placeholder="City or airport"
+            value="__DEF_TO__" required autocomplete="off" role="combobox"
+            aria-expanded="false" aria-autocomplete="list" aria-controls="to-list">
+          <ul class="options" id="to-list" role="listbox" hidden></ul>
         </div>
 __WHEN_CELLS__
         <div class="cell narrow">
           <label for="trip">Trip</label>
           <select id="trip" name="trip">
             <option value="oneway">One way</option>
-            <option value="return">Return</option>
+            <option value="return">Round trip</option>
           </select>
         </div>
         <div class="cell narrow">
@@ -296,7 +344,6 @@ __WHEN_CELLS__
       <i></i>How it works</button>
   </div>
 
-  <datalist id="places"></datalist>
   <div id="progress" class="progress" hidden></div>
   <div id="nope"></div>
 
@@ -438,9 +485,103 @@ const within = (mins, window) => {
 const idOf = f => `${f.destination}|${f.airline}|${f.depart_at}|${f.minutes}`;
 
 /* ---------- landing ---------- */
+/* ---------- the place fields ----------
+   A datalist looked like a dropdown and behaved like a browser setting: no
+   styling, and on several browsers nothing appears until you clear the box.
+   This is the same idea built properly -- filters as you type, arrow keys
+   move, Enter takes, Escape closes. */
+const PLACES = (D.places || []).map(p =>
+  typeof p === "string" ? {code: null, label: p} : p);
+
+function suggest(query, limit = 8) {
+  const q = norm(query);
+  if (!q) return PLACES.slice(0, limit);
+  const starts = [], holds = [];
+  for (const place of PLACES) {
+    const label = place.label.toLowerCase();
+    const code = (place.code || "").toLowerCase();
+    if (label.startsWith(q) || code === q) starts.push(place);
+    else if (label.includes(q) || code.startsWith(q)) holds.push(place);
+    if (starts.length >= limit) break;
+  }
+  return [...starts, ...holds].slice(0, limit);
+}
+
+function highlight(label, query) {
+  const q = norm(query);
+  const at = q ? label.toLowerCase().indexOf(q) : -1;
+  if (at < 0) return esc(label);
+  return esc(label.slice(0, at)) + "<mark>" + esc(label.slice(at, at + q.length))
+       + "</mark>" + esc(label.slice(at + q.length));
+}
+
+function combo(inputId, listId) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  if (!input || !list) return;
+  let items = [], at = -1;
+
+  const close = () => {
+    list.hidden = true; list.innerHTML = ""; at = -1;
+    input.setAttribute("aria-expanded", "false");
+  };
+  const paint = () => {
+    [...list.children].forEach((li, i) =>
+      li.setAttribute("aria-selected", String(i === at)));
+    if (at >= 0) list.children[at].scrollIntoView({block: "nearest"});
+  };
+  const open = () => {
+    items = suggest(input.value);
+    if (!items.length) {
+      list.innerHTML = "<li class='none'>No airport by that name</li>";
+    } else {
+      list.innerHTML = items.map(p =>
+        `<li role="option" aria-selected="false">
+           <span>${highlight(p.label, input.value)}</span>
+           ${p.code ? `<span class="code">${esc(p.code)}</span>` : ""}</li>`).join("");
+    }
+    list.hidden = false;
+    at = -1;
+    input.setAttribute("aria-expanded", "true");
+  };
+  const take = i => {
+    if (!items[i]) return;
+    input.value = items[i].label;
+    close();
+  };
+
+  input.addEventListener("input", open);
+  input.addEventListener("focus", open);
+  input.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (list.hidden) return open();
+      at = (at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      paint();
+    } else if (e.key === "Enter" && !list.hidden && at >= 0) {
+      e.preventDefault(); take(at);
+    } else if (e.key === "Escape") {
+      close();
+    } else if (e.key === "Tab" && at >= 0) {
+      take(at);
+    }
+  });
+  // mousedown, not click: blur would close the list before a click landed.
+  list.addEventListener("mousedown", e => {
+    const li = e.target.closest("li[role=option]");
+    if (li) { e.preventDefault(); take([...list.children].indexOf(li)); }
+  });
+  list.addEventListener("mousemove", e => {
+    const li = e.target.closest("li[role=option]");
+    if (li) { at = [...list.children].indexOf(li); paint(); }
+  });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+}
+
+combo("from", "from-list");
+combo("to", "to-list");
+
 if (D.live) {
-  document.getElementById("places").innerHTML =
-    D.places.map(p => `<option value="${esc(p.label)}">`).join("");
   const when = document.getElementById("when");
   const soon = new Date(Date.now() + 42 * 86400000);
   when.value = soon.toISOString().slice(0, 10);
@@ -454,8 +595,6 @@ if (D.live) {
     }
   });
 } else {
-  document.getElementById("places").innerHTML =
-    D.places.map(p => `<option value="${esc(p)}">`).join("");
   document.getElementById("when").innerHTML =
     D.dates.map(d => `<option value="${esc(d.iso)}">${esc(d.label)}</option>`).join("");
 }
@@ -582,7 +721,7 @@ document.getElementById("finder").addEventListener("submit", e => {
     }
     if (kind === "return" && !ret) {
       document.getElementById("nope").innerHTML =
-        `<div class="nope">A return trip needs a date to come back on.</div>`;
+        `<div class="nope">A round trip needs a date to come back on.</div>`;
       return;
     }
     location.hash = `#/live?from=${from}&to=${to}&date=${date}` +
@@ -598,13 +737,13 @@ document.getElementById("finder").addEventListener("submit", e => {
   if (!trip) {
     document.getElementById("nope").innerHTML = `<div class="nope">
       We have not priced <b>${esc(from)} &rarr; ${esc(to)}</b>${
-        kind === "return" ? " as a return" : " one way"} yet. Every route
+        kind === "return" ? " as a round trip" : " one way"} yet. Every route
       here was gathered by actually running the searches, so the list is short
       and honest rather than long and made up.
       <div class="offers">${D.trips.map(t =>
         `<button class="linkish" data-go="${esc(t.id)}">${esc(t.from_label)}
          &rarr; ${esc(t.to_label)}, ${esc(t.date_label)}${
-           t.kind === "return" ? ", back " + esc(t.ret_label) : ", one way"
+           t.kind === "return" ? ", round trip back " + esc(t.ret_label) : ", one way"
          }</button>`).join("")}</div>
       </div>`;
     return;
@@ -719,7 +858,7 @@ function renderTrip() {
   document.getElementById("summary").innerHTML = [
     ["From", t.from_full], ["To", t.to_label + ", any airport"],
     ["Depart", t.date_label],
-    t.ret_label ? ["Return", t.ret_label] : ["Trip", "One way"],
+    t.ret_label ? ["Returning", t.ret_label] : ["Trip", "One way"],
     ["Travellers", "1 adult, economy"],
   ].map(([k, v]) => `<div class="field"><div class="k">${k}</div>
       <div class="v">${esc(v)}</div></div>`).join("");
@@ -897,7 +1036,7 @@ WHEN_LIVE = """        <div class="cell">
           <input type="date" id="when" name="when" required>
         </div>
         <div class="cell narrow" id="retcell" hidden>
-          <label for="retdate">Back</label>
+          <label for="retdate">Returning</label>
           <input type="date" id="retdate" name="retdate">
         </div>"""
 
@@ -939,68 +1078,21 @@ def main() -> None:
     if not flights:
         raise SystemExit("No itineraries with enough detail to show.")
 
-    # One trip per (origin, destination metro, date) we actually priced. The
-    # landing page offers only these, because a route we have not run is a
-    # route we cannot answer.
-    grouped = defaultdict(list)
-    for flight in flights:
-        metro = airports.metro_of(flight["destination"]) or flight["destination"]
-        grouped[(flight["origin"], metro, flight["date"],
-                 flight["ret"] or "")].append(flight)
-
-    trips = []
-    for (origin, metro, when, back), group in grouped.items():
-        base = next((r for r in runs
-                     if r["date"] == when and (r.get("ret") or "") == back),
-                    runs[0])
-        asked = base["destination"]
-        at_asked = [f["price"] for f in group if f["destination"] == asked]
-        every = [r for run in runs if run["date"] == when
-                 and (run.get("ret") or "") == back
-                 for r in run.get("results", []) if r["origin"] == origin]
-        from_label, to_label = label_for(origin), METRO_CITY.get(metro, metro)
-        trips.append({
-            "id": f"{origin}-{metro}-{when}-{'rt' if back else 'ow'}".lower(),
-            "kind": "return" if back else "oneway",
-            "ret": back or None,
-            "ret_label": pretty(back) if back else None,
-            "from_label": from_label,
-            "from_full": CITY.get(origin, origin),
-            "to_label": to_label,
-            # Everything a person might type that should find this trip.
-            "from_keys": sorted({origin.lower(), from_label.lower(),
-                                 CITY.get(origin, origin).lower()}),
-            "to_keys": sorted({metro.lower(), to_label.lower()}
-                              | {c.lower() for c in airports.expand(metro)}
-                              | {CITY.get(c, c).lower()
-                                 for c in airports.expand(metro)}),
-            "date": when,
-            "date_label": pretty(when),
-            "read_at": base.get("generated_at", "")[:16].replace("T", " "),
-            "flights": group,
-            "asked_airport": CITY.get(asked, asked),
-            "airport_saving": max(min(at_asked) - group[0]["price"], 0)
-                              if at_asked else 0,
-            "sites": len({r["site"] for r in every}),
-            "airports": len({r["destination"] for r in every}),
-            "searches": len(every),
-            "seconds": round(sum(run.get("seconds", 0) for run in runs
-                                 if run["date"] == when
-                                 and (run.get("ret") or "") == back)),
-        })
-    trips.sort(key=lambda t: (t["kind"] != "oneway", t["date"]))
+    # One trip per route, date and trip type we priced. Built by trips.py,
+    # the same code the live service uses, so a stored answer and a fresh one
+    # are described identically -- and a fix to one is a fix to both.
+    trips = tripslib.build(runs)
+    if not trips:
+        raise SystemExit("No trips could be built from those runs.")
 
     lead = trips[0]
     if args.live:
         # Every airport we know how to name, so the box can suggest rather than
         # demand that someone remember a three-letter code.
-        seen = {}
-        for metro, codes in airports.METROS.items():
-            for code in codes:
-                seen[code] = f"{CITY.get(code, code)} ({code})"
-        for code, name in CITY.items():
-            seen.setdefault(code, f"{name} ({code})")
-        places = [{"code": c, "label": seen[c]} for c in sorted(seen)]
+        codes = {c for codes in airports.METROS.values() for c in codes}
+        codes |= set(CITY)
+        places = sorted(({"code": c, "label": tripslib.place_label(c)}
+                         for c in codes), key=lambda p: p["label"])
     else:
         places = sorted({t["from_full"] for t in trips}
                         | {t["to_label"] for t in trips})
@@ -1036,9 +1128,9 @@ def main() -> None:
             .replace("__AGE__", theme.AGE)
             .replace("__WHEN_CELLS__", WHEN_LIVE if args.live else WHEN_STORED)
             .replace("__DEF_FROM__",
-                     "New York (JFK)" if args.live else lead["from_full"])
+                     tripslib.place_label("JFK") if args.live else lead["from_full"])
             .replace("__DEF_TO__",
-                     "Barcelona (BCN)" if args.live else lead["to_label"])
+                     tripslib.place_label("BCN") if args.live else lead["to_label"])
             .replace("__PROOF_PRICE__", money_str(best["price"]))
             .replace("__PROOF_TEXT__", proof_text)
             .replace("__PROOF_SUB__", proof_sub)

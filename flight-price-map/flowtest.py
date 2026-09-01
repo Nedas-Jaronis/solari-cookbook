@@ -216,7 +216,7 @@ def main() -> int:
         check("the pick names the way back",
               page.eval_on_selector("#pick", "e=>e.textContent.includes('Back')"), True)
         check("summary shows a return date", page.eval_on_selector_all(
-            "#summary .k", "els=>els.some(e=>e.textContent==='Return')"), True)
+            "#summary .k", "els=>els.some(e=>e.textContent==='Returning')"), True)
         check("every card carries two legs", page.eval_on_selector_all(
             ".flight:first-child .way", "els=>els.map(e=>e.textContent).join()"),
             "Out,Back")
