@@ -151,6 +151,59 @@ so $747 really is the cheapest they offered, but a gap that size against Google
 more likely means a fare class one of them is filtering than a real arbitrage.
 Worth a look before it goes in a post.
 
+## Live: any route, on request
+
+Everything above priced a fixed list of routes and baked the answer into a
+page. `server.py` takes a route it has never seen and goes and finds out,
+which is the whole point of having cloud browsers.
+
+```bash
+python trip.py --live --out live.html
+python server.py                     # -> http://localhost:8080
+```
+
+Measured, on routes that had never been searched:
+
+```
+BOS -> LIS   22s   4/4 sites    11 flights   best $299
+MIA -> MAD   40s   4/4 sites     9 flights   best $329
+BOS -> LHR   24s   quick answer, 8 flights, Heathrow only
+            110s   widened to all 5 London airports, 43 flights
+same search again          0.03s from cache
+```
+
+Three things shape it, and all three came from measurement:
+
+**The quick answer comes first.** Six sites on one route is about twenty
+seconds, which is a fine wait. Every nearby airport as well is thirty browsers
+and about two minutes, which is not. So the page shows the one-airport answer
+as soon as it lands and fills in the alternatives underneath while you read.
+
+**Repeating a search is the expensive mistake.** Fares do not move minute to
+minute. An identical route and date inside the cache window is answered from
+store in 30ms rather than 20 seconds, which matters twice over: ten people
+asking the same question on the same morning would otherwise cost ten times as
+much *and* get us blocked ten times faster.
+
+**The sites push back.** A global browser limit keeps us inside the plan's
+concurrency whatever arrives, and the per-site throttle still applies. Four
+sweeps by one person was enough to lose Skyscanner for a day; an open endpoint
+without these would lose everything.
+
+No web framework — the standard library serves this shape of thing perfectly
+well, and an example is more useful when it runs on a bare Python. The API key
+stays server-side, which is the other reason this cannot be a page on its own.
+
+### Is this a good use of cloud browsers?
+
+For the gathering, yes, and each leg of it was tested rather than assumed:
+these sites publish no API, they actively fight automation, and the whole value
+is asking twenty questions at once. The honest caveats are that a public
+endpoint's ceiling is blocking rather than engineering, and that the thing is
+worth least on the routes everyone benchmarks. On JFK-LHR the site spread was
+$23; on Tampa to Barcelona it was **$141, 39%**. It earns its keep on the
+routes nobody thinks to check.
+
 ## The traveller's site
 
 `board.py` is for whoever runs the tool. `trip.py` is for whoever takes the
@@ -343,6 +396,8 @@ claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
 airports.py    metro-area airport groups (LON -> LHR LGW STN LTN LCY)
 common.py      shared types, money parsing, block and empty-page detection
+server.py      the live service: any route, on request
+trips.py       runs -> the trips a traveller chooses between
 board.py       every run -> board.html, the operator's dashboard
 trip.py        every run -> trip.html, the traveller's page
 itineraries.py stored fares -> distinct flights, deduplicated

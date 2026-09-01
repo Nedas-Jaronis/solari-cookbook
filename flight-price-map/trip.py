@@ -21,6 +21,7 @@ from collections import defaultdict
 import airports
 import itineraries
 import sky
+import trips as tripslib
 import theme
 from common import HERE
 
@@ -103,6 +104,17 @@ select option { background:var(--panel); color:var(--ink); }
 .proof .line b { color:var(--accent); font-size:19px; }
 .proof p { margin:8px 0 0; color:var(--ink-2); font-size:14px; }
 
+.progress { margin-top:16px; background:var(--panel); border:1px solid var(--rule);
+            border-radius:10px; padding:16px 20px; box-shadow:var(--shadow);
+            display:flex; align-items:center; gap:14px; }
+.progress .spin { width:16px; height:16px; border-radius:50%; flex:0 0 auto;
+                  border:2px solid var(--rule); border-top-color:var(--accent);
+                  animation:turn .9s linear infinite; }
+@keyframes turn { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .progress .spin { animation:none; } }
+.progress b { font-weight:600; }
+.progress small { display:block; color:var(--ink-3); font-size:12.5px;
+                  margin-top:2px; }
 .nope { background:var(--panel); border:1px solid var(--warn);
         border-radius:10px; padding:18px 22px; margin-top:18px;
         font-size:14.5px; color:var(--ink-2); }
@@ -248,10 +260,7 @@ TEMPLATE = """__HEAD__
           <input id="to" name="to" list="places" placeholder="City or airport"
             value="__DEF_TO__" required>
         </div>
-        <div class="cell">
-          <label for="when">Depart</label>
-          <select id="when" name="when"></select>
-        </div>
+__WHEN_CELLS__
         <div class="cell narrow">
           <label for="trip">Trip</label>
           <select id="trip" name="trip">
@@ -274,6 +283,7 @@ TEMPLATE = """__HEAD__
   </div>
 
   <datalist id="places"></datalist>
+  <div id="progress" class="progress" hidden></div>
   <div id="nope"></div>
 
   <div class="how">
@@ -415,13 +425,133 @@ const within = (mins, window) => {
 const idOf = f => `${f.destination}|${f.airline}|${f.depart_at}|${f.minutes}`;
 
 /* ---------- landing ---------- */
-document.getElementById("places").innerHTML =
-  D.places.map(p => `<option value="${esc(p)}">`).join("");
-document.getElementById("when").innerHTML =
-  D.dates.map(d => `<option value="${esc(d.iso)}">${esc(d.label)}</option>`).join("");
+if (D.live) {
+  document.getElementById("places").innerHTML =
+    D.places.map(p => `<option value="${esc(p.label)}">`).join("");
+  const when = document.getElementById("when");
+  const soon = new Date(Date.now() + 42 * 86400000);
+  when.value = soon.toISOString().slice(0, 10);
+  when.min = new Date().toISOString().slice(0, 10);
+  const retcell = document.getElementById("retcell");
+  document.getElementById("trip").addEventListener("change", e => {
+    retcell.hidden = e.target.value !== "return";
+    if (!retcell.hidden && !document.getElementById("retdate").value) {
+      const back = new Date(Date.now() + 49 * 86400000);
+      document.getElementById("retdate").value = back.toISOString().slice(0, 10);
+    }
+  });
+} else {
+  document.getElementById("places").innerHTML =
+    D.places.map(p => `<option value="${esc(p)}">`).join("");
+  document.getElementById("when").innerHTML =
+    D.dates.map(d => `<option value="${esc(d.iso)}">${esc(d.label)}</option>`).join("");
+}
+
+const progress = document.getElementById("progress");
+
+function working(headline, detail) {
+  progress.hidden = false;
+  progress.innerHTML = `<span class="spin"></span><div><b>${esc(headline)}</b>
+    <small>${esc(detail || "")}</small></div>`;
+}
+function stopWorking() { progress.hidden = true; progress.innerHTML = ""; }
+
+const codeOf = value => {
+  const inParens = String(value).match(/[(]([A-Za-z]{3})[)]\s*$/);
+  if (inParens) return inParens[1].toUpperCase();
+  const bare = String(value).trim().toUpperCase();
+  if (/^[A-Z]{3}$/.test(bare)) return bare;
+  const needle = String(value).trim().toLowerCase();
+  const hit = (D.places || []).find(p => p.label.toLowerCase().includes(needle));
+  return hit ? hit.code : null;
+};
+
+function showJob(job) {
+  if (!job.trip) return false;
+  state.trip = job.trip;
+  document.getElementById("landing").hidden = true;
+  document.getElementById("results").hidden = false;
+  renderTrip();
+  return true;
+}
+
+async function liveSearch(from, to, date, ret) {
+  const body = {from, to, date, ret: ret || null, nearby: true};
+  working("Checking every site at once",
+          `${from} to ${to}, ${date}. Six browsers, about twenty seconds.`);
+  let job;
+  try {
+    const res = await fetch("/api/search", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)});
+    job = await res.json();
+    if (!res.ok) throw new Error(job.error || "the search was refused");
+  } catch (err) {
+    stopWorking();
+    document.getElementById("nope").innerHTML =
+      `<div class="nope">Could not reach the search service. Is
+       <code>python server.py</code> running? <b>${esc(err.message)}</b></div>`;
+    return;
+  }
+
+  if (job.from_cache && showJob(job)) {
+    stopWorking();
+    return;
+  }
+
+  const started = Date.now();
+  const timer = setInterval(async () => {
+    let now;
+    try { now = await (await fetch("/api/search/" + job.id)).json(); }
+    catch (err) { return; }                       // a dropped poll is not fatal
+
+    if (now.phase === "failed" || (now.phase === "done" && !now.trip)) {
+      clearInterval(timer); stopWorking();
+      document.getElementById("nope").innerHTML =
+        `<div class="nope">${esc(now.error || "No fares came back for that route.")}
+         </div>`;
+      return;
+    }
+    if (now.trip) showJob(now);
+    if (now.phase === "widening") {
+      working("Now trying the nearby airports",
+              `Found ${now.answered} so far. Adding ${
+                (now.widening_to || []).join(", ")}.`);
+    } else if (now.phase !== "done") {
+      working("Checking every site at once",
+              `${Math.round((Date.now() - started) / 1000)}s so far.`);
+    }
+    if (now.phase === "done") { clearInterval(timer); stopWorking(); }
+  }, 1500);
+}
 
 document.getElementById("finder").addEventListener("submit", e => {
   e.preventDefault();
+  document.getElementById("nope").innerHTML = "";
+
+  if (D.live) {
+    const from = codeOf(document.getElementById("from").value);
+    const to = codeOf(document.getElementById("to").value);
+    const date = document.getElementById("when").value;
+    const kind = document.getElementById("trip").value;
+    const ret = kind === "return"
+      ? document.getElementById("retdate").value : null;
+    if (!from || !to) {
+      document.getElementById("nope").innerHTML = `<div class="nope">
+        Use an airport code or pick from the list &mdash; <b>JFK</b>,
+        <b>LHR</b>, <b>Barcelona (BCN)</b>.</div>`;
+      return;
+    }
+    if (kind === "return" && !ret) {
+      document.getElementById("nope").innerHTML =
+        `<div class="nope">A return trip needs a date to come back on.</div>`;
+      return;
+    }
+    location.hash = `#/live?from=${from}&to=${to}&date=${date}` +
+                    (ret ? `&ret=${ret}` : "");
+    return;
+  }
+
   const from = document.getElementById("from").value;
   const to = document.getElementById("to").value;
   const when = document.getElementById("when").value;
@@ -649,6 +779,21 @@ function route() {
   const raw = location.hash.replace(/^#\\/?/, "");
   const [id, query] = raw.split("?");
   const params = new URLSearchParams(query || "");
+
+  // A live search is a link too: the route rides in the hash, so a result can
+  // be sent to someone and the service answers it again from cache.
+  if (D.live && id === "live" && params.get("from")) {
+    document.getElementById("landing").hidden = true;
+    document.getElementById("results").hidden = false;
+    state.stops = "any"; state.airport = "all"; state.sort = "price";
+    state.saved = false; state.shown = PAGE;
+    state.depart = "any"; state.arrive = "any";
+    state.airline = "any"; state.max = "any";
+    liveSearch(params.get("from"), params.get("to"),
+               params.get("date"), params.get("ret"));
+    return;
+  }
+
   const trip = D.trips.find(t => t.id === id);
   const onResults = Boolean(trip);
   document.getElementById("landing").hidden = onResults;
@@ -680,6 +825,21 @@ route();
 """
 
 
+WHEN_STORED = """        <div class="cell">
+          <label for="when">Depart</label>
+          <select id="when" name="when"></select>
+        </div>"""
+
+WHEN_LIVE = """        <div class="cell">
+          <label for="when">Depart</label>
+          <input type="date" id="when" name="when" required>
+        </div>
+        <div class="cell narrow" id="retcell" hidden>
+          <label for="retdate">Back</label>
+          <input type="date" id="retdate" name="retdate">
+        </div>"""
+
+
 def pretty(iso: str) -> str:
     from datetime import date
     y, m, d = (int(x) for x in iso.split("-"))
@@ -698,6 +858,9 @@ def main() -> None:
     ap.add_argument("--out", default="trip.html")
     ap.add_argument("--board-url", default="",
                     help="link to the operator's board, if it is published")
+    ap.add_argument("--live", action="store_true",
+                    help="search any route through server.py instead of only "
+                         "the ones already priced")
     ap.add_argument("--standalone", action="store_true")
     args = ap.parse_args()
     args.runs = args.runs or discover()
@@ -766,8 +929,21 @@ def main() -> None:
     trips.sort(key=lambda t: (t["kind"] != "oneway", t["date"]))
 
     lead = trips[0]
-    places = sorted({t["from_full"] for t in trips} | {t["to_label"] for t in trips})
+    if args.live:
+        # Every airport we know how to name, so the box can suggest rather than
+        # demand that someone remember a three-letter code.
+        seen = {}
+        for metro, codes in airports.METROS.items():
+            for code in codes:
+                seen[code] = f"{CITY.get(code, code)} ({code})"
+        for code, name in CITY.items():
+            seen.setdefault(code, f"{name} ({code})")
+        places = [{"code": c, "label": seen[c]} for c in sorted(seen)]
+    else:
+        places = sorted({t["from_full"] for t in trips}
+                        | {t["to_label"] for t in trips})
     data = {
+        "live": bool(args.live),
         "trips": trips,
         "places": places,
         # One entry per date, not per trip: a date priced both one way and
@@ -795,8 +971,11 @@ def main() -> None:
             .replace("__HEAD__", theme.head("Fare Board"))
             .replace("__EXTRA__", EXTRA_CSS.replace("__STAGE_CSS__", sky.CSS))
             .replace("__SKY_JS__", sky.JS)
-            .replace("__DEF_FROM__", lead["from_full"])
-            .replace("__DEF_TO__", lead["to_label"])
+            .replace("__WHEN_CELLS__", WHEN_LIVE if args.live else WHEN_STORED)
+            .replace("__DEF_FROM__",
+                     "New York JFK (JFK)" if args.live else lead["from_full"])
+            .replace("__DEF_TO__",
+                     "Barcelona (BCN)" if args.live else lead["to_label"])
             .replace("__PROOF_PRICE__", money_str(best["price"]))
             .replace("__PROOF_TEXT__", proof_text)
             .replace("__PROOF_SUB__", proof_sub)
@@ -806,7 +985,8 @@ def main() -> None:
     (HERE / args.out).write_text(
         theme.standalone(page) if args.standalone else page, encoding="utf-8")
     print(f"{len(trips)} trip(s), {len(flights)} flights, "
-          f"best ${best['price']:,} -> {args.out}")
+          f"best ${best['price']:,} -> {args.out}"
+          + (" (live)" if args.live else ""))
 
 
 def money_str(value: int) -> str:
