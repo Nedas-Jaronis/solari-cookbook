@@ -91,11 +91,17 @@ python verify.py --from JFK --to LHR --date 2026-10-15
 python teaserboard.py         # -> teasers.html
 ```
 
-## The traveller's page
+## The traveller's site
 
 `board.py` is for whoever runs the tool. `trip.py` is for whoever takes the
-trip: flights rather than searches, carriers rather than site keys, and one
-decision up front.
+trip: a landing page that asks where you are going, and a result that says
+which flight to take and which site is selling it cheapest.
+
+![The landing page, with a pixel plane crossing the sky band](shots/landing-dark.png)
+
+Submitting the form routes to `#/jfk-lon-2026-10-15`, so a result is a link you
+can send someone. A route we have not priced says so plainly and offers the
+ones we have — the list is short and honest rather than long and invented.
 
 ![The traveller's view of the same data](shots/trip-light.png)
 
@@ -117,7 +123,8 @@ again. Flights are keyed on airport, departure minute, duration and stop count,
 and labelled with the carrier name most sites agree on.
 
 ```bash
-python trip.py                # -> trip.html
+python trip.py                          # -> trip.html
+python trip.py --board-url <url>        # cross-link to the operator's board
 ```
 
 ## Run it

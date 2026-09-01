@@ -1,4 +1,4 @@
-<title>Cheapest Way There</title>
+<title>Fare Board</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root {
@@ -199,10 +199,73 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 </style>
 
 <style>
-.search {
-  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:22px;
+/* ---------- landing ---------- */
+.hero-wrap { padding:56px 0 20px; }
+.kicker { font-family:"IBM Plex Mono", monospace; font-size:11px;
+          letter-spacing:.2em; text-transform:uppercase; color:var(--accent); }
+.hero-h { font-family:"Saira Condensed", ui-sans-serif, sans-serif;
+          font-weight:700; text-transform:uppercase; letter-spacing:.01em;
+          font-size:clamp(38px,7vw,68px); line-height:.98; margin:14px 0 0;
+          text-wrap:balance; max-width:16ch; }
+.hero-p { font-size:17px; color:var(--ink-2); max-width:52ch; margin:18px 0 0; }
+/* The sky band. Canvas rather than SVG because it is a sprite blitter, and
+   pixelated rendering so the chunky pixels stay chunky on retina screens. */
+.sky { display:block; width:100%; height:132px; margin-top:26px;
+       image-rendering:pixelated; }
+
+form.finder {
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
   background:var(--rule); border:1px solid var(--rule); border-radius:10px;
   overflow:hidden; box-shadow:var(--shadow);
+}
+.cell { background:var(--panel); padding:11px 16px; flex:1 1 170px;
+        display:flex; flex-direction:column; justify-content:center; }
+.cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
+              letter-spacing:.16em; text-transform:uppercase;
+              color:var(--ink-3); }
+.cell input, .cell select {
+  border:0; background:none; color:var(--ink); font-size:16px; font-weight:500;
+  font-family:inherit; padding:3px 0 0; width:100%;
+}
+.cell input:focus, .cell select:focus { outline:none; }
+.cell:focus-within { background:var(--raise); }
+.go {
+  border:0; cursor:pointer; background:var(--ink); color:var(--ground);
+  font-family:"Saira Condensed", sans-serif; text-transform:uppercase;
+  letter-spacing:.07em; font-weight:700; font-size:16px; padding:0 30px;
+  flex:0 0 auto;
+}
+.go:hover { background:var(--accent); }
+.go:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
+
+.how { display:grid; gap:16px; margin-top:44px;
+       grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+.how div { border-top:2px solid var(--ink); padding-top:12px; }
+.how b { display:block; font-family:"Saira Condensed", sans-serif;
+         text-transform:uppercase; letter-spacing:.05em; font-size:15px; }
+.how span { font-size:13.5px; color:var(--ink-2); }
+.proof { margin-top:38px; background:var(--panel); border:1px solid var(--rule);
+         border-radius:10px; padding:20px 24px; box-shadow:var(--shadow); }
+.proof .line { font-family:"IBM Plex Mono", monospace; font-size:14px;
+               font-variant-numeric:tabular-nums; }
+.proof .line b { color:var(--accent); font-size:19px; }
+.proof p { margin:8px 0 0; color:var(--ink-2); font-size:14px; }
+
+.nope { background:var(--panel); border:1px solid var(--warn);
+        border-radius:10px; padding:18px 22px; margin-top:18px;
+        font-size:14.5px; color:var(--ink-2); }
+.nope b { color:var(--ink); }
+.linkish { background:none; border:0; padding:0; cursor:pointer;
+           color:var(--accent); font:inherit; text-decoration:underline; }
+
+/* ---------- results ---------- */
+.crumb { background:none; border:0; padding:0; cursor:pointer; font:inherit;
+         font-size:13.5px; color:var(--ink-2); }
+.crumb:hover { color:var(--ink); }
+.search {
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:20px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  overflow:hidden;
 }
 .field { background:var(--panel); padding:12px 18px; flex:1 1 150px; }
 .field .k { font-family:"IBM Plex Mono", monospace; font-size:10px;
@@ -210,7 +273,7 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 .field .v { font-size:16px; font-weight:500; margin-top:3px; }
 .snapshot { font-size:12.5px; color:var(--ink-3); margin:8px 2px 0; }
 
-.pick { margin-top:26px; background:var(--panel); border:1px solid var(--rule);
+.pick { margin-top:24px; background:var(--panel); border:1px solid var(--rule);
         border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
 .pick-top { display:flex; flex-wrap:wrap; gap:26px; align-items:center;
             padding:24px 26px; }
@@ -219,11 +282,10 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
               font-variant-numeric:tabular-nums; }
 .pick-when { font-size:20px; font-weight:500; }
 .pick-meta { color:var(--ink-2); font-size:14px; margin-top:4px; }
-.pick-why { padding:16px 26px; background:var(--raise);
+.pick-why { padding:16px 26px; background:var(--raise); margin:0;
             border-top:1px solid var(--rule-soft); font-size:14.5px;
             color:var(--ink-2); }
 .pick-why strong { color:var(--ink); }
-
 .trust { display:flex; flex-wrap:wrap; gap:8px 22px; margin:16px 2px 0;
          font-size:13px; color:var(--ink-3); }
 .trust b { color:var(--ink-2); font-weight:600; }
@@ -233,10 +295,9 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 .group { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
 .group .k { font-family:"IBM Plex Mono", monospace; font-size:10px;
             letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
-.pill {
-  font-size:13px; padding:5px 13px; border-radius:999px; cursor:pointer;
-  border:1px solid var(--rule); background:var(--panel); color:var(--ink-2);
-}
+.pill { font-size:13px; padding:5px 13px; border-radius:999px; cursor:pointer;
+        border:1px solid var(--rule); background:var(--panel);
+        color:var(--ink-2); }
 .pill:hover { border-color:var(--ink-3); color:var(--ink); }
 .pill[aria-pressed="true"] { background:var(--ink); color:var(--ground);
                              border-color:var(--ink); }
@@ -245,11 +306,9 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 .tally { margin-left:auto; font-size:13px; color:var(--ink-3); }
 
 .flights { display:flex; flex-direction:column; gap:10px; }
-.flight {
-  display:grid; grid-template-columns:1fr auto; gap:8px 22px;
-  background:var(--panel); border:1px solid var(--rule); border-radius:8px;
-  padding:16px 20px; align-items:center;
-}
+.flight { display:grid; grid-template-columns:1fr auto; gap:8px 22px;
+          background:var(--panel); border:1px solid var(--rule);
+          border-radius:8px; padding:16px 20px; align-items:center; }
 .flight:hover { border-color:var(--ink-3); }
 .flight.best { border-color:var(--accent); }
 .times { font-family:"IBM Plex Mono", monospace; font-size:19px;
@@ -261,9 +320,10 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
        letter-spacing:.08em; text-transform:uppercase; padding:2px 7px;
        border-radius:4px; background:var(--raise); border:1px solid var(--rule);
        color:var(--ink-2); }
-.tag.nonstop { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
-.buy { text-align:right; display:flex; flex-direction:column; align-items:flex-end;
-       gap:4px; }
+.tag.nonstop { background:var(--ok-bg); color:var(--ok);
+               border-color:transparent; }
+.buy { text-align:right; display:flex; flex-direction:column;
+       align-items:flex-end; gap:4px; }
 .buy .amount { font-family:"IBM Plex Mono", monospace; font-size:24px;
                font-weight:600; font-variant-numeric:tabular-nums; }
 .buy .where { font-size:12.5px; color:var(--ink-2); }
@@ -279,27 +339,78 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 .save[aria-pressed="true"] { color:var(--accent); border-color:var(--accent); }
 .none { background:var(--panel); border:1px dashed var(--rule);
         border-radius:8px; padding:30px; text-align:center; color:var(--ink-3); }
+
 @media (max-width:560px) {
   .flight { grid-template-columns:1fr; }
   .buy { text-align:left; align-items:flex-start; }
+  .go { width:100%; padding:14px; }
 }
 </style>
 
 <div class="wrap">
-  <header class="mast">
-    <h1>New York &rarr; London</h1>
-    <div class="sub"><span class="eyebrow">prices read 2026-09-01T12:53</span></div>
+
+<!-- ============ landing ============ -->
+<section id="landing">
+  <div class="hero-wrap">
+    <div class="kicker">Fare Board</div>
+    <h1 class="hero-h">The cheapest way there, not the first way you find</h1>
+    <p class="hero-p">One search checks every big booking site and every airport
+      around your destination at the same time, then tells you which flight to
+      take and which site is selling it for least.</p>
+  </div>
+
+  <canvas class="sky" id="sky" aria-hidden="true"></canvas>
+
+  <form class="finder" id="finder" autocomplete="off">
+    <div class="cell">
+      <label for="from">From</label>
+      <input id="from" name="from" list="places" placeholder="City or airport"
+        value="New York JFK" required>
+    </div>
+    <div class="cell">
+      <label for="to">To</label>
+      <input id="to" name="to" list="places" placeholder="City or airport"
+        value="London" required>
+    </div>
+    <div class="cell">
+      <label for="when">Depart</label>
+      <select id="when" name="when"></select>
+    </div>
+    <button class="go" type="submit">Find the fare</button>
+  </form>
+  <datalist id="places"></datalist>
+  <div id="nope"></div>
+
+  <div class="how">
+    <div><b>Every site at once</b><span>Google Flights, Kayak, Momondo,
+      Expedia, Priceline and Skyscanner, searched in parallel rather than one
+      after another.</span></div>
+    <div><b>Every nearby airport</b><span>The airport you had in mind and every
+      other one in the same metro area, because that is where the money usually
+      is.</span></div>
+    <div><b>No commission</b><span>We do not sell tickets. You book on whichever
+      site was cheapest, and we have no reason to prefer one.</span></div>
+  </div>
+
+  <div class="proof">
+    <div class="line">Last run: <b>$192</b> Norse Atlantic UK to Gatwick, New York to London</div>
+    <p>Found by checking 6 sites across 5 airports &mdash; 54 searches in 194 seconds. The same seat was $225 on Expedia.</p>
+  </div>
+</section>
+
+<!-- ============ results ============ -->
+<section id="results" hidden>
+  <button class="crumb" id="back">&larr; New search</button>
+  <header class="mast" style="margin-top:12px">
+    <h1 id="route-h"></h1>
+    <div class="sub"><span class="eyebrow" id="read-at"></span></div>
   </header>
 
-  <div class="search">
-    <div class="field"><div class="k">From</div><div class="v">New York JFK</div></div>
-    <div class="field"><div class="k">To</div><div class="v">London, any airport</div></div>
-    <div class="field"><div class="k">Depart</div><div class="v">Thu 15 Oct 2026</div></div>
-    <div class="field"><div class="k">Travellers</div><div class="v">1 adult, economy</div></div>
-  </div>
+  <div class="search" id="summary"></div>
   <p class="snapshot">A snapshot of real fares at the time shown, not a live
-    search. Airlines move prices constantly &mdash; treat these as where to
-    look, then book on the site named.</p>
+    search &mdash; a published page cannot drive cloud browsers. Airlines move
+    prices constantly, so treat these as where to look, then book on the site
+    named.</p>
 
   <div class="pick" id="pick"></div>
   <div class="trust" id="trust"></div>
@@ -321,61 +432,261 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
   </div>
 
   <div class="flights" id="flights"></div>
+</section>
 
   <footer>
-    Fares gathered from 6 across 5 airports. We do not sell
-    tickets and take no commission &mdash; the price you see is the price the
-    named site was showing, and you book there.
+    Fares are read from each site&rsquo;s own public results page and move
+    constantly. We do not sell tickets and take no commission. <a href="https://claude.ai/code/artifact/4dbcddcf-2a9d-4ddb-9b52-3a108f48374e" style="color:var(--accent)">See every search behind these prices</a>.
   </footer>
 </div>
 
-<script type="application/json" id="data">{"flights": [{"origin": "JFK", "destination": "LGW", "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "duration": "7 hr", "minutes": 420, "stops": 0, "price": 192, "offers": [{"site": "Momondo", "price": 192, "country": "us"}, {"site": "Kayak", "price": 203, "country": "us"}, {"site": "Google Flights", "price": 204, "country": "us"}, {"site": "Expedia", "price": 225, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Norse Atlantic Airways, Ryanair", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:55 AM", "duration": "30h 25m", "minutes": 1825, "stops": 2, "price": 215, "offers": [{"site": "Kayak", "price": 215, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "duration": "20h 25m", "minutes": 1225, "stops": 2, "price": 252, "offers": [{"site": "Kayak", "price": 252, "country": "us"}, {"site": "Momondo", "price": 252, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:35 PM", "duration": "20h 05m", "minutes": 1205, "stops": 2, "price": 256, "offers": [{"site": "Kayak", "price": 256, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:35 PM", "duration": "18h 05m", "minutes": 1085, "stops": 2, "price": 259, "offers": [{"site": "Kayak", "price": 259, "country": "us"}, {"site": "Momondo", "price": 259, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "duration": "20h 25m", "minutes": 1225, "stops": 2, "price": 266, "offers": [{"site": "Kayak", "price": 266, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Google Flights", "price": 295, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "8:35 PM", "depart_at": 1235, "arrive": "8:50 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "7:00 PM", "depart_at": 1140, "arrive": "7:15 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:45 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "6:00 PM", "depart_at": 1080, "arrive": "6:20 AM", "duration": "7h 20m", "minutes": 440, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "10:00 PM", "depart_at": 1320, "arrive": "10:20 AM", "duration": "7h 20m", "minutes": 440, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:45 PM", "duration": "20h 15m", "minutes": 1215, "stops": 2, "price": 276, "offers": [{"site": "Kayak", "price": 276, "country": "us"}, {"site": "Momondo", "price": 276, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "11:55 AM", "duration": "31 hr 45 min", "minutes": 1905, "stops": 1, "price": 277, "offers": [{"site": "Google Flights", "price": 277, "country": "us"}, {"site": "Kayak", "price": 287, "country": "gb"}, {"site": "Momondo", "price": 287, "country": "de"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "duration": "19h 30m", "minutes": 1170, "stops": 2, "price": 284, "offers": [{"site": "Kayak", "price": 284, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "duration": "7 hr", "minutes": 420, "stops": 0, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "duration": "19h 30m", "minutes": 1170, "stops": 2, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:50 PM", "duration": "20h 20m", "minutes": 1220, "stops": 2, "price": 288, "offers": [{"site": "Kayak", "price": 288, "country": "us"}, {"site": "Momondo", "price": 288, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "10:40 PM", "depart_at": 1360, "arrive": "10:35 AM", "duration": "6h 55m", "minutes": 415, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "7:35 PM", "depart_at": 1175, "arrive": "7:45 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:40 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "8:20 PM", "depart_at": 1220, "arrive": "8:30 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "duration": "9h 40m", "minutes": 580, "stops": 1, "price": 290, "offers": [{"site": "Kayak", "price": 290, "country": "gb"}, {"site": "Momondo", "price": 290, "country": "de"}]}, {"origin": "JFK", "destination": "LGW", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "duration": "18 hr 20 min", "minutes": 1100, "stops": 1, "price": 292, "offers": [{"site": "Google Flights", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "1:35 PM", "duration": "19h 05m", "minutes": 1145, "stops": 2, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "price": 294, "offers": [{"site": "Kayak", "price": 294, "country": "gb"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Delta", "depart": "8:15 PM", "depart_at": 1215, "arrive": null, "duration": "7 hr 35 min", "minutes": 455, "stops": 0, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "11:55 PM", "depart_at": 1435, "arrive": "12:05 PM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "9:40 PM", "depart_at": 1300, "arrive": "9:50 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "8:55 PM", "depart_at": 1255, "arrive": "9:10 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "duration": "9h 40m", "minutes": 580, "stops": 1, "price": 297, "offers": [{"site": "Expedia", "price": 297, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "American, British Airways", "depart": "11:59 AM", "depart_at": 719, "arrive": null, "duration": "17 hr 41 min", "minutes": 1061, "stops": 2, "price": 299, "offers": [{"site": "Google Flights", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "4:55 PM", "depart_at": 1015, "arrive": "8:05 AM", "duration": "10h 10m", "minutes": 610, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "11:55 PM", "depart_at": 1435, "arrive": "3:00 PM", "duration": "10h 5m", "minutes": 605, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "5:35 PM", "depart_at": 1055, "arrive": "8:05 AM", "duration": "9h 30m", "minutes": 570, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "duration": "15 hr 25 min", "minutes": 925, "stops": 1, "price": 304, "offers": [{"site": "Google Flights", "price": 304, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Iberia", "depart": "4:55 PM", "depart_at": 1015, "arrive": "10:50 AM", "duration": "12h 55m", "minutes": 775, "stops": 1, "price": 309, "offers": [{"site": "Expedia", "price": 309, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "12:35 PM", "duration": "15h 20m", "minutes": 920, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "5:30 PM", "duration": "16h 00m", "minutes": 960, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "6:40 PM", "duration": "17h 10m", "minutes": 1030, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "5:30 PM", "duration": "20h 15m", "minutes": 1215, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "6:20 PM", "duration": "13h 30m", "minutes": 810, "stops": 1, "price": 316, "offers": [{"site": "Kayak", "price": 316, "country": "us"}, {"site": "Momondo", "price": 316, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "9:00 PM", "duration": "16h 10m", "minutes": 970, "stops": 1, "price": 317, "offers": [{"site": "Momondo", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta, KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": null, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "KLMDelta, Virgin Atlantic", "depart": "9:15 PM", "depart_at": 1275, "arrive": null, "duration": "14 hr 25 min", "minutes": 865, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta, KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": null, "duration": "13 hr", "minutes": 780, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta", "depart": "4:40 PM", "depart_at": 1000, "arrive": "9:30 AM", "duration": "11h 50m", "minutes": 710, "stops": 1, "price": 334, "offers": [{"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}, {"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": null, "duration": "15 hr 50 min", "minutes": 950, "stops": 1, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "6:50 AM", "depart_at": 410, "arrive": "9:55 AM", "duration": "22h 5m", "minutes": 1325, "stops": 1, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "9:55 AM", "duration": "33h 5m", "minutes": 1985, "stops": 1, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Royal Air Maroc", "depart": "10:50 AM", "depart_at": 650, "arrive": "6:20 AM", "duration": "14 hr 30 min", "minutes": 870, "stops": 1, "price": 852, "offers": [{"site": "Google Flights", "price": 852, "country": "us"}, {"site": "Expedia", "price": 852, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "SWISS, British Airways", "depart": "8:30 PM", "depart_at": 1230, "arrive": null, "duration": "40 hr", "minutes": 2400, "stops": 2, "price": 5056, "offers": [{"site": "Google Flights", "price": 5056, "country": "us"}]}], "airport_names": {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted", "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK", "EWR": "Newark", "LGA": "LaGuardia"}, "asked_airport": "Heathrow", "airport_saving": 80, "sites": 6, "airports": 5, "searches": 54, "seconds": 194}</script>
+<script>
+/* ---------- the sky ---------- */
+(() => {
+  const canvas = document.getElementById("sky");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  // '.' transparent, B body, A accent, W window.
+  const PLANE = [
+    "...BB...................",
+    "...BBB..................",
+    "...BBBB.................",
+    "...BBBBB................",
+    ".BBBBBBBBBBBBBBBBBBA....",
+    "BBBWBBWBBWBBWBBBBBBBAA..",
+    ".BBBBBBBBBBBBBBBBBBA....",
+    "...BBBBB................",
+    "...BBBB.................",
+    "....BB..................",
+  ];
+  const CLOUD = ["..CCC...", ".CCCCCC.", "CCCCCCCC"];
+
+  const PX = 5;
+  let W = 0, H = 0, colors = {}, clouds = [], t = 0, raf = null;
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+
+  function readColors() {
+    const css = getComputedStyle(document.documentElement);
+    const v = n => css.getPropertyValue(n).trim();
+    colors = {B: v("--ink"), A: v("--accent"), W: v("--ground"),
+              C: v("--rule"), dot: v("--rule")};
+  }
+
+  function blit(rows, x, y, px) {
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < rows[r].length; c++) {
+        const ch = rows[r][c];
+        if (ch === ".") continue;
+        ctx.fillStyle = colors[ch] || colors.B;
+        ctx.fillRect(Math.round(x + c * px), Math.round(y + r * px), px, px);
+      }
+    }
+  }
+
+  function size() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    clouds = [0.08, 0.34, 0.58, 0.82].map((frac, i) => ({
+      x: frac * W,
+      y: 14 + ((i * 37) % 46),
+      px: i % 2 ? 3 : 4,
+      speed: i % 2 ? 0.18 : 0.32,
+    }));
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    const lane = H * 0.55;
+
+    // The route the plane is flying: a dotted line, like a boarding pass map.
+    ctx.fillStyle = colors.dot;
+    for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 5, PX * 2, PX);
+
+    for (const cloud of clouds) {
+      blit(CLOUD, cloud.x, cloud.y, cloud.px);
+      cloud.x -= cloud.speed;
+      if (cloud.x < -CLOUD[0].length * cloud.px) cloud.x = W + 20;
+    }
+
+    const span = W + PLANE[0].length * PX + 80;
+    const x = ((t * 1.5) % span) - PLANE[0].length * PX - 40;
+    const bob = Math.sin(t / 42) * PX;
+    const top = lane - PLANE.length * PX / 2 + bob;
+
+    // Contrail: a few squares off the tail, thinning out behind it.
+    for (let i = 1; i <= 7; i++) {
+      ctx.globalAlpha = 0.30 - i * 0.035;
+      ctx.fillStyle = colors.B;
+      ctx.fillRect(Math.round(x - i * PX * 2.2), Math.round(top + PX * 5),
+                   PX * 1.4, PX);
+    }
+    ctx.globalAlpha = 1;
+    blit(PLANE, x, top, PX);
+
+    t += 1;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (raf) cancelAnimationFrame(raf);
+    readColors(); size();
+    if (still.matches) {                 // one composed frame, no motion
+      t = 260; ctx.clearRect(0, 0, W, H);
+      const lane = H * 0.55;
+      ctx.fillStyle = colors.dot;
+      for (let x = 0; x < W; x += PX * 4) ctx.fillRect(x, lane + PX * 5, PX * 2, PX);
+      clouds.forEach(c => blit(CLOUD, c.x, c.y, c.px));
+      blit(PLANE, W * 0.42, lane - PLANE.length * PX / 2, PX);
+      return;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  addEventListener("resize", start);
+  still.addEventListener("change", start);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", start);
+  // Nothing to animate for a hidden tab, and nothing to animate on the
+  // results view either -- the canvas only exists on the landing page.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
+    else if (!document.hidden && !still.matches) start();
+  });
+  start();
+})();
+</script>
+
+<script type="application/json" id="data">{"trips": [{"id": "jfk-lon-2026-10-15", "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-15", "date_label": "Thu 15 Oct 2026", "read_at": "2026-09-01 12:53", "flights": [{"origin": "JFK", "destination": "LGW", "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "duration": "7 hr", "minutes": 420, "stops": 0, "price": 192, "offers": [{"site": "Momondo", "price": 192, "country": "us"}, {"site": "Kayak", "price": 203, "country": "us"}, {"site": "Google Flights", "price": 204, "country": "us"}, {"site": "Expedia", "price": 225, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Norse Atlantic Airways, Ryanair", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:55 AM", "duration": "30h 25m", "minutes": 1825, "stops": 2, "price": 215, "offers": [{"site": "Kayak", "price": 215, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "duration": "20h 25m", "minutes": 1225, "stops": 2, "price": 252, "offers": [{"site": "Kayak", "price": 252, "country": "us"}, {"site": "Momondo", "price": 252, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:35 PM", "duration": "20h 05m", "minutes": 1205, "stops": 2, "price": 256, "offers": [{"site": "Kayak", "price": 256, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:35 PM", "duration": "18h 05m", "minutes": 1085, "stops": 2, "price": 259, "offers": [{"site": "Kayak", "price": 259, "country": "us"}, {"site": "Momondo", "price": 259, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "duration": "20h 25m", "minutes": 1225, "stops": 2, "price": 266, "offers": [{"site": "Kayak", "price": 266, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Google Flights", "price": 295, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "8:35 PM", "depart_at": 1235, "arrive": "8:50 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "7:00 PM", "depart_at": 1140, "arrive": "7:15 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:45 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "6:00 PM", "depart_at": 1080, "arrive": "6:20 AM", "duration": "7h 20m", "minutes": 440, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "10:00 PM", "depart_at": 1320, "arrive": "10:20 AM", "duration": "7h 20m", "minutes": 440, "stops": 0, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:45 PM", "duration": "20h 15m", "minutes": 1215, "stops": 2, "price": 276, "offers": [{"site": "Kayak", "price": 276, "country": "us"}, {"site": "Momondo", "price": 276, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "11:55 AM", "duration": "31 hr 45 min", "minutes": 1905, "stops": 1, "price": 277, "offers": [{"site": "Google Flights", "price": 277, "country": "us"}, {"site": "Kayak", "price": 287, "country": "gb"}, {"site": "Momondo", "price": 287, "country": "de"}]}, {"origin": "JFK", "destination": "LTN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "duration": "19h 30m", "minutes": 1170, "stops": 2, "price": 284, "offers": [{"site": "Kayak", "price": 284, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "duration": "7 hr", "minutes": 420, "stops": 0, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "duration": "19h 30m", "minutes": 1170, "stops": 2, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:50 PM", "duration": "20h 20m", "minutes": 1220, "stops": 2, "price": 288, "offers": [{"site": "Kayak", "price": 288, "country": "us"}, {"site": "Momondo", "price": 288, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "10:40 PM", "depart_at": 1360, "arrive": "10:35 AM", "duration": "6h 55m", "minutes": 415, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "7:35 PM", "depart_at": 1175, "arrive": "7:45 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:40 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "8:20 PM", "depart_at": 1220, "arrive": "8:30 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "duration": "9h 40m", "minutes": 580, "stops": 1, "price": 290, "offers": [{"site": "Kayak", "price": 290, "country": "gb"}, {"site": "Momondo", "price": 290, "country": "de"}]}, {"origin": "JFK", "destination": "LGW", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "duration": "18 hr 20 min", "minutes": 1100, "stops": 1, "price": 292, "offers": [{"site": "Google Flights", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "1:35 PM", "duration": "19h 05m", "minutes": 1145, "stops": 2, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "price": 294, "offers": [{"site": "Kayak", "price": 294, "country": "gb"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Delta", "depart": "8:15 PM", "depart_at": 1215, "arrive": null, "duration": "7 hr 35 min", "minutes": 455, "stops": 0, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "Virgin Atlantic", "depart": "11:55 PM", "depart_at": 1435, "arrive": "12:05 PM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "9:40 PM", "depart_at": 1300, "arrive": "9:50 AM", "duration": "7h 10m", "minutes": 430, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "airline": "British Airways", "depart": "8:55 PM", "depart_at": 1255, "arrive": "9:10 AM", "duration": "7h 15m", "minutes": 435, "stops": 0, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "duration": "9h 40m", "minutes": 580, "stops": 1, "price": 297, "offers": [{"site": "Expedia", "price": 297, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "American, British Airways", "depart": "11:59 AM", "depart_at": 719, "arrive": null, "duration": "17 hr 41 min", "minutes": 1061, "stops": 2, "price": 299, "offers": [{"site": "Google Flights", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "4:55 PM", "depart_at": 1015, "arrive": "8:05 AM", "duration": "10h 10m", "minutes": 610, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "11:55 PM", "depart_at": 1435, "arrive": "3:00 PM", "duration": "10h 5m", "minutes": 605, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Aer Lingus", "depart": "5:35 PM", "depart_at": 1055, "arrive": "8:05 AM", "duration": "9h 30m", "minutes": 570, "stops": 1, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "duration": "15 hr 25 min", "minutes": 925, "stops": 1, "price": 304, "offers": [{"site": "Google Flights", "price": 304, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "airline": "Iberia", "depart": "4:55 PM", "depart_at": 1015, "arrive": "10:50 AM", "duration": "12h 55m", "minutes": 775, "stops": 1, "price": 309, "offers": [{"site": "Expedia", "price": 309, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "12:35 PM", "duration": "15h 20m", "minutes": 920, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "5:30 PM", "duration": "16h 00m", "minutes": 960, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "6:40 PM", "duration": "17h 10m", "minutes": 1030, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "5:30 PM", "duration": "20h 15m", "minutes": 1215, "stops": 1, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "6:20 PM", "duration": "13h 30m", "minutes": 810, "stops": 1, "price": 316, "offers": [{"site": "Kayak", "price": 316, "country": "us"}, {"site": "Momondo", "price": 316, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "9:00 PM", "duration": "16h 10m", "minutes": 970, "stops": 1, "price": 317, "offers": [{"site": "Momondo", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta, KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": null, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "KLMDelta, Virgin Atlantic", "depart": "9:15 PM", "depart_at": 1275, "arrive": null, "duration": "14 hr 25 min", "minutes": 865, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta, KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": null, "duration": "13 hr", "minutes": 780, "stops": 1, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "airline": "Delta", "depart": "4:40 PM", "depart_at": 1000, "arrive": "9:30 AM", "duration": "11h 50m", "minutes": 710, "stops": 1, "price": 334, "offers": [{"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}, {"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": null, "duration": "15 hr 50 min", "minutes": 950, "stops": 1, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "6:50 AM", "depart_at": 410, "arrive": "9:55 AM", "duration": "22h 5m", "minutes": 1325, "stops": 1, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "9:55 AM", "duration": "33h 5m", "minutes": 1985, "stops": 1, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "Royal Air Maroc", "depart": "10:50 AM", "depart_at": 650, "arrive": "6:20 AM", "duration": "14 hr 30 min", "minutes": 870, "stops": 1, "price": 852, "offers": [{"site": "Google Flights", "price": 852, "country": "us"}, {"site": "Expedia", "price": 852, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "airline": "SWISS, British Airways", "depart": "8:30 PM", "depart_at": 1230, "arrive": null, "duration": "40 hr", "minutes": 2400, "stops": 2, "price": 5056, "offers": [{"site": "Google Flights", "price": 5056, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 80, "sites": 6, "airports": 5, "searches": 54, "seconds": 194}], "places": ["London", "New York JFK"], "dates": [{"iso": "2026-10-15", "label": "Thu 15 Oct 2026"}], "airport_names": {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted", "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK", "EWR": "Newark", "LGA": "LaGuardia"}}</script>
 <script>
 const D = JSON.parse(document.getElementById("data").textContent);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c =>
   ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money = n => "$" + Number(n).toLocaleString();
-const dur = m => (m >= 60 ? Math.floor(m / 60) + "h " : "") + (m % 60) + "m";
 const stopText = s => s === 0 ? "Nonstop" : s === 1 ? "1 stop" : s + " stops";
+const norm = s => String(s || "").trim().toLowerCase();
 
+/* ---------- which searches we hold ---------- */
+function findTrip(from, to, when) {
+  const f = norm(from), t = norm(to);
+  return D.trips.find(tr =>
+    tr.from_keys.includes(f) && tr.to_keys.includes(t) &&
+    (!when || tr.date === when));
+}
+
+/* ---------- saved flights, per browser ---------- */
 const SAVED_KEY = "fareboard.saved";
 function loadSaved() {
   try { return new Set(JSON.parse(localStorage.getItem(SAVED_KEY)) || []); }
-  catch (e) { return new Set(); }        // private window, blocked storage
+  catch (e) { return new Set(); }      // private window, or storage blocked
 }
 function keepSaved(set) {
   try { localStorage.setItem(SAVED_KEY, JSON.stringify([...set])); }
-  catch (e) { /* storing is a convenience, never a requirement */ }
+  catch (e) { /* saving is a convenience, never a requirement */ }
 }
 let saved = loadSaved();
 
 const PAGE = 20;
-const state = {stops: "any", airport: "all", sort: "price", saved: false,
-               shown: PAGE};
+const state = {trip: null, stops: "any", airport: "all", sort: "price",
+               saved: false, shown: PAGE};
 const idOf = f => `${f.destination}|${f.airline}|${f.depart_at}|${f.minutes}`;
 
+/* ---------- landing ---------- */
+document.getElementById("places").innerHTML =
+  D.places.map(p => `<option value="${esc(p)}">`).join("");
+document.getElementById("when").innerHTML =
+  D.dates.map(d => `<option value="${esc(d.iso)}">${esc(d.label)}</option>`).join("");
+
+document.getElementById("finder").addEventListener("submit", e => {
+  e.preventDefault();
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
+  const when = document.getElementById("when").value;
+  const trip = findTrip(from, to, when);
+  if (!trip) {
+    document.getElementById("nope").innerHTML = `<div class="nope">
+      We have not priced <b>${esc(from)} &rarr; ${esc(to)}</b> yet. Every route
+      here was gathered by actually running the searches, so the list is short
+      and honest rather than long and made up.
+      ${D.trips.map(t => `<button class="linkish" data-go="${esc(t.id)}">Show
+        ${esc(t.from_label)} &rarr; ${esc(t.to_label)}</button>`).join(" ")}
+      </div>`;
+    return;
+  }
+  location.hash = "#/" + trip.id;
+});
+
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go]");
+  if (go) { location.hash = "#/" + go.dataset.go; return; }
+
+  const pill = e.target.closest(".pill");
+  if (pill && pill.dataset.filter) {
+    const {filter, value} = pill.dataset;
+    state.shown = PAGE;
+    if (filter === "saved") {
+      state.saved = !state.saved;
+      pill.setAttribute("aria-pressed", state.saved);
+    } else {
+      state[filter] = value;
+      document.querySelectorAll(`.pill[data-filter="${filter}"]`).forEach(p =>
+        p.setAttribute("aria-pressed", p.dataset.value === value));
+    }
+    renderFlights();
+    return;
+  }
+  if (e.target.id === "more") { state.shown += PAGE; renderFlights(); return; }
+
+  const save = e.target.closest(".save");
+  if (save) {
+    const id = save.dataset.id;
+    if (saved.has(id)) saved.delete(id); else saved.add(id);
+    keepSaved(saved);
+    save.setAttribute("aria-pressed", saved.has(id));
+    save.textContent = saved.has(id) ? "Saved" : "Save";
+    if (state.saved) renderFlights();
+  }
+});
+
+document.getElementById("back").addEventListener("click", () => {
+  location.hash = "";
+});
+
+/* ---------- results ---------- */
 function visible() {
-  return D.flights.filter(f =>
+  return state.trip.flights.filter(f =>
     (state.stops === "any" || f.stops === 0) &&
     (state.airport === "all" || f.destination === state.airport) &&
     (!state.saved || saved.has(idOf(f)))
   ).sort((a, b) => (a[state.sort] ?? 1e9) - (b[state.sort] ?? 1e9));
 }
 
-function renderPick() {
-  const best = D.flights[0];
-  if (!best) return;
-  const dearest = best.offers[best.offers.length - 1];
+function renderTrip() {
+  const t = state.trip;
+  document.getElementById("route-h").innerHTML =
+    `${esc(t.from_label)} <span style="color:var(--ink-3)">&rarr;</span> ${esc(t.to_label)}`;
+  document.getElementById("read-at").textContent = "prices read " + t.read_at;
+  document.getElementById("summary").innerHTML = [
+    ["From", t.from_full], ["To", t.to_label + ", any airport"],
+    ["Depart", t.date_label], ["Travellers", "1 adult, economy"],
+  ].map(([k, v]) => `<div class="field"><div class="k">${k}</div>
+      <div class="v">${esc(v)}</div></div>`).join("");
+
+  const best = t.flights[0];
   const cheapest = best.offers[0];
+  const dearest = best.offers[best.offers.length - 1];
   const bits = [];
   if (dearest.price > cheapest.price) {
     bits.push(`The identical flight is <strong>${money(dearest.price)} on
-      ${esc(dearest.site)}</strong> &mdash; booking the first site you thought of
-      could cost you ${money(dearest.price - cheapest.price)} more for the same seat.`);
+      ${esc(dearest.site)}</strong> &mdash; booking the first site you thought
+      of would cost ${money(dearest.price - cheapest.price)} more for the same
+      seat.`);
   }
-  if (D.airport_saving > 0) {
-    bits.push(`Landing at ${esc(D.asked_airport)} instead would add
-      <strong>${money(D.airport_saving)}</strong>.`);
+  if (t.airport_saving > 0) {
+    bits.push(`Landing at ${esc(t.asked_airport)} instead would add
+      <strong>${money(t.airport_saving)}</strong>.`);
   }
   document.getElementById("pick").innerHTML = `
     <div class="pick-top">
@@ -394,25 +705,24 @@ function renderPick() {
     ${bits.length ? `<p class="pick-why">${bits.join(" ")}</p>` : ""}`;
 
   document.getElementById("trust").innerHTML = `
-    <span><b>${D.sites}</b> booking sites checked</span>
-    <span><b>${D.airports}</b> airports around the destination</span>
-    <span><b>${D.searches}</b> searches in <b>${D.seconds}s</b></span>`;
-}
+    <span><b>${t.sites}</b> booking sites checked</span>
+    <span><b>${t.airports}</b> airports around the destination</span>
+    <span><b>${t.searches}</b> searches in <b>${t.seconds}s</b></span>`;
 
-function renderAirports() {
-  const codes = [...new Set(D.flights.map(f => f.destination))].sort();
+  const codes = [...new Set(t.flights.map(f => f.destination))].sort();
   document.getElementById("airports").innerHTML =
     [["all", "Any"], ...codes.map(c => [c, c])].map(([v, label]) =>
       `<button class="pill" data-filter="airport" data-value="${v}"
         aria-pressed="${state.airport === v}">${esc(label)}</button>`).join(" ");
+  renderFlights();
 }
 
 function renderFlights() {
   const all = visible();
   const rows = all.slice(0, state.shown);
-  const cheapest = rows.length ? rows[0].price : null;
+  const cheapest = rows.length ? Math.min(...all.map(f => f.price)) : null;
   document.getElementById("tally").textContent =
-    `${all.length} of ${D.flights.length} flights`;
+    `${all.length} of ${state.trip.flights.length} flights`;
   document.getElementById("flights").innerHTML = rows.length ? rows.map(f => {
     const id = idOf(f);
     const best = f.offers[0];
@@ -439,44 +749,32 @@ function renderFlights() {
     </article>`;
   }).join("") + (all.length > rows.length ?
     `<button class="pill" id="more" style="align-self:center;margin-top:6px">
-       Show ${Math.min(PAGE, all.length - rows.length)} more
-       of ${all.length - rows.length}</button>` : "")
+       Show ${Math.min(PAGE, all.length - rows.length)} more of ${
+       all.length - rows.length}</button>` : "")
     : `<div class="none">No flights match those filters.</div>`;
 }
 
-document.addEventListener("click", e => {
-  if (e.target.id === "more") {
-    state.shown += PAGE;
-    renderFlights();
-    return;
+/* ---------- routing ---------- */
+function route() {
+  const id = location.hash.replace(/^#\/?/, "");
+  const trip = D.trips.find(t => t.id === id);
+  const onResults = Boolean(trip);
+  document.getElementById("landing").hidden = onResults;
+  document.getElementById("results").hidden = !onResults;
+  if (onResults) {
+    state.trip = trip;
+    state.stops = "any"; state.airport = "all"; state.sort = "price";
+    state.saved = false; state.shown = PAGE;
+    document.querySelectorAll(".pill[data-filter]").forEach(p =>
+      p.setAttribute("aria-pressed",
+        (p.dataset.filter === "stops" && p.dataset.value === "any") ||
+        (p.dataset.filter === "sort" && p.dataset.value === "price")));
+    renderTrip();
+    window.scrollTo(0, 0);
+  } else {
+    document.getElementById("nope").innerHTML = "";
   }
-  const pill = e.target.closest(".pill");
-  if (pill) {
-    if (pill.dataset.filter) state.shown = PAGE;   // new filter, back to page 1
-    const {filter, value} = pill.dataset;
-    if (filter === "saved") {
-      state.saved = !state.saved;
-      pill.setAttribute("aria-pressed", state.saved);
-    } else {
-      state[filter] = value;
-      document.querySelectorAll(`.pill[data-filter="${filter}"]`).forEach(p =>
-        p.setAttribute("aria-pressed", p.dataset.value === value));
-    }
-    renderFlights();
-    return;
-  }
-  const save = e.target.closest(".save");
-  if (save) {
-    const id = save.dataset.id;
-    if (saved.has(id)) saved.delete(id); else saved.add(id);
-    keepSaved(saved);
-    save.setAttribute("aria-pressed", saved.has(id));
-    save.textContent = saved.has(id) ? "Saved" : "Save";
-    if (state.saved) renderFlights();
-  }
-});
-
-renderPick();
-renderAirports();
-renderFlights();
+}
+addEventListener("hashchange", route);
+route();
 </script>
