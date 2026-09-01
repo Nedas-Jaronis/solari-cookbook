@@ -112,6 +112,14 @@ select option { background:var(--panel); color:var(--ink); }
                   animation:turn .9s linear infinite; }
 @keyframes turn { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .progress .spin { animation:none; } }
+.widening { display:flex; align-items:center; gap:10px; margin-top:12px;
+            background:var(--raise); border:1px solid var(--rule);
+            border-radius:8px; padding:9px 14px; font-size:13px;
+            color:var(--ink-2); }
+.widening .spin { width:13px; height:13px; border-radius:50%; flex:0 0 auto;
+                  border:2px solid var(--rule); border-top-color:var(--accent);
+                  animation:turn .9s linear infinite; }
+.finder.busy { opacity:.55; pointer-events:none; }
 .progress b { font-weight:600; }
 .progress small { display:block; color:var(--ink-3); font-size:12.5px;
                   margin-top:2px; }
@@ -310,6 +318,7 @@ __WHEN_CELLS__
 <!-- ============ results ============ -->
 <section id="results" hidden>
   <button class="crumb" id="back">&larr; New search</button>
+  <div id="widening" class="widening" hidden></div>
   <header class="mast" style="margin-top:12px">
     <h1 id="route-h"></h1>
     <div class="sub"><span class="eyebrow" id="read-at"></span></div>
@@ -454,11 +463,25 @@ if (D.live) {
 const progress = document.getElementById("progress");
 
 function working(headline, detail) {
+  document.getElementById("finder").classList.add("busy");
   progress.hidden = false;
   progress.innerHTML = `<span class="spin"></span><div><b>${esc(headline)}</b>
     <small>${esc(detail || "")}</small></div>`;
 }
-function stopWorking() { progress.hidden = true; progress.innerHTML = ""; }
+function stopWorking() {
+  progress.hidden = true;
+  progress.innerHTML = "";
+  document.getElementById("finder").classList.remove("busy");
+  const strip = document.getElementById("widening");
+  strip.hidden = true;
+  strip.innerHTML = "";
+}
+
+function stillWidening(detail) {
+  const strip = document.getElementById("widening");
+  strip.hidden = false;
+  strip.innerHTML = `<span class="spin"></span><span>${esc(detail)}</span>`;
+}
 
 const codeOf = value => {
   const inParens = String(value).match(/[(]([A-Za-z]{3})[)]\s*$/);
@@ -472,17 +495,23 @@ const codeOf = value => {
 
 function showJob(job) {
   if (!job.trip) return false;
+  const arriving = document.getElementById("results").hidden;
   state.trip = job.trip;
   document.getElementById("landing").hidden = true;
   document.getElementById("results").hidden = false;
   renderTrip();
+  if (arriving) {
+    progress.hidden = true;                 // the spinner lived on the search
+    window.scrollTo(0, 0);
+  }
   return true;
 }
 
 async function liveSearch(from, to, date, ret) {
   const body = {from, to, date, ret: ret || null, nearby: true};
   working("Checking every site at once",
-          `${from} to ${to}, ${date}. Six browsers, about twenty seconds.`);
+          `${from} to ${to}, ${date}. Four sites in parallel, about twenty seconds.`);
+  progress.scrollIntoView({block: "center", behavior: "smooth"});
   let job;
   try {
     const res = await fetch("/api/search", {
@@ -516,14 +545,19 @@ async function liveSearch(from, to, date, ret) {
          </div>`;
       return;
     }
+    const onResults = !document.getElementById("results").hidden;
     if (now.trip) showJob(now);
     if (now.phase === "widening") {
-      working("Now trying the nearby airports",
-              `Found ${now.answered} so far. Adding ${
-                (now.widening_to || []).join(", ")}.`);
+      const also = (now.widening_to || []).join(", ");
+      if (onResults || now.trip) {
+        stillWidening(`Also checking ${also} — ${now.answered} searches answered so far.`);
+      } else {
+        working("Now trying the nearby airports",
+                `Found ${now.answered} so far. Adding ${also}.`);
+      }
     } else if (now.phase !== "done") {
       working("Checking every site at once",
-              `${Math.round((Date.now() - started) / 1000)}s so far.`);
+              `${Math.round((Date.now() - started) / 1000)}s so far. Nothing to show until the first site answers.`);
     }
     if (now.phase === "done") { clearInterval(timer); stopWorking(); }
   }, 1500);
@@ -790,8 +824,6 @@ function route() {
   // A live search is a link too: the route rides in the hash, so a result can
   // be sent to someone and the service answers it again from cache.
   if (D.live && id === "live" && params.get("from")) {
-    document.getElementById("landing").hidden = true;
-    document.getElementById("results").hidden = false;
     state.stops = "any"; state.airport = "all"; state.sort = "price";
     state.saved = false; state.shown = PAGE;
     state.depart = "any"; state.arrive = "any";

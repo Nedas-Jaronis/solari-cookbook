@@ -44,6 +44,10 @@ CSS = """
 :root[data-theme="dark"] {__DARK__}
 
 * { box-sizing:border-box; }
+/* A display value beats the browser's default for [hidden], so any flex or
+   grid element marked hidden stays on screen. The artifact host ships this
+   reset; served from anywhere else the page needs its own. */
+[hidden] { display:none !important; }
 body {
   margin:0; background:var(--ground); color:var(--ink);
   font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
