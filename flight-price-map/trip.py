@@ -112,6 +112,59 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
 }
 .options li mark { background:none; color:var(--accent); font-weight:600; }
 .options .none { color:var(--ink-3); padding:10px 11px; cursor:default; }
+
+/* A default scrollbar is a grey slab from another design system. */
+.options, .cal-grid { scrollbar-width:thin;
+                      scrollbar-color:var(--rule) transparent; }
+.options::-webkit-scrollbar { width:9px; }
+.options::-webkit-scrollbar-track { background:transparent; }
+.options::-webkit-scrollbar-thumb {
+  background:var(--rule); border-radius:9px;
+  border:3px solid var(--panel);       /* inset, so it reads as a slim bar */
+}
+.options::-webkit-scrollbar-thumb:hover { background:var(--ink-3); }
+
+/* ---- our own calendar ----
+   The browser's picker panel is chrome: no stylesheet reaches it, so on a
+   page like this it always arrives looking like somebody else's. */
+input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
+input[type="date"] { position:relative; }
+.cal {
+  position:absolute; left:-1px; top:calc(100% + 5px); z-index:50;
+  width:272px; padding:12px; background:var(--panel);
+  border:1px solid var(--rule); border-radius:12px;
+  box-shadow:0 16px 38px rgba(8,14,26,.35);
+}
+.cal-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.cal-month { flex:1; text-align:center; font-weight:600; font-size:14px; }
+.cal-nav {
+  width:28px; height:28px; flex:0 0 auto; cursor:pointer; font-size:15px;
+  line-height:1; border:1px solid var(--rule); border-radius:7px;
+  background:var(--panel); color:var(--ink-2);
+}
+.cal-nav:hover:not(:disabled) { border-color:var(--ink-3); color:var(--ink); }
+.cal-nav:disabled { opacity:.3; cursor:default; }
+.cal-dow, .cal-grid { display:grid; grid-template-columns:repeat(7,1fr);
+                      gap:2px; }
+.cal-dow span { text-align:center; font-family:"IBM Plex Mono", monospace;
+                font-size:9.5px; letter-spacing:.1em; color:var(--ink-3);
+                padding-bottom:6px; text-transform:uppercase; }
+.cal-day {
+  aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  border:0; border-radius:8px; cursor:pointer; font:inherit; font-size:13px;
+  font-variant-numeric:tabular-nums; background:none; color:var(--ink);
+}
+.cal-day:hover:not(:disabled) { background:var(--raise); }
+.cal-day:disabled { color:var(--ink-3); opacity:.35; cursor:default; }
+.cal-day.other { color:var(--ink-3); }
+.cal-day.today { box-shadow:inset 0 0 0 1px var(--rule); }
+.cal-day.chosen { background:var(--accent); color:var(--panel);
+                  font-weight:600; }
+.cal-day:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.cal-foot { display:flex; justify-content:space-between; margin-top:10px;
+            padding-top:9px; border-top:1px solid var(--rule-soft); }
+.cal-foot button { background:none; border:0; cursor:pointer; font:inherit;
+                   font-size:12.5px; color:var(--accent); padding:2px 4px; }
 /* Native select chrome is a different widget on every platform and none of
    them match this page, so the arrow is ours and drawn in the ink colour. */
 select {
@@ -515,6 +568,36 @@ function highlight(label, query) {
        + "</mark>" + esc(label.slice(at + q.length));
 }
 
+/* Keep a floating panel inside the window: cap its height to the space below,
+   and flip it above the field when there is more room up there. Without this
+   the list runs under the section beneath it and the last rows are lost. */
+function fit(panel, anchor) {
+  panel.style.maxHeight = "";
+  panel.style.top = "";
+  panel.style.bottom = "";
+  panel.style.overflowY = "";
+
+  const box = anchor.getBoundingClientRect();
+  const below = window.innerHeight - box.bottom - 18;
+  const above = box.top - 18;
+  const natural = panel.scrollHeight;
+
+  // Prefer below; go above only when the panel does not fit down there and
+  // there is genuinely more room up here.
+  const flip = natural > below && above > below;
+  if (flip) {
+    panel.style.top = "auto";
+    panel.style.bottom = "calc(100% + 5px)";
+  }
+  // Scroll only when it will not fit either way. Capping a panel that already
+  // fits is how a calendar loses its last row of days to a scrollbar.
+  const room = flip ? above : below;
+  if (natural > room) {
+    panel.style.maxHeight = Math.max(150, room) + "px";
+    panel.style.overflowY = "auto";
+  }
+}
+
 function combo(inputId, listId) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
@@ -541,6 +624,7 @@ function combo(inputId, listId) {
            ${p.code ? `<span class="code">${esc(p.code)}</span>` : ""}</li>`).join("");
     }
     list.hidden = false;
+    fit(list, input);
     at = -1;
     input.setAttribute("aria-expanded", "true");
   };
@@ -581,18 +665,134 @@ function combo(inputId, listId) {
 combo("from", "from-list");
 combo("to", "to-list");
 
+/* ---------- the calendar ----------
+   Bound to the real date input, so its value stays a plain YYYY-MM-DD and
+   everything that reads or fills the field keeps working; only the panel is
+   ours. The browser's own indicator is hidden, so its picker never opens. */
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+                "August", "September", "October", "November", "December"];
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+                 + `-${String(d.getDate()).padStart(2, "0")}`;
+
+function datepicker(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input || input.type !== "date") return;
+  const cell = input.closest(".cell");
+  const panel = document.createElement("div");
+  panel.className = "cal";
+  panel.hidden = true;
+  cell.appendChild(panel);
+
+  const floor = () => input.min ? new Date(input.min + "T00:00:00") : null;
+  let shown = new Date();
+
+  function draw() {
+    const chosen = input.value ? new Date(input.value + "T00:00:00") : null;
+    const min = floor();
+    const today = iso(new Date());
+    const first = new Date(shown.getFullYear(), shown.getMonth(), 1);
+    // Monday-first, which is what a calendar looks like most places.
+    const lead = (first.getDay() + 6) % 7;
+    const start = new Date(first);
+    start.setDate(1 - lead);
+
+    let grid = "";
+    for (let i = 0; i < 42; i++) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      const key = iso(day);
+      const outside = day.getMonth() !== shown.getMonth();
+      const blocked = min && day < min;
+      grid += `<button type="button" class="cal-day${outside ? " other" : ""}`
+            + `${key === today ? " today" : ""}`
+            + `${chosen && key === iso(chosen) ? " chosen" : ""}"`
+            + `${blocked ? " disabled" : ""} data-iso="${key}">`
+            + `${day.getDate()}</button>`;
+    }
+    const backOk = !min || new Date(shown.getFullYear(), shown.getMonth(), 0) >= min;
+    panel.innerHTML = `
+      <div class="cal-head">
+        <button type="button" class="cal-nav" data-step="-1"
+          ${backOk ? "" : "disabled"} aria-label="Previous month">&lsaquo;</button>
+        <span class="cal-month">${MONTHS[shown.getMonth()]} ${shown.getFullYear()}</span>
+        <button type="button" class="cal-nav" data-step="1"
+          aria-label="Next month">&rsaquo;</button>
+      </div>
+      <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span>
+        <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+      <div class="cal-grid">${grid}</div>
+      <div class="cal-foot">
+        <button type="button" data-jump="today">Today</button>
+        <button type="button" data-close="1">Close</button>
+      </div>`;
+  }
+
+  const open = () => {
+    shown = input.value ? new Date(input.value + "T00:00:00") : new Date();
+    draw();
+    panel.hidden = false;
+    fit(panel, input);
+  };
+  const close = () => { panel.hidden = true; };
+
+  input.addEventListener("focus", open);
+  input.addEventListener("click", open);
+  input.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+
+  panel.addEventListener("mousedown", e => {
+    e.preventDefault();                       // keep focus, so blur stays quiet
+    const nav = e.target.closest(".cal-nav");
+    if (nav) {
+      shown = new Date(shown.getFullYear(), shown.getMonth() + (+nav.dataset.step), 1);
+      return draw();
+    }
+    if (e.target.closest("[data-jump]")) {
+      shown = new Date(); return draw();
+    }
+    if (e.target.closest("[data-close]")) return close();
+    const day = e.target.closest(".cal-day:not(:disabled)");
+    if (day) {
+      input.value = day.dataset.iso;
+      input.dispatchEvent(new Event("change", {bubbles: true}));
+      close();
+    }
+  });
+
+  document.addEventListener("mousedown", e => {
+    if (!panel.hidden && !cell.contains(e.target)) close();
+  });
+}
+
 if (D.live) {
+  datepicker("when");
+  datepicker("retdate");
   const when = document.getElementById("when");
   const soon = new Date(Date.now() + 42 * 86400000);
   when.value = soon.toISOString().slice(0, 10);
   when.min = new Date().toISOString().slice(0, 10);
   const retcell = document.getElementById("retcell");
+  const retdate = document.getElementById("retdate");
+  const plus = (isoDay, days) => {
+    const d = new Date(isoDay + "T00:00:00");
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // Nobody comes back before they leave. The return can never be earlier than
+  // the departure, and if the departure moves past it, it moves too.
+  function holdTheLine() {
+    if (!when.value) return;
+    retdate.min = when.value;
+    if (!retdate.value || retdate.value < when.value) {
+      retdate.value = plus(when.value, 7);
+    }
+  }
+
+  when.addEventListener("change", holdTheLine);
+  when.addEventListener("input", holdTheLine);
   document.getElementById("trip").addEventListener("change", e => {
     retcell.hidden = e.target.value !== "return";
-    if (!retcell.hidden && !document.getElementById("retdate").value) {
-      const back = new Date(Date.now() + 49 * 86400000);
-      document.getElementById("retdate").value = back.toISOString().slice(0, 10);
-    }
+    if (!retcell.hidden) holdTheLine();
   });
 } else {
   document.getElementById("when").innerHTML =
