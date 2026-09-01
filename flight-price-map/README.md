@@ -91,6 +91,35 @@ python verify.py --from JFK --to LHR --date 2026-10-15
 python teaserboard.py         # -> teasers.html
 ```
 
+## The traveller's page
+
+`board.py` is for whoever runs the tool. `trip.py` is for whoever takes the
+trip: flights rather than searches, carriers rather than site keys, and one
+decision up front.
+
+![The traveller's view of the same data](shots/trip-light.png)
+
+The point it makes is sharper than any of the boards:
+
+```
+$192  6:20 PM -> 6:20 AM  Norse Atlantic UK  7 hr  nonstop  Gatwick
+      Momondo $192 · Kayak $203 · Google $204 · Expedia $225
+```
+
+**One flight, one seat, four prices.** Booking the first site you thought of
+costs $33 more than the cheapest, and landing at Heathrow instead adds $80.
+
+Two things had to be fixed before that row was honest. Sites print the same
+departure as `6:20 pm`, `6:20 PM` and `6:20pm`, so keying on the printed string
+showed one flight four separate times. And Kayak sells that Norse departure
+under `Hahn Air` and `A.P.G.` — ticketing agents, not airlines — which split it
+again. Flights are keyed on airport, departure minute, duration and stop count,
+and labelled with the carrier name most sites agree on.
+
+```bash
+python trip.py                # -> trip.html
+```
+
 ## Run it
 
 ```bash
@@ -238,7 +267,9 @@ claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
 airports.py    metro-area airport groups (LON -> LHR LGW STN LTN LCY)
 common.py      shared types, money parsing, block and empty-page detection
-board.py       every run -> board.html, one filterable dashboard
+board.py       every run -> board.html, the operator's dashboard
+trip.py        every run -> trip.html, the traveller's page
+itineraries.py stored fares -> distinct flights, deduplicated
 dashboard.py   results.json -> a single-study page
 teaserboard.py teasers.json -> teasers.html
 theme.py       the shared look: tokens, type, chart and table styles
