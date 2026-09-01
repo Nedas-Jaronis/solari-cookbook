@@ -133,7 +133,15 @@ JS = """
     }
   }
 
-  const DOT = 7;
+  // ---- the knobs ----------------------------------------------------
+  const DOT = 7;            // spacing of the dots the aircraft is made of
+  const CYCLE = 17000;      // ms for one climb, wall clock
+  const TRAIL_FADE = 2.8;   // higher clears the smoke faster behind it
+  const TRAIL_GROW = 2.6;   // how much a puff swells as it falls behind
+  const TRAIL_LEN = 110;    // puffs per climb; fewer is a shorter trail
+  const FAINT = 0.015;      // an alpha below this cannot be seen, so skip it
+  // ---------------------------------------------------------------------
+
   const CX = MASK[0].length / 2, CY = MASK.length / 2;
 
   const NIGHT = {
@@ -220,8 +228,8 @@ JS = """
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    puffs = Array.from({length: 110}, (_, i) => ({
-      u: i / 110,
+    puffs = Array.from({length: TRAIL_LEN}, (_, i) => ({
+      u: i / TRAIL_LEN,
       off: (Math.random() - 0.5) * 30,
       rise: (Math.random() - 0.5) * 0.8,
       size: 5 + Math.random() * 15,
@@ -230,8 +238,6 @@ JS = """
     buildBackdrop();
     buildSprites();
   }
-
-  const FAINT = 0.015;      // below this a puff cannot be seen, so skip it
 
   const fade = u => Math.max(0, Math.min(1, u / 0.12, (1 - u) / 0.14));
 
@@ -255,10 +261,10 @@ JS = """
     for (let i = last - 1; i >= 0; i--) {
       const puff = puffs[i];
       const age = (u - puff.u) / Math.max(u, 0.001);
-      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5) * seam;
+      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, TRAIL_FADE) * seam;
       if (alpha < FAINT) break;
       const at = path(puff.u);
-      const r = puff.size * (1 + age * 3.2);
+      const r = puff.size * (1 + age * TRAIL_GROW);
       ctx.globalAlpha = alpha;
       ctx.drawImage(puffSprite,
                     at.x + puff.off * (0.4 + age * 1.6) - r,
@@ -294,7 +300,6 @@ JS = """
     ctx.globalAlpha = 1;
   }
 
-  const CYCLE = 17000;              // ms for one climb, wall clock
   let slow = 0, lastAt = 0, startAt = 0;
 
   function frame(now) {

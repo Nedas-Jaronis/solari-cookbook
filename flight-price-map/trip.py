@@ -56,10 +56,10 @@ form.finder {
   background:var(--rule); border:1px solid var(--rule); border-radius:10px;
   overflow:hidden; box-shadow:var(--shadow);
 }
-.cell { background:var(--panel); padding:11px 16px; flex:1 1 170px;
+.cell { background:var(--panel); padding:11px 16px; flex:1 1 140px;
         display:flex; flex-direction:column; justify-content:center; }
-.cell.narrow { flex:0 1 132px; }
-.cell.wide { flex:1.3 1 190px; }
+.cell.narrow { flex:0 1 118px; }
+.cell.wide { flex:1.2 1 168px; }
 .cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
               letter-spacing:.16em; text-transform:uppercase;
               color:var(--ink-3); }
