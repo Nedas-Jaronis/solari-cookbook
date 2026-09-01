@@ -131,7 +131,8 @@ JS = """
     smoke: "255,255,255", smokeMax: 0.95,
   };
 
-  let W = 0, H = 0, pal = DAY, stars = [], puffs = [], t = 0, raf = null;
+  let W = 0, H = 0, dpr = 1, pal = DAY, puffs = [], t = 0, raf = null;
+  let backdrop = null, puffSprite = null, haloSprite = null;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   const darkOS = matchMedia("(prefers-color-scheme: dark)");
   const isDark = () => {
@@ -150,15 +151,64 @@ JS = """
             y: k * k * ay + 2 * k * u * by + u * u * cy};
   };
 
+  const layer = (w, h) => {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w));
+    c.height = Math.max(1, Math.round(h));
+    return c;
+  };
+
+  // Everything that does not move is painted once. Rebuilding a full-canvas
+  // gradient and a field of stars sixty times a second is most of the cost of
+  // a scene where neither ever changes.
+  function buildBackdrop() {
+    backdrop = layer(W * dpr, H * dpr);
+    const b = backdrop.getContext("2d");
+    b.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bg = b.createLinearGradient(0, 0, W * 0.7, H);
+    bg.addColorStop(0, pal.sky[0]);
+    bg.addColorStop(0.55, pal.sky[1]);
+    bg.addColorStop(1, pal.sky[2]);
+    b.fillStyle = bg;
+    b.fillRect(0, 0, W, H);
+    if (pal.stars) {
+      b.fillStyle = pal.stars;
+      for (let i = 0, n = Math.round(W * H / 5200); i < n; i++) {
+        b.globalAlpha = 0.15 + Math.random() * 0.5;
+        b.fillRect(Math.random() * W, Math.random() * H,
+                   Math.random() < 0.15 ? 2 : 1, Math.random() < 0.15 ? 2 : 1);
+      }
+    }
+  }
+
+  // One soft blob, drawn once and stamped for every puff. A radial gradient per
+  // puff per frame was the whole lag: the further the aircraft climbed the more
+  // puffs were alive, so the page got heavier the higher it went.
+  function buildSprites() {
+    puffSprite = layer(64, 64);
+    const s = puffSprite.getContext("2d");
+    const g = s.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(" + pal.smoke + ",1)");
+    g.addColorStop(1, "rgba(" + pal.smoke + ",0)");
+    s.fillStyle = g;
+    s.fillRect(0, 0, 64, 64);
+
+    // The halo is smooth, so a small sprite scaled up is indistinguishable
+    // from a full-size gradient and costs a fraction of it.
+    haloSprite = layer(256, 256);
+    const h = haloSprite.getContext("2d");
+    const hg = h.createRadialGradient(128, 128, 0, 128, 128, 128);
+    hg.addColorStop(0, "rgba(" + pal.halo + ",.22)");
+    hg.addColorStop(1, "rgba(" + pal.halo + ",0)");
+    h.fillStyle = hg;
+    h.fillRect(0, 0, 256, 256);
+  }
+
   function size() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    dpr = Math.min(devicePixelRatio || 1, 1.5);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    stars = Array.from({length: Math.round(W * H / 5200)}, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      r: Math.random() < 0.15 ? 2 : 1, a: 0.15 + Math.random() * 0.5,
-    }));
     puffs = Array.from({length: 240}, (_, i) => ({
       u: i / 240,
       off: (Math.random() - 0.5) * 30,
@@ -166,44 +216,37 @@ JS = """
       size: 5 + Math.random() * 15,
       a: 0.30 + Math.random() * 0.7,
     }));
+    buildBackdrop();
+    buildSprites();
   }
 
+  const FAINT = 0.015;      // below this a puff cannot be seen, so skip it
+
   function scene(u) {
-    const bg = ctx.createLinearGradient(0, 0, W * 0.7, H);
-    bg.addColorStop(0, pal.sky[0]);
-    bg.addColorStop(0.55, pal.sky[1]);
-    bg.addColorStop(1, pal.sky[2]);
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(backdrop, 0, 0, W, H);
 
     const nose = path(u);
-    const halo = ctx.createRadialGradient(nose.x, nose.y, 0,
-                                          nose.x, nose.y, Math.max(W, H) * 0.45);
-    halo.addColorStop(0, "rgba(" + pal.halo + ",.22)");
-    halo.addColorStop(1, "rgba(" + pal.halo + ",0)");
-    ctx.fillStyle = halo;
-    ctx.fillRect(0, 0, W, H);
+    const R = Math.max(W, H) * 0.38;
+    ctx.drawImage(haloSprite, nose.x - R, nose.y - R, R * 2, R * 2);
 
-    if (pal.stars) {
-      ctx.fillStyle = pal.stars;
-      for (const s of stars) { ctx.globalAlpha = s.a; ctx.fillRect(s.x, s.y, s.r, s.r); }
-    }
-
-    // Smoke: soft, swelling, thickest just behind the aircraft and gone by the
-    // bottom of the climb, so the eye is pulled forward along it.
-    for (const puff of puffs) {
-      if (puff.u > u) continue;
+    // Walk back from the newest puff and stop at the first invisible one.
+    // They only fade with age, so everything beyond it is invisible too --
+    // which is what keeps the cost flat however high the aircraft is.
+    let last = 0;
+    while (last < puffs.length && puffs[last].u <= u) last++;
+    for (let i = last - 1; i >= 0; i--) {
+      const puff = puffs[i];
       const age = (u - puff.u) / Math.max(u, 0.001);
+      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5);
+      if (alpha < FAINT) break;
       const at = path(puff.u);
-      const px = at.x + puff.off * (0.4 + age * 1.6);
-      const py = at.y + puff.off * 0.4 + puff.rise * age * 90;
       const r = puff.size * (1 + age * 3.2);
-      ctx.globalAlpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5);
-      const g = ctx.createRadialGradient(px, py, 0, px, py, r);
-      g.addColorStop(0, "rgba(" + pal.smoke + ",1)");
-      g.addColorStop(1, "rgba(" + pal.smoke + ",0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(px - r, py - r, r * 2, r * 2);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(puffSprite,
+                    at.x + puff.off * (0.4 + age * 1.6) - r,
+                    at.y + puff.off * 0.4 + puff.rise * age * 90 - r,
+                    r * 2, r * 2);
     }
     ctx.globalAlpha = 1;
 
@@ -229,13 +272,27 @@ JS = """
     ctx.globalAlpha = 1;
   }
 
-  function frame() { t += 1; scene(Math.min((t / 780) % 1.15, 1)); raf = requestAnimationFrame(frame); }
+  let slow = 0, lastAt = 0;
+
+  function frame(now) {
+    const gap = lastAt ? now - lastAt : 16;
+    lastAt = now;
+    // Two seconds of missed frames means this device is not enjoying it.
+    // A still sky is better than a page that stutters while you use it.
+    slow = gap > 34 ? slow + 1 : 0;
+    if (slow > 120) { cancelAnimationFrame(raf); raf = null; scene(0.58); return; }
+
+    t += 1;
+    scene(Math.min((t / 780) % 1.15, 1));
+    raf = requestAnimationFrame(frame);
+  }
 
   function start() {
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     pal = isDark() ? NIGHT : DAY;
     size();
     if (still.matches) { scene(0.58); return; }   // one composed frame
+    slow = 0; lastAt = 0;
     raf = requestAnimationFrame(frame);
   }
 
