@@ -119,6 +119,47 @@ section > p.lede { margin:0 0 16px; color:var(--ink-2); max-width:62ch; }
   .bar-note { display:none; }
 }
 
+/* Advertised vs delivered: two values per claim, so a dumbbell rather than a
+   bar. The connecting segment is the gap, which is the thing worth seeing. */
+.dumb { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:10px 18px; }
+.dumb-row {
+  display:grid; grid-template-columns:104px 1fr 92px 78px;
+  align-items:center; gap:14px; padding:10px 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+.dumb-row:last-child { border-bottom:0; }
+.dumb-label { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dumb-label small { display:block; color:var(--ink-3); font-size:10.5px;
+                    letter-spacing:.08em; text-transform:uppercase; }
+.dumb-track { position:relative; height:18px; }
+.dumb-track::before {
+  content:""; position:absolute; left:0; right:0; top:8px; height:2px;
+  background:var(--rule-soft);
+}
+.dumb-seg { position:absolute; top:8px; height:2px; background:var(--warn); }
+.dumb-dot { position:absolute; top:4px; width:10px; height:10px;
+            border-radius:50%; margin-left:-5px;
+            box-shadow:0 0 0 2px var(--panel); }
+.dot-ad { background:var(--ink-3); }
+.dot-got { background:var(--warn); }
+.dumb-row.is-holds .dumb-seg, .dumb-row.is-holds .dot-got { background:var(--ok); }
+.dumb-row.is-unverified .dot-got { display:none; }
+.dumb-price { font-family:"IBM Plex Mono", monospace; font-size:13px;
+              font-variant-numeric:tabular-nums; text-align:right;
+              white-space:nowrap; }
+.dumb-price b { font-weight:600; }
+.dumb-price span { color:var(--ink-3); }
+.legend { display:flex; gap:18px; align-items:center; margin:0 0 12px;
+          font-size:12.5px; color:var(--ink-2); flex-wrap:wrap; }
+.key { display:inline-flex; align-items:center; gap:7px; }
+.key i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+@media (max-width:640px) {
+  .dumb-row { grid-template-columns:88px 1fr 84px; }
+  .dumb-row > .chip-cell { display:none; }
+}
+
 .scroll { overflow-x:auto; background:var(--panel);
           border:1px solid var(--rule); border-radius:6px; }
 table { border-collapse:collapse; width:100%; font-size:14px; }
@@ -134,6 +175,9 @@ td { padding:9px 14px; border-bottom:1px solid var(--rule-soft);
 tr:last-child td { border-bottom:0; }
 tr.is-blocked td, tr.is-unparsed td, tr.is-empty td, tr.is-error td,
 tr.is-unverified td { color:var(--ink-3); }
+td.same { color:var(--ink-3); }
+td.diff { color:var(--warn); font-weight:600; }
+td.gone { color:var(--ink-3); }
 .detail { color:var(--ink-2); font-size:13px; max-width:280px;
           overflow:hidden; text-overflow:ellipsis; }
 .chip {
@@ -184,19 +228,13 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
       <span>faster than one at a time (8 min)</span></div>
   </div>
 
-  <section>
-    <h2>Which airport</h2>
-    <p class="lede">Cheapest fare found at each airport in the destination metro
-      area, across every site. Searching only the airport you first thought of
-      is how people overpay.</p>
-    <div class='bars'>
+  <section><h2>Which airport</h2><p class="lede">Cheapest fare found at each airport in the destination metro area, across every site. Searching only the airport you first thought of is how people overpay.</p><div class='bars'>
 <div class='bar-row is-best'><span class='bar-label'>LGW</span><span class='bar-track'><span class='bar-fill' style='width:61.1%'></span></span><span class='bar-value'>$192</span><span class='bar-note'>cheapest on Momondo</span></div>
 <div class='bar-row'><span class='bar-label'>STN</span><span class='bar-track'><span class='bar-fill' style='width:68.5%'></span></span><span class='bar-value'>$215</span><span class='bar-note'>cheapest on Kayak</span></div>
 <div class='bar-row'><span class='bar-label'>LTN</span><span class='bar-track'><span class='bar-fill' style='width:81.5%'></span></span><span class='bar-value'>$256</span><span class='bar-note'>cheapest on Kayak</span></div>
 <div class='bar-row'><span class='bar-label'>LHR</span><span class='bar-track'><span class='bar-fill' style='width:86.6%'></span></span><span class='bar-value'>$272</span><span class='bar-note'>cheapest on Momondo</span></div>
 <div class='bar-row'><span class='bar-label'>LCY</span><span class='bar-track'><span class='bar-fill' style='width:100.0%'></span></span><span class='bar-value'>$314</span><span class='bar-note'>cheapest on Kayak</span></div>
-</div>
-  </section>
+</div></section>
 
   <section>
     <h2>Which site</h2>
@@ -211,6 +249,8 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 </div>
   </section>
 
+  
+
   <section>
     <h2>Every search</h2>
     <p class="lede">One cloud browser per row, each on its own residential IP.
@@ -219,40 +259,41 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
     <div class="scroll">
       <table>
         <thead><tr>
-          <th>Route</th><th>Site</th><th class="num">Cheapest</th>
+          <th>Route</th><th>From</th><th>Site</th>
+          <th class="num">Cheapest</th>
           <th class="num">Fares</th><th>Best itinerary</th>
           <th class="num">Time</th><th>Status</th>
         </tr></thead>
-        <tbody><tr class='is-ok'><td class='mono'>JFK-LGW</td><td>Momondo</td><td class='mono num'>$192</td><td class='mono num'>50</td><td class='detail'>Norse Atlantic UK · 7h 00m · nonstop</td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LGW</td><td>Kayak</td><td class='mono num'>$203</td><td class='mono num'>50</td><td class='detail'>Hahn Air · 7h 00m · nonstop</td><td class='mono num'>13s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LGW</td><td>Google Flights</td><td class='mono num'>$204</td><td class='mono num'>12</td><td class='detail'>Norse Atlantic UK · 7 hr · Nonstop</td><td class='mono num'>11s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-STN</td><td>Kayak</td><td class='mono num'>$215</td><td class='mono num'>26</td><td class='detail'>Norse Atlantic Airways, Ryanair · 30h 25m · 2 stops</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LGW</td><td>Expedia</td><td class='mono num'>$225</td><td class='mono num'>20</td><td class='detail'>Norse Atlantic UK · 7h · Nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LGW</td><td>Priceline</td><td class='mono num'>$225</td><td class='mono num'>21</td><td class='detail'></td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-STN</td><td>Momondo</td><td class='mono num'>$252</td><td class='mono num'>27</td><td class='detail'>Multiple airlines · 20h 25m · 2 stops</td><td class='mono num'>12s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LTN</td><td>Kayak</td><td class='mono num'>$256</td><td class='mono num'>19</td><td class='detail'>Norse Atlantic Airways, Wizz Air · 20h 05m · 2 stops</td><td class='mono num'>12s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LHR</td><td>Momondo</td><td class='mono num'>$272</td><td class='mono num'>50</td><td class='detail'>Virgin Atlantic · 6h 55m · nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LHR</td><td>Google Flights</td><td class='mono num'>$277</td><td class='mono num'>23</td><td class='detail'>Icelandair · 31 hr 45 min · 1 stop</td><td class='mono num'>10s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LHR</td><td>Kayak</td><td class='mono num'>$286</td><td class='mono num'>50</td><td class='detail'>JetBlue · 7h 00m · nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LHR</td><td>Expedia</td><td class='mono num'>$295</td><td class='mono num'>25</td><td class='detail'>Virgin Atlantic · 6h 55m · Nonstop</td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LHR</td><td>Priceline</td><td class='mono num'>$295</td><td class='mono num'>28</td><td class='detail'></td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LCY</td><td>Kayak</td><td class='mono num'>$314</td><td class='mono num'>50</td><td class='detail'>SWISS · 11h 05m · 1 stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LCY</td><td>Momondo</td><td class='mono num'>$314</td><td class='mono num'>50</td><td class='detail'>SWISS · 11h 05m · 1 stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LCY</td><td>Google Flights</td><td class='mono num'>$323</td><td class='mono num'>12</td><td class='detail'>SWISSOperated by Helvetic · 11 hr 25 min · 1 stop</td><td class='mono num'>9s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-LCY</td><td>Expedia</td><td class='mono num'>$323</td><td class='mono num'>23</td><td class='detail'>Swiss International Air Lines · 11h 25m · One stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-STN</td><td>Google Flights</td><td class='mono num'>$552</td><td class='mono num'>8</td><td class='detail'>Turkish Airlines · 16 hr 5 min · 1 stop</td><td class='mono num'>9s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-STN</td><td>Expedia</td><td class='mono num'>$582</td><td class='mono num'>4</td><td class='detail'>Turkish Airlines · 16h 5m · One stop</td><td class='mono num'>14s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-ok'><td class='mono'>JFK-STN</td><td>Priceline</td><td class='mono num'>$582</td><td class='mono num'>5</td><td class='detail'></td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
-<tr class='is-unparsed'><td class='mono'>JFK-LTN</td><td>Google Flights</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>34s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr>
-<tr class='is-error'><td class='mono'>JFK-LTN</td><td>Momondo</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>31s</td><td><span class='chip chip-error'>error</span></td></tr>
-<tr class='is-empty'><td class='mono'>JFK-LTN</td><td>Expedia</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-empty'>no flights</span></td></tr>
-<tr class='is-blocked'><td class='mono'>JFK-LHR</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
-<tr class='is-blocked'><td class='mono'>JFK-LGW</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
-<tr class='is-blocked'><td class='mono'>JFK-STN</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
-<tr class='is-blocked'><td class='mono'>JFK-LTN</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
-<tr class='is-blocked'><td class='mono'>JFK-LCY</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
-<tr class='is-unparsed'><td class='mono'>JFK-LTN</td><td>Priceline</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>48s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr>
-<tr class='is-unparsed'><td class='mono'>JFK-LCY</td><td>Priceline</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>48s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr></tbody>
+        <tbody><tr class='is-ok'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Momondo</td><td class='mono num'>$192</td><td class='mono num'>50</td><td class='detail'>Norse Atlantic UK · 7h 00m · nonstop</td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Kayak</td><td class='mono num'>$203</td><td class='mono num'>50</td><td class='detail'>Hahn Air · 7h 00m · nonstop</td><td class='mono num'>13s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Google Flights</td><td class='mono num'>$204</td><td class='mono num'>12</td><td class='detail'>Norse Atlantic UK · 7 hr · Nonstop</td><td class='mono num'>11s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Kayak</td><td class='mono num'>$215</td><td class='mono num'>26</td><td class='detail'>Norse Atlantic Airways, Ryanair · 30h 25m · 2 stops</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Expedia</td><td class='mono num'>$225</td><td class='mono num'>20</td><td class='detail'>Norse Atlantic UK · 7h · Nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Priceline</td><td class='mono num'>$225</td><td class='mono num'>21</td><td class='detail'></td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Momondo</td><td class='mono num'>$252</td><td class='mono num'>27</td><td class='detail'>Multiple airlines · 20h 25m · 2 stops</td><td class='mono num'>12s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Kayak</td><td class='mono num'>$256</td><td class='mono num'>19</td><td class='detail'>Norse Atlantic Airways, Wizz Air · 20h 05m · 2 stops</td><td class='mono num'>12s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Momondo</td><td class='mono num'>$272</td><td class='mono num'>50</td><td class='detail'>Virgin Atlantic · 6h 55m · nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Google Flights</td><td class='mono num'>$277</td><td class='mono num'>23</td><td class='detail'>Icelandair · 31 hr 45 min · 1 stop</td><td class='mono num'>10s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Kayak</td><td class='mono num'>$286</td><td class='mono num'>50</td><td class='detail'>JetBlue · 7h 00m · nonstop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Expedia</td><td class='mono num'>$295</td><td class='mono num'>25</td><td class='detail'>Virgin Atlantic · 6h 55m · Nonstop</td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Priceline</td><td class='mono num'>$295</td><td class='mono num'>28</td><td class='detail'></td><td class='mono num'>16s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Kayak</td><td class='mono num'>$314</td><td class='mono num'>50</td><td class='detail'>SWISS · 11h 05m · 1 stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Momondo</td><td class='mono num'>$314</td><td class='mono num'>50</td><td class='detail'>SWISS · 11h 05m · 1 stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Google Flights</td><td class='mono num'>$323</td><td class='mono num'>12</td><td class='detail'>SWISSOperated by Helvetic · 11 hr 25 min · 1 stop</td><td class='mono num'>9s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Expedia</td><td class='mono num'>$323</td><td class='mono num'>23</td><td class='detail'>Swiss International Air Lines · 11h 25m · One stop</td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Google Flights</td><td class='mono num'>$552</td><td class='mono num'>8</td><td class='detail'>Turkish Airlines · 16 hr 5 min · 1 stop</td><td class='mono num'>9s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Expedia</td><td class='mono num'>$582</td><td class='mono num'>4</td><td class='detail'>Turkish Airlines · 16h 5m · One stop</td><td class='mono num'>14s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-ok'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Priceline</td><td class='mono num'>$582</td><td class='mono num'>5</td><td class='detail'></td><td class='mono num'>15s</td><td><span class='chip chip-ok'>read</span></td></tr>
+<tr class='is-unparsed'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Google Flights</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>34s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr>
+<tr class='is-error'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Momondo</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>31s</td><td><span class='chip chip-error'>error</span></td></tr>
+<tr class='is-empty'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Expedia</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-empty'>no flights</span></td></tr>
+<tr class='is-blocked'><td class='mono'>JFK-LHR</td><td class='mono'>us</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
+<tr class='is-blocked'><td class='mono'>JFK-LGW</td><td class='mono'>us</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
+<tr class='is-blocked'><td class='mono'>JFK-STN</td><td class='mono'>us</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
+<tr class='is-blocked'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>9s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
+<tr class='is-blocked'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Skyscanner</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>8s</td><td><span class='chip chip-blocked'>blocked</span></td></tr>
+<tr class='is-unparsed'><td class='mono'>JFK-LTN</td><td class='mono'>us</td><td>Priceline</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>48s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr>
+<tr class='is-unparsed'><td class='mono'>JFK-LCY</td><td class='mono'>us</td><td>Priceline</td><td class='mono num'>--</td><td class='mono num'></td><td class='detail'></td><td class='mono num'>48s</td><td><span class='chip chip-unparsed'>no fares</span></td></tr></tbody>
       </table>
     </div>
   </section>

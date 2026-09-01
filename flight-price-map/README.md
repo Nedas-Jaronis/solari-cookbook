@@ -94,6 +94,10 @@ cp .env.example .env          # paste your slr_live_ key into it
 
 python compare.py --from JFK --to LHR --date 2026-10-15 --nearby to
 python dashboard.py           # -> dashboard.html
+
+# same flight, priced from eight countries
+python compare.py --from JFK --to LHR --date 2026-10-15     --sites google kayak momondo --countries us gb de jp ca au sg in
+python dashboard.py --in countries.json --out countries.html     --title "Country Check"
 ```
 
 Useful flags:
@@ -148,27 +152,82 @@ third is our problem to fix.
 Blocked rows still show on the board as blocked. A tool that quietly dropped
 them would overstate how much of the market it had actually checked.
 
-## Countries
+## Does the price change by country?
 
-The original idea was to price one flight from many countries at once, since
-fares vary by where you appear to browse. That still works in the code —
-`--countries us gb de jp` — but **only `us` egress currently connects** on this
-plan. Every other country times out at ~32s on a plain `api.ipify.org` load,
-which proves it is the proxy and not the target site:
+This was the original idea: fares vary by where you appear to be browsing, so
+price one flight from everywhere at once. Residential egress in eight countries,
+every price forced to USD so the comparison is *pricing* and not exchange rates.
 
 ```
-  us OK   3s
-  ca gb de fr nl es it au jp sg in br mx   all FAIL ~32s
+same flight, priced from 8 countries (all forced to USD)
+  google            $5   au$282 ca$277 in$277 jp$282 sg$277 us$277
+  kayak   no difference   au$286 ca$286 gb$286 in$286 jp$286 sg$286 us$286
+  momondo          $14   au$272 ca$272 de$286 gb$272 in$272 sg$272 us$272
 ```
 
-Run `python proxycheck.py` to re-test. If your plan includes non-US egress, the
-country dimension needs no code changes — pass `--countries` and the dashboard
-picks it up.
+![The same flight priced from eight countries](shots/countries-light.png)
+
+**It barely matters.** Kayak quoted the identical fare from all seven countries
+it answered. Google varied by $5 and Momondo by $14, and Momondo's was one
+country (Germany) against six that agreed. On this route, the folk wisdom about
+VPNing somewhere cheap to buy flights does not survive a controlled test.
+
+Worth being clear about the limits: one route, one date, six weeks out, economy
+one-way, on the most competitive air corridor in the world. Thin routes are
+exactly where you would expect geographic pricing to show up, and we have not
+tested those yet.
+
+### A note on the egress itself
+
+For most of a day, every non-US proxy country failed to connect — 13 countries
+timing out at ~32s on a plain `api.ipify.org` load, while `us` answered in 3s.
+It looked exactly like a plan entitlement. **It was a transient outage.** The
+same calls now succeed in 2-4s, on the same plan, and every tier works:
+
+```
+13/13 usable
+  smart  us/{residential,static,mobile}  gb/{...}  de/{...}  jp/{...}
+```
+
+`proxy="gb"` as a bare string and `ProxyRequest(country="gb")` behave
+identically, so it was not an API-shape mistake either. The lesson is only that
+a proxy outage and a missing entitlement are indistinguishable from the client
+side, and `python proxycheck.py` re-tests both in under a minute.
+
+Non-US egress is a little less reliable than US even when working: 4 of 24
+searches in the country sweep died with `ERR_TUNNEL_CONNECTION_FAILED` or an
+unfinished page, against none from `us`.
+
+## What gets past an anti-bot wall
+
+Skyscanner blocks us, and the browser SDK has three switches that sound like
+the answer: `captcha=True`, `proxy="smart"` (Solari picks the egress and
+rotates it on a block), and `web_bot_auth=True`. `bypass.py` tries them side by
+side, because a wall looks identical whichever option would have cleared it.
+
+```
+stealth + us                 blocked   Are you a person or a robot?
+stealth + captcha + us       blocked   Are you a person or a robot?
+stealth + smart              blocked   Are you a person or a robot?
+stealth + captcha + smart    blocked   Are you a person or a robot?
+stealth + web_bot_auth + us  blocked   Are you a person or a robot?
+stealth + captcha + gb       error     ERR_TUNNEL_CONNECTION_FAILED
+
+0/6 got through
+```
+
+**None of them.** Solari's own page lists Cloudflare, DataDome, PerimeterX,
+Akamai and reCAPTCHA as cleared, so either Skyscanner uses something else or
+we have simply spent our welcome: it served three of five routes on the first
+sweep of the day and has refused everything since. Either way the remaining
+lever is a cooldown measured in hours, not another flag, and the boards report
+it as blocked rather than pretending the market was fully checked.
 
 ## Files
 
 ```
 compare.py     the fan-out: sites x airports x countries, in parallel
+bypass.py      dev tool: which launch options get past a site that walls us
 verify.py      two waves: collect advertised prices, then test every one
 claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
@@ -180,7 +239,7 @@ theme.py       the shared look: tokens, type, chart and table styles
 parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot the dashboard in both themes
-proxycheck.py  which proxy countries actually connect
+proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```
 
@@ -196,7 +255,7 @@ fares.
 | Kayak | yes | full itinerary detail |
 | Momondo | yes | same engine as Kayak, still quotes differently |
 | Expedia | yes | screen-reader lines; walls the most aggressively |
-| Skyscanner | sometimes | reads on a cold start, then walls repeated sweeps |
+| Skyscanner | sometimes | reads on a cold start, then walls everything; no launch option gets past it |
 | Priceline | prices only | fares read, itinerary detail not parsed yet |
 | Kiwi | no | URL scheme needs place slugs, not IATA codes |
 

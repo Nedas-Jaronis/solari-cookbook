@@ -49,7 +49,55 @@ def bar_rows(items, unit="$", wide=False) -> str:
     return "\n".join(out)
 
 
-def build(data: dict) -> str:
+def country_section(rows, names, countries) -> str:
+    """Same flight, same site, priced from each country we could reach.
+
+    A matrix rather than a chart: the interesting pattern is how many cells
+    are identical, and a bar chart of near-identical values is a wall of
+    equal bars that hides exactly that.
+    """
+    if len(countries) < 2:
+        return ""
+    sites = sorted({r["site"] for r in rows})
+    head = "".join(f"<th class='num'>{esc(c)}</th>" for c in countries)
+    body = []
+    for site in sites:
+        quotes = {r["country"]: r["cheapest"] for r in rows if r["site"] == site}
+        if not quotes:
+            continue
+        low = min(quotes.values())
+        cells = []
+        for c in countries:
+            price = quotes.get(c)
+            if price is None:
+                cells.append("<td class='mono num gone'>--</td>")
+            else:
+                klass = "same" if price == low else "diff"
+                cells.append(f"<td class='mono num {klass}'>${price:,}</td>")
+        spread = max(quotes.values()) - low
+        body.append(
+            f"<tr><td>{esc(names.get(site, site))}</td>{''.join(cells)}"
+            f"<td class='mono num'>"
+            + (f"${spread:,}" if spread else "&mdash;") + "</td></tr>")
+
+    return f"""
+  <section>
+    <h2>Which country</h2>
+    <p class="lede">The same search, run from residential IPs in
+      {len(countries)} countries, every price forced to USD so this is pricing
+      and not exchange rates. Dashes are searches that failed to reach the
+      site. Highlighted cells are the ones that differ from that site&rsquo;s
+      cheapest.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Site</th>{head}<th class="num">Spread</th></tr></thead>
+        <tbody>{''.join(body)}</tbody>
+      </table>
+    </div>
+  </section>"""
+
+
+def build(data: dict, title: str = "Fare Board") -> str:
     results = data["results"]
     names = data.get("site_names", {})
     good = [r for r in results if r.get("ok")]
@@ -82,6 +130,10 @@ def build(data: dict) -> str:
          for k, rows in by_site.items()),
         key=lambda t: t[1])
 
+    countries = sorted({r["country"] for r in good})
+    country_block = country_section(
+        [r for r in good if r["route"] == asked], names, countries)
+
     labels = {"ok": "read", "blocked": "blocked", "empty": "no flights",
               "unparsed": "no fares", "error": "error"}
     board = []
@@ -95,6 +147,7 @@ def build(data: dict) -> str:
         board.append(
             f"<tr class='is-{state}'>"
             f"<td class='mono'>{esc(r['route'])}</td>"
+            f"<td class='mono'>{esc(r.get('country', ''))}</td>"
             f"<td>{esc(names.get(r['site'], r['site']))}</td>"
             f"<td class='mono num'>{esc(cheapest)}</td>"
             f"<td class='mono num'>{esc(r.get('count') or '')}</td>"
@@ -107,10 +160,25 @@ def build(data: dict) -> str:
     walltime = data.get("seconds", 0)
     serial = sum(r["seconds"] for r in results)
 
+    routes = {r["route"] for r in good}
     if saving > 0 and baseline:
         verdict = (f"<strong>${saving:,} under</strong> the best "
                    f"{esc(asked)} fare anyone quoted (${baseline['cheapest']:,}), "
                    f"for an airport in the same metro area.")
+    elif len(routes) == 1 and len(countries) > 1 and baseline_rows:
+        # A country sweep asks a different question, so it gets a different
+        # answer rather than an airport verdict about airports we never tried.
+        spreads = {}
+        for r in baseline_rows:
+            spreads.setdefault(r["site"], []).append(r["cheapest"])
+        widest = max((max(v) - min(v) for v in spreads.values()), default=0)
+        flat = [s for s, v in spreads.items() if max(v) == min(v)]
+        verdict = (
+            f"Where you appear to browse from barely moves the price. "
+            f"The widest spread any site showed across {len(countries)} "
+            f"countries was <strong>${widest:,}</strong>"
+            + (f", and {len(flat)} of {len(spreads)} sites quoted the identical "
+               f"fare everywhere." if flat else "."))
     elif baseline:
         verdict = ("The airport you asked for is also the cheapest. Every "
                    "alternative in the metro area came back dearer.")
@@ -118,7 +186,7 @@ def build(data: dict) -> str:
         verdict = "No fare was read for the route as asked."
 
     return TEMPLATE.format(
-        head=theme.head("Fare Board"),
+        head=theme.head(title),
         origin=esc(data["origin"]), destination=esc(data["destination"]),
         date=esc(data["date"]),
         trip=esc("one way" if not data.get("ret")
@@ -132,9 +200,15 @@ def build(data: dict) -> str:
         walltime=f"{walltime:.0f}",
         serial=f"{serial / 60:.0f}",
         speedup=f"{serial / walltime:.0f}" if walltime else "--",
-        airports=bar_rows(airport_items),
+        airports=("" if len(airport_items) < 2 else
+                  '<section><h2>Which airport</h2><p class="lede">Cheapest fare '
+                  'found at each airport in the destination metro area, across '
+                  'every site. Searching only the airport you first thought of '
+                  'is how people overpay.</p>'
+                  + bar_rows(airport_items) + "</section>"),
         sites=bar_rows(site_items, wide=True),
         asked=esc(asked),
+        countries=country_block,
         board="\n".join(board),
     )
 
@@ -170,13 +244,7 @@ TEMPLATE = """{head}
       <span>faster than one at a time ({serial} min)</span></div>
   </div>
 
-  <section>
-    <h2>Which airport</h2>
-    <p class="lede">Cheapest fare found at each airport in the destination metro
-      area, across every site. Searching only the airport you first thought of
-      is how people overpay.</p>
-    {airports}
-  </section>
+  {airports}
 
   <section>
     <h2>Which site</h2>
@@ -184,6 +252,8 @@ TEMPLATE = """{head}
       the comparison is like for like. Same flight, same day, same currency.</p>
     {sites}
   </section>
+
+  {countries}
 
   <section>
     <h2>Every search</h2>
@@ -193,7 +263,8 @@ TEMPLATE = """{head}
     <div class="scroll">
       <table>
         <thead><tr>
-          <th>Route</th><th>Site</th><th class="num">Cheapest</th>
+          <th>Route</th><th>From</th><th>Site</th>
+          <th class="num">Cheapest</th>
           <th class="num">Fares</th><th>Best itinerary</th>
           <th class="num">Time</th><th>Status</th>
         </tr></thead>
@@ -215,12 +286,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--in", dest="src", default="results.json")
     ap.add_argument("--out", default="dashboard.html")
+    ap.add_argument("--title", default="Fare Board")
     ap.add_argument("--standalone", action="store_true",
                     help="wrap in <!doctype html> for opening straight off disk")
     args = ap.parse_args()
 
     data = json.loads((HERE / args.src).read_text(encoding="utf-8"))
-    page = build(data)
+    page = build(data, args.title)
     (HERE / args.out).write_text(
         theme.standalone(page) if args.standalone else page, encoding="utf-8")
     ok = sum(1 for r in data["results"] if r.get("ok"))

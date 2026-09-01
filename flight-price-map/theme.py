@@ -180,6 +180,9 @@ td { padding:9px 14px; border-bottom:1px solid var(--rule-soft);
 tr:last-child td { border-bottom:0; }
 tr.is-blocked td, tr.is-unparsed td, tr.is-empty td, tr.is-error td,
 tr.is-unverified td { color:var(--ink-3); }
+td.same { color:var(--ink-3); }
+td.diff { color:var(--warn); font-weight:600; }
+td.gone { color:var(--ink-3); }
 .detail { color:var(--ink-2); font-size:13px; max-width:280px;
           overflow:hidden; text-overflow:ellipsis; }
 .chip {

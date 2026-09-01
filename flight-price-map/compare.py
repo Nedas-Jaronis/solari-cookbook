@@ -98,6 +98,10 @@ async def attempt(solari, task: Task, site, url: str, base: dict,
                 "status": ("ok" if fares else "blocked" if wall
                            else "empty" if empty else "unparsed"),
                 "count": len(fares),
+                # Which currency the page actually quoted. Comparing countries
+                # is only meaningful if every one came back in the same one --
+                # otherwise we would be reading exchange rates, not pricing.
+                "currency": fares[0].currency if fares else None,
                 "cheapest": min((f.price for f in fares), default=None),
                 "median": sorted(f.price for f in fares)[len(fares) // 2]
                           if fares else None,
@@ -183,15 +187,41 @@ def report(results: list[dict], elapsed: float, asked: str) -> None:
 
     # Compare sites on the route actually asked for, not on whichever route
     # happened to win -- otherwise this table quietly answers a different
-    # question from the one its heading claims.
-    rows = sorted([r for r in good if r["route"] == asked],
-                  key=lambda r: r["cheapest"])
+    # question from the one its heading claims. One row per site: with several
+    # countries in play there are several rows per site, and listing them all
+    # would read as a site-by-site comparison while actually showing neither.
+    asked_rows = [r for r in good if r["route"] == asked]
+    per_site = {}
+    for r in asked_rows:
+        if r["site"] not in per_site or r["cheapest"] < per_site[r["site"]]["cheapest"]:
+            per_site[r["site"]] = r
+    rows = sorted(per_site.values(), key=lambda r: r["cheapest"])
     if len(rows) > 1:
-        print(f"\ncheapest by site for {asked} (apples to apples):")
+        print(f"\ncheapest by site for {asked} (best of any country):")
         for r in rows:
             gap = r["cheapest"] - rows[0]["cheapest"]
             print(f"  {r['site']:>11} ${r['cheapest']:>7,}"
                   + (f"  +${gap:,}" if gap else "  <- cheapest"))
+
+    countries = sorted({r["country"] for r in asked_rows})
+    if len(countries) > 1:
+        print(f"\nsame flight, priced from {len(countries)} countries "
+              f"(all forced to USD, so this is pricing and not exchange rates):")
+        for site in sorted({r["site"] for r in asked_rows}):
+            quotes = {r["country"]: r["cheapest"]
+                      for r in asked_rows if r["site"] == site}
+            if not quotes:
+                continue
+            lo, hi = min(quotes.values()), max(quotes.values())
+            seen = " ".join(f"{c}${p:,}" for c, p in sorted(quotes.items()))
+            spread = f"${hi - lo:,}" if hi != lo else "no difference"
+            print(f"  {site:>11} {spread:>13}   {seen}")
+
+    monies = {r.get("currency") for r in good if r.get("currency")}
+    if len(monies) > 1:
+        print(f"\nWARNING: mixed currencies {sorted(monies)} -- these prices "
+              f"are not comparable. Force USD in the site URLs before reading "
+              f"across countries.")
 
     spread = worst["cheapest"] - best["cheapest"]
     print(f"\nspread ${spread:,} "

@@ -53,7 +53,7 @@ def kayak_url(q: Query) -> str:
 
 def momondo_url(q: Query) -> str:
     legs = f"{q.origin}-{q.destination}/{q.date}" + (f"/{q.ret}" if q.ret else "")
-    return f"https://www.momondo.com/flight-search/{legs}?sort=price_a"
+    return f"https://www.momondo.com/flight-search/{legs}?sort=price_a&currency=USD"
 
 
 def expedia_url(q: Query) -> str:
