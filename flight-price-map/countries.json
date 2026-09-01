@@ -1,0 +1,1612 @@
+{
+ "generated_at": "2026-09-01T13:33:54+00:00",
+ "origin": "JFK",
+ "destination": "LHR",
+ "date": "2026-10-15",
+ "ret": null,
+ "nearby": null,
+ "seconds": 80.7,
+ "site_names": {
+  "google": "Google Flights",
+  "kayak": "Kayak",
+  "momondo": "Momondo",
+  "expedia": "Expedia",
+  "skyscanner": "Skyscanner",
+  "kiwi": "Kiwi",
+  "priceline": "Priceline"
+ },
+ "results": [
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 277,
+   "median": 295,
+   "fares": [
+    {
+     "price": 277,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 9.2,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "gb",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": false,
+   "blocked": false,
+   "status": "unparsed",
+   "count": 0,
+   "currency": null,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "Europe/London",
+   "egress": "gb",
+   "seconds": 34.8,
+   "error": "loaded but no fares parsed",
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "de",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": false,
+   "stage": "load",
+   "blocked": false,
+   "status": "error",
+   "error": "Error: Page.goto: net::ERR_TUNNEL_CONNECTION_FAILED at https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15\nCall log:\n  - navigating to ",
+   "seconds": 4.4,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "jp",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 282,
+   "median": 295,
+   "fares": [
+    {
+     "price": 282,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10\u202fPM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50\u202fAM",
+     "arrive": "7:45\u202fPM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15\u202fAM",
+     "arrive": "8:10\u202fPM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45\u202fAM",
+     "arrive": "8:45\u202fPM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35\u202fAM",
+     "arrive": "9:40\u202fPM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15\u202fPM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "Asia/Tokyo",
+   "egress": "jp",
+   "seconds": 13.0,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "ca",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 277,
+   "median": 295,
+   "fares": [
+    {
+     "price": 277,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "America/Toronto",
+   "egress": "ca",
+   "seconds": 9.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "au",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 282,
+   "median": 295,
+   "fares": [
+    {
+     "price": 282,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "Australia/Sydney",
+   "egress": "au",
+   "seconds": 11.3,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "sg",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 277,
+   "median": 295,
+   "fares": [
+    {
+     "price": 277,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "Asia/Singapore",
+   "egress": "sg",
+   "seconds": 12.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "in",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "currency": "$",
+   "cheapest": 277,
+   "median": 295,
+   "fares": [
+    {
+     "price": 277,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "Asia/Kolkata",
+   "egress": "in",
+   "seconds": 12.7,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "gb",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 287,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 pm",
+     "arrive": "11:55 am",
+     "duration": "31h 45m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "6:25 pm",
+     "arrive": "9:05 am",
+     "duration": "9h 40m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "Iberia",
+     "depart": "9:35 am",
+     "arrive": "9:40 pm",
+     "duration": "7h 05m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Europe/London",
+   "egress": "gb",
+   "seconds": 16.5,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "de",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": false,
+   "blocked": false,
+   "status": "unparsed",
+   "count": 0,
+   "currency": null,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "Europe/Berlin",
+   "egress": "de",
+   "seconds": 79.2,
+   "error": "loaded but no fares parsed",
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "jp",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Asia/Tokyo",
+   "egress": "jp",
+   "seconds": 18.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "ca",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/Toronto",
+   "egress": "ca",
+   "seconds": 14.3,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "au",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Australia/Sydney",
+   "egress": "au",
+   "seconds": 21.3,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "sg",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Asia/Singapore",
+   "egress": "sg",
+   "seconds": 19.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "in",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 289,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Asia/Kolkata",
+   "egress": "in",
+   "seconds": 17.6,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.7,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "gb",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Europe/London",
+   "egress": "gb",
+   "seconds": 19.1,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "de",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 287,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 pm",
+     "arrive": "11:55 am",
+     "duration": "31h 45m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "6:25 pm",
+     "arrive": "9:05 am",
+     "duration": "9h 40m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 294,
+     "currency": "$",
+     "airline": "Iberia",
+     "depart": "9:35 am",
+     "arrive": "9:40 pm",
+     "duration": "7h 05m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Europe/Berlin",
+   "egress": "de",
+   "seconds": 14.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "jp",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": false,
+   "stage": "load",
+   "blocked": false,
+   "status": "error",
+   "error": "Error: Page.goto: net::ERR_TUNNEL_CONNECTION_FAILED at https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD\nCall log:\n  - navigating to \"https://www.momondo.com/flight-se",
+   "seconds": 2.8,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "ca",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/Toronto",
+   "egress": "ca",
+   "seconds": 18.5,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "au",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Australia/Sydney",
+   "egress": "au",
+   "seconds": 18.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "sg",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Asia/Singapore",
+   "egress": "sg",
+   "seconds": 19.9,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "in",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "currency": "$",
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "Asia/Kolkata",
+   "egress": "in",
+   "seconds": 20.8,
+   "error": null,
+   "attempts": 1
+  }
+ ]
+}

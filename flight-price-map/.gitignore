@@ -1,0 +1,17 @@
+# Captured page text: large, regenerated on every run, and the first thing to
+# look at locally when a parser breaks -- but not worth versioning.
+pages/
+*.log
+preview.html
+
+# Tab captures from the interactive check -- regenerated, not documentation.
+shots/board-log.png
+shots/board-countries.png
+shots/board-teasers.png
+shots/trip-top.png
+index.html
+cache.db
+live.html
+server.log
+thin.log
+rt-capture.log

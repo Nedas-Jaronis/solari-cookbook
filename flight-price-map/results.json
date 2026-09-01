@@ -1,0 +1,1688 @@
+{
+ "generated_at": "2026-09-01T12:53:33+00:00",
+ "origin": "JFK",
+ "destination": "LHR",
+ "date": "2026-10-15",
+ "ret": null,
+ "nearby": "to",
+ "seconds": 113.3,
+ "site_names": {
+  "google": "Google Flights",
+  "kayak": "Kayak",
+  "momondo": "Momondo",
+  "expedia": "Expedia",
+  "skyscanner": "Skyscanner",
+  "kiwi": "Kiwi",
+  "priceline": "Priceline"
+ },
+ "results": [
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "cheapest": 277,
+   "median": 295,
+   "fares": [
+    {
+     "price": 277,
+     "currency": "$",
+     "airline": "Icelandair",
+     "depart": "11:10 PM",
+     "arrive": null,
+     "duration": "31 hr 45 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British AirwaysAmerican, Iberia, Finnair",
+     "depart": "7:50 AM",
+     "arrive": "7:45 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin AtlanticAir France, Delta, KLM",
+     "depart": "8:15 AM",
+     "arrive": "8:10 PM",
+     "duration": "6 hr 55 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 AM",
+     "arrive": "8:45 PM",
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "AmericanBritish Airways, Iberia, Finnair",
+     "depart": "9:35 AM",
+     "arrive": "9:40 PM",
+     "duration": "7 hr 5 min",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "DeltaKLM, Virgin Atlantic",
+     "depart": "8:15 PM",
+     "arrive": null,
+     "duration": "7 hr 35 min",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 9.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LGW%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 12,
+   "cheapest": 204,
+   "median": 315,
+   "fares": [
+    {
+     "price": 204,
+     "currency": "$",
+     "airline": "Norse Atlantic UK",
+     "depart": "6:20 PM",
+     "arrive": null,
+     "duration": "7 hr",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 292,
+     "currency": "$",
+     "airline": "LEVEL, Vueling",
+     "depart": "11:50 PM",
+     "arrive": null,
+     "duration": "18 hr 20 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 299,
+     "currency": "$",
+     "airline": "American, British Airways",
+     "depart": "11:59 AM",
+     "arrive": null,
+     "duration": "17 hr 41 min",
+     "stops": "2 stops"
+    },
+    {
+     "price": 299,
+     "currency": "$",
+     "airline": "American, British Airways",
+     "depart": "11:59 AM",
+     "arrive": null,
+     "duration": "17 hr 41 min",
+     "stops": "2 stops"
+    },
+    {
+     "price": 299,
+     "currency": "$",
+     "airline": "American, British Airways",
+     "depart": "11:59 AM",
+     "arrive": null,
+     "duration": "17 hr 41 min",
+     "stops": "2 stops"
+    },
+    {
+     "price": 304,
+     "currency": "$",
+     "airline": "LEVEL, Vueling",
+     "depart": "11:50 PM",
+     "arrive": null,
+     "duration": "15 hr 25 min",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 10.7,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20STN%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 8,
+   "cheapest": 552,
+   "median": 5056,
+   "fares": [
+    {
+     "price": 552,
+     "currency": "$",
+     "airline": "Turkish Airlines",
+     "depart": "12:50 PM",
+     "arrive": null,
+     "duration": "16 hr 5 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 552,
+     "currency": "$",
+     "airline": "Turkish Airlines",
+     "depart": "7:50 PM",
+     "arrive": null,
+     "duration": "15 hr 50 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 852,
+     "currency": "$",
+     "airline": "Royal Air Maroc",
+     "depart": "10:50 AM",
+     "arrive": null,
+     "duration": "14 hr 30 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 5056,
+     "currency": "$",
+     "airline": "SWISS, British AirwaysOperated by Helvetic, BA Cityflyer",
+     "depart": "8:30 PM",
+     "arrive": null,
+     "duration": "40 hr",
+     "stops": "2 stops"
+    },
+    {
+     "price": 5056,
+     "currency": "$",
+     "airline": "SWISS, British AirwaysOperated by Helvetic, BA Cityflyer",
+     "depart": "8:30 PM",
+     "arrive": null,
+     "duration": "40 hr",
+     "stops": "2 stops"
+    },
+    {
+     "price": 5056,
+     "currency": "$",
+     "airline": "SWISS, British AirwaysOperated by Helvetic, BA Cityflyer",
+     "depart": "8:30 PM",
+     "arrive": null,
+     "duration": "40 hr",
+     "stops": "2 stops"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 9.1,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LTN%20on%202026-10-15",
+   "ok": false,
+   "blocked": false,
+   "status": "unparsed",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 34.1,
+   "error": "loaded but no fares parsed",
+   "attempts": 1
+  },
+  {
+   "site": "google",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LCY%20on%202026-10-15",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 12,
+   "cheapest": 323,
+   "median": 348,
+   "fares": [
+    {
+     "price": 323,
+     "currency": "$",
+     "airline": "SWISSOperated by Helvetic",
+     "depart": "4:15 PM",
+     "arrive": null,
+     "duration": "11 hr 25 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 323,
+     "currency": "$",
+     "airline": "SWISSUnitedOperated by Helvetic",
+     "depart": "8:30 PM",
+     "arrive": null,
+     "duration": "11 hr 5 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "KLMDelta, Virgin AtlanticOperated by KLM Cityhopper",
+     "depart": "4:40 PM",
+     "arrive": null,
+     "duration": "10 hr 15 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Delta, KLMOperated by KLM Cityhopper",
+     "depart": "6:25 PM",
+     "arrive": null,
+     "duration": "10 hr 5 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "KLMDelta, Virgin AtlanticOperated by KLM Cityhopper",
+     "depart": "9:15 PM",
+     "arrive": null,
+     "duration": "14 hr 25 min",
+     "stops": "1 stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Delta, KLMOperated by KLM Cityhopper",
+     "depart": "10:40 PM",
+     "arrive": null,
+     "duration": "13 hr",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 9.3,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 286,
+   "median": 295,
+   "fares": [
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "JetBlue",
+     "depart": "8:45 am",
+     "arrive": "8:45 pm",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40 pm",
+     "arrive": "10:35 am",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:50 am",
+     "arrive": "7:45 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "7:35 pm",
+     "arrive": "7:45 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "6:30 pm",
+     "arrive": "6:40 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 290,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:20 pm",
+     "arrive": "8:30 am",
+     "duration": "7h 10m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.0,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.kayak.com/flights/JFK-LGW/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 203,
+   "median": 313,
+   "fares": [
+    {
+     "price": 203,
+     "currency": "$",
+     "airline": "Hahn Air",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 203,
+     "currency": "$",
+     "airline": "Norse Atlantic UK",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 203,
+     "currency": "$",
+     "airline": "A.P.G.",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 259,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "12:35 pm",
+     "duration": "18h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 276,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:45 pm",
+     "duration": "20h 15m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:00 pm",
+     "duration": "19h 30m",
+     "stops": "2 stops"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 13.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.kayak.com/flights/JFK-STN/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 26,
+   "cheapest": 215,
+   "median": 353,
+   "fares": [
+    {
+     "price": 215,
+     "currency": "$",
+     "airline": "Norse Atlantic Airways, Ryanair",
+     "depart": "1:30 pm",
+     "arrive": "12:55 am",
+     "duration": "30h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 252,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 265,
+     "currency": "$",
+     "airline": "Norse Atlantic Airways, Ryanair",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 288,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:50 pm",
+     "duration": "20h 20m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 293,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "1:35 pm",
+     "duration": "19h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 316,
+     "currency": "$",
+     "airline": "LEVEL, Ryanair",
+     "depart": "11:50 pm",
+     "arrive": "6:20 pm",
+     "duration": "13h 30m",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.kayak.com/flights/JFK-LTN/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 19,
+   "cheapest": 256,
+   "median": 312,
+   "fares": [
+    {
+     "price": 256,
+     "currency": "$",
+     "airline": "Norse Atlantic Airways, Wizz Air",
+     "depart": "1:30 pm",
+     "arrive": "2:35 pm",
+     "duration": "20h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 263,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:35 pm",
+     "duration": "20h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 266,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 284,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:00 pm",
+     "duration": "19h 30m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 299,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:35 pm",
+     "duration": "20h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 300,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 12.0,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "kayak",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.kayak.com/flights/JFK-LCY/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 314,
+   "median": 334,
+   "fares": [
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "12:35 pm",
+     "duration": "11h 05m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "8:40 am",
+     "duration": "11h 25m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "12:35 pm",
+     "duration": "15h 20m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "5:30 pm",
+     "duration": "16h 00m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "6:40 pm",
+     "duration": "17h 10m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "5:30 pm",
+     "duration": "20h 15m",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.9,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 272,
+   "median": 294,
+   "fares": [
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15 am",
+     "arrive": "8:10 pm",
+     "duration": "6h 55m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:35 pm",
+     "arrive": "8:50 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "7:00 pm",
+     "arrive": "7:15 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:30 pm",
+     "arrive": "6:45 am",
+     "duration": "7h 15m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "6:00 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 272,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "10:00 pm",
+     "arrive": "10:20 am",
+     "duration": "7h 20m",
+     "stops": "nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.9,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.momondo.com/flight-search/JFK-LGW/2026-10-15?sort=price_a",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 192,
+   "median": 313,
+   "fares": [
+    {
+     "price": 192,
+     "currency": "$",
+     "airline": "Norse Atlantic UK",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 203,
+     "currency": "$",
+     "airline": "Hahn Air",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 203,
+     "currency": "$",
+     "airline": "A.P.G.",
+     "depart": "6:20 pm",
+     "arrive": "6:20 am",
+     "duration": "7h 00m",
+     "stops": "nonstop"
+    },
+    {
+     "price": 259,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "12:35 pm",
+     "duration": "18h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 276,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:45 pm",
+     "duration": "20h 15m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 286,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:00 pm",
+     "duration": "19h 30m",
+     "stops": "2 stops"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 16.1,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.momondo.com/flight-search/JFK-STN/2026-10-15?sort=price_a",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 27,
+   "cheapest": 252,
+   "median": 353,
+   "fares": [
+    {
+     "price": 252,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 265,
+     "currency": "$",
+     "airline": "Norse Atlantic Airways, Ryanair",
+     "depart": "1:30 pm",
+     "arrive": "2:55 pm",
+     "duration": "20h 25m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 288,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "2:50 pm",
+     "duration": "20h 20m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 293,
+     "currency": "$",
+     "airline": "Multiple airlines",
+     "depart": "1:30 pm",
+     "arrive": "1:35 pm",
+     "duration": "19h 05m",
+     "stops": "2 stops"
+    },
+    {
+     "price": 316,
+     "currency": "$",
+     "airline": "LEVEL, Ryanair",
+     "depart": "11:50 pm",
+     "arrive": "6:20 pm",
+     "duration": "13h 30m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 317,
+     "currency": "$",
+     "airline": "LEVEL, Ryanair",
+     "depart": "11:50 pm",
+     "arrive": "9:00 pm",
+     "duration": "16h 10m",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 11.9,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.momondo.com/flight-search/JFK-LTN/2026-10-15?sort=price_a",
+   "ok": false,
+   "stage": "load",
+   "blocked": false,
+   "status": "error",
+   "error": "Error: Page.goto: net::ERR_TIMED_OUT at https://www.momondo.com/flight-search/JFK-LTN/2026-10-15?sort=price_a\nCall log:\n  - navigating to \"https://www.momondo.com/flight-search/JFK-LTN/2026-10-15?sort",
+   "seconds": 31.2,
+   "attempts": 1
+  },
+  {
+   "site": "momondo",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.momondo.com/flight-search/JFK-LCY/2026-10-15?sort=price_a",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 50,
+   "cheapest": 314,
+   "median": 334,
+   "fares": [
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "12:35 pm",
+     "duration": "11h 05m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "8:40 am",
+     "duration": "11h 25m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "12:35 pm",
+     "duration": "15h 20m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "5:30 pm",
+     "duration": "16h 00m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "8:30 pm",
+     "arrive": "6:40 pm",
+     "duration": "17h 10m",
+     "stops": "1 stop"
+    },
+    {
+     "price": 314,
+     "currency": "$",
+     "airline": "SWISS",
+     "depart": "4:15 pm",
+     "arrive": "5:30 pm",
+     "duration": "20h 15m",
+     "stops": "1 stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.6,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "expedia",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:JFK,to:LHR,departure:10/15/2026TANYT&passengers=adults:1&options=cabinclass:economy&mode=search&sort=PRICE_INCREASING",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 25,
+   "cheapest": 295,
+   "median": 295,
+   "fares": [
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "8:15am",
+     "arrive": "8:10pm",
+     "duration": "6h 55m",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Delta",
+     "depart": "10:00pm",
+     "arrive": "10:20am",
+     "duration": "7h 20m",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "11:55pm",
+     "arrive": "12:05pm",
+     "duration": "7h 10m",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "10:40pm",
+     "arrive": "10:35am",
+     "duration": "6h 55m",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "9:40pm",
+     "arrive": "9:50am",
+     "duration": "7h 10m",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": "British Airways",
+     "depart": "8:55pm",
+     "arrive": "9:10am",
+     "duration": "7h 15m",
+     "stops": "Nonstop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "expedia",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:JFK,to:LGW,departure:10/15/2026TANYT&passengers=adults:1&options=cabinclass:economy&mode=search&sort=PRICE_INCREASING",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 20,
+   "cheapest": 225,
+   "median": 343,
+   "fares": [
+    {
+     "price": 225,
+     "currency": "$",
+     "airline": "Norse Atlantic UK",
+     "depart": "6:20pm",
+     "arrive": "6:20am",
+     "duration": "7h",
+     "stops": "Nonstop"
+    },
+    {
+     "price": 297,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "6:25pm",
+     "arrive": "9:05am",
+     "duration": "9h 40m",
+     "stops": "One stop"
+    },
+    {
+     "price": 301,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "4:55pm",
+     "arrive": "8:05am",
+     "duration": "10h 10m",
+     "stops": "One stop"
+    },
+    {
+     "price": 301,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "11:55pm",
+     "arrive": "3:00pm",
+     "duration": "10h 5m",
+     "stops": "One stop"
+    },
+    {
+     "price": 301,
+     "currency": "$",
+     "airline": "Aer Lingus",
+     "depart": "5:35pm",
+     "arrive": "8:05am",
+     "duration": "9h 30m",
+     "stops": "One stop"
+    },
+    {
+     "price": 309,
+     "currency": "$",
+     "airline": "Iberia",
+     "depart": "4:55pm",
+     "arrive": "10:50am",
+     "duration": "12h 55m",
+     "stops": "One stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "expedia",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:JFK,to:STN,departure:10/15/2026TANYT&passengers=adults:1&options=cabinclass:economy&mode=search&sort=PRICE_INCREASING",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 4,
+   "cheapest": 582,
+   "median": 582,
+   "fares": [
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": "Turkish Airlines",
+     "depart": "12:50pm",
+     "arrive": "9:55am",
+     "duration": "16h 5m",
+     "stops": "One stop"
+    },
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": "Turkish Airlines",
+     "depart": "6:50am",
+     "arrive": "9:55am",
+     "duration": "22h 5m",
+     "stops": "One stop"
+    },
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": "Turkish Airlines",
+     "depart": "7:50pm",
+     "arrive": "9:55am",
+     "duration": "33h 5m",
+     "stops": "One stop"
+    },
+    {
+     "price": 852,
+     "currency": "$",
+     "airline": "Royal Air Maroc",
+     "depart": "10:50am",
+     "arrive": "6:20am",
+     "duration": "14h 30m",
+     "stops": "One stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "expedia",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:JFK,to:LTN,departure:10/15/2026TANYT&passengers=adults:1&options=cabinclass:economy&mode=search&sort=PRICE_INCREASING",
+   "ok": false,
+   "blocked": false,
+   "status": "empty",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 8.4,
+   "error": "site reports no flights on this route",
+   "attempts": 1
+  },
+  {
+   "site": "expedia",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:JFK,to:LCY,departure:10/15/2026TANYT&passengers=adults:1&options=cabinclass:economy&mode=search&sort=PRICE_INCREASING",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 23,
+   "cheapest": 323,
+   "median": 362,
+   "fares": [
+    {
+     "price": 323,
+     "currency": "$",
+     "airline": "Swiss International Air Lines",
+     "depart": "4:15pm",
+     "arrive": "8:40am",
+     "duration": "11h 25m",
+     "stops": "One stop"
+    },
+    {
+     "price": 323,
+     "currency": "$",
+     "airline": "Swiss International Air Lines",
+     "depart": "4:15pm",
+     "arrive": "12:35pm",
+     "duration": "15h 20m",
+     "stops": "One stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Delta",
+     "depart": "4:40pm",
+     "arrive": "7:55am",
+     "duration": "10h 15m",
+     "stops": "One stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "4:40pm",
+     "arrive": "7:55am",
+     "duration": "10h 15m",
+     "stops": "One stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Delta",
+     "depart": "4:40pm",
+     "arrive": "9:30am",
+     "duration": "11h 50m",
+     "stops": "One stop"
+    },
+    {
+     "price": 334,
+     "currency": "$",
+     "airline": "Virgin Atlantic",
+     "depart": "4:40pm",
+     "arrive": "9:30am",
+     "duration": "11h 50m",
+     "stops": "One stop"
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.4,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "skyscanner",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/lhr/261015/?currency=USD&adults=1",
+   "ok": false,
+   "blocked": true,
+   "status": "blocked",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 8.2,
+   "error": "anti-bot wall",
+   "attempts": 2
+  },
+  {
+   "site": "skyscanner",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/lgw/261015/?currency=USD&adults=1",
+   "ok": false,
+   "blocked": true,
+   "status": "blocked",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 9.1,
+   "error": "anti-bot wall",
+   "attempts": 2
+  },
+  {
+   "site": "skyscanner",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/stn/261015/?currency=USD&adults=1",
+   "ok": false,
+   "blocked": true,
+   "status": "blocked",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 8.9,
+   "error": "anti-bot wall",
+   "attempts": 2
+  },
+  {
+   "site": "skyscanner",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/ltn/261015/?currency=USD&adults=1",
+   "ok": false,
+   "blocked": true,
+   "status": "blocked",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 8.6,
+   "error": "anti-bot wall",
+   "attempts": 2
+  },
+  {
+   "site": "skyscanner",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/lcy/261015/?currency=USD&adults=1",
+   "ok": false,
+   "blocked": true,
+   "status": "blocked",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 8.3,
+   "error": "anti-bot wall",
+   "attempts": 2
+  },
+  {
+   "site": "priceline",
+   "origin": "JFK",
+   "destination": "LHR",
+   "country": "us",
+   "route": "JFK-LHR",
+   "url": "https://www.priceline.com/m/fly/search/JFK-LHR-20261015/?cabin-class=ECO&num-adults=1",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 28,
+   "cheapest": 295,
+   "median": 315,
+   "fares": [
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 295,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "priceline",
+   "origin": "JFK",
+   "destination": "LGW",
+   "country": "us",
+   "route": "JFK-LGW",
+   "url": "https://www.priceline.com/m/fly/search/JFK-LGW-20261015/?cabin-class=ECO&num-adults=1",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 21,
+   "cheapest": 225,
+   "median": 315,
+   "fares": [
+    {
+     "price": 225,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 225,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 225,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 300,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 300,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 309,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 15.2,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "priceline",
+   "origin": "JFK",
+   "destination": "STN",
+   "country": "us",
+   "route": "JFK-STN",
+   "url": "https://www.priceline.com/m/fly/search/JFK-STN-20261015/?cabin-class=ECO&num-adults=1",
+   "ok": true,
+   "blocked": false,
+   "status": "ok",
+   "count": 5,
+   "cheapest": 582,
+   "median": 582,
+   "fares": [
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 582,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    },
+    {
+     "price": 852,
+     "currency": "$",
+     "airline": null,
+     "depart": null,
+     "arrive": null,
+     "duration": null,
+     "stops": null
+    }
+   ],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 14.8,
+   "error": null,
+   "attempts": 1
+  },
+  {
+   "site": "priceline",
+   "origin": "JFK",
+   "destination": "LTN",
+   "country": "us",
+   "route": "JFK-LTN",
+   "url": "https://www.priceline.com/m/fly/search/JFK-LTN-20261015/?cabin-class=ECO&num-adults=1",
+   "ok": false,
+   "blocked": false,
+   "status": "unparsed",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 48.2,
+   "error": "loaded but no fares parsed",
+   "attempts": 1
+  },
+  {
+   "site": "priceline",
+   "origin": "JFK",
+   "destination": "LCY",
+   "country": "us",
+   "route": "JFK-LCY",
+   "url": "https://www.priceline.com/m/fly/search/JFK-LCY-20261015/?cabin-class=ECO&num-adults=1",
+   "ok": false,
+   "blocked": false,
+   "status": "unparsed",
+   "count": 0,
+   "cheapest": null,
+   "median": null,
+   "fares": [],
+   "timezone": "America/New_York",
+   "egress": "us",
+   "seconds": 48.1,
+   "error": "loaded but no fares parsed",
+   "attempts": 1
+  }
+ ]
+}

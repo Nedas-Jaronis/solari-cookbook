@@ -1,0 +1,1336 @@
+<title>Fare Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --ground:#e9ecf0; --panel:#ffffff; --raise:#f6f7f9;
+  --ink:#0e141b; --ink-2:#4d5966; --ink-3:#7b8794;
+  --rule:#d3d9e0; --rule-soft:#e4e8ed;
+  --accent:#b45c07;
+  --bar:#c2670a; --bar-best:#0e141b;
+  --ok:#0f7a4d; --ok-bg:#dff0e6;
+  --warn:#9a5b00; --warn-bg:#f7e6cb;
+  --bad:#a63232; --bad-bg:#f6dede;
+  --shadow:0 1px 2px rgba(14,20,27,.06), 0 8px 24px rgba(14,20,27,.05);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --ground:#0f1216; --panel:#171c22; --raise:#1d232a;
+  --ink:#f1ede4; --ink-2:#a7b1bc; --ink-3:#7c8794;
+  --rule:#29313a; --rule-soft:#212831;
+  --accent:#f0a63c;
+  --bar:#d98f2c; --bar-best:#f6d9a8;
+  --ok:#5fcf95; --ok-bg:#12301f;
+  --warn:#e0a44a; --warn-bg:#33260f;
+  --bad:#f08a8a; --bad-bg:#361b1b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+} }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground:#0f1216; --panel:#171c22; --raise:#1d232a;
+  --ink:#f1ede4; --ink-2:#a7b1bc; --ink-3:#7c8794;
+  --rule:#29313a; --rule-soft:#212831;
+  --accent:#f0a63c;
+  --bar:#d98f2c; --bar-best:#f6d9a8;
+  --ok:#5fcf95; --ok-bg:#12301f;
+  --warn:#e0a44a; --warn-bg:#33260f;
+  --bad:#f08a8a; --bad-bg:#361b1b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+* { box-sizing:border-box; }
+/* A display value beats the browser's default for [hidden], so any flex or
+   grid element marked hidden stays on screen. The artifact host ships this
+   reset; served from anywhere else the page needs its own. */
+[hidden] { display:none !important; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:1020px; margin:0 auto; padding:32px 20px 72px; }
+.mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
+.num { font-variant-numeric:tabular-nums; text-align:right; }
+
+.mast { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:baseline;
+        border-bottom:2px solid var(--ink); padding-bottom:14px; }
+.mast h1 {
+  font-family:"Saira Condensed", ui-sans-serif, sans-serif;
+  font-weight:700; font-size:clamp(30px,5vw,44px); letter-spacing:.01em;
+  margin:0; text-transform:uppercase; text-wrap:balance;
+}
+.mast .sub { color:var(--ink-2); font-size:14px; margin-left:auto;
+             font-variant-numeric:tabular-nums; }
+.eyebrow { font-family:"IBM Plex Mono", monospace; font-size:11px;
+           letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); }
+
+.hero { margin-top:20px; background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; box-shadow:var(--shadow); overflow:hidden; }
+.hero-top { display:flex; flex-wrap:wrap; align-items:center; gap:28px;
+            padding:26px 28px; border-bottom:1px solid var(--rule-soft); }
+.price {
+  font-family:"IBM Plex Mono", monospace; font-weight:600;
+  font-size:clamp(46px,8vw,72px); line-height:1; letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums; color:var(--accent);
+}
+.flap { display:flex; gap:6px; }
+.flap span {
+  font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:26px;
+  background:var(--raise); border:1px solid var(--rule); border-radius:4px;
+  padding:6px 10px; letter-spacing:.06em;
+}
+.hero-note { padding:18px 28px; background:var(--raise); font-size:15px;
+             color:var(--ink-2); margin:0; }
+.hero-note strong { color:var(--ink); }
+
+.stats { display:grid; gap:12px; margin-top:20px;
+         grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+.stat { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:14px 16px; }
+.stat b { display:block; font-family:"IBM Plex Mono", monospace;
+          font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; }
+.stat span { font-size:12.5px; color:var(--ink-2); }
+
+section { margin-top:38px; }
+section > h2 {
+  font-family:"Saira Condensed", sans-serif; text-transform:uppercase;
+  font-size:19px; letter-spacing:.05em; margin:0 0 4px;
+}
+section > p.lede { margin:0 0 16px; color:var(--ink-2); max-width:62ch; }
+
+.bars { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:8px 16px; }
+.bar-row {
+  display:grid; grid-template-columns:58px 1fr 78px minmax(0,150px);
+  align-items:center; gap:14px; padding:9px 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+.bar-row:last-child { border-bottom:0; }
+.bars.wide .bar-row { grid-template-columns:118px 1fr 78px minmax(0,130px); }
+.bar-label { font-family:"IBM Plex Mono", monospace; font-size:13px;
+             font-weight:500; white-space:nowrap; overflow:hidden;
+             text-overflow:ellipsis; }
+.bar-track { background:var(--rule-soft); border-radius:4px; height:12px; }
+.bar-fill { display:block; height:100%; background:var(--bar);
+            border-radius:0 4px 4px 0; min-width:3px; }
+.bar-row.is-best .bar-fill { background:var(--bar-best); }
+.bar-value { font-family:"IBM Plex Mono", monospace; font-weight:600;
+             font-variant-numeric:tabular-nums; text-align:right; }
+.bar-note { font-size:12.5px; color:var(--ink-3); overflow:hidden;
+            text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:640px) {
+  .bar-row, .bars.wide .bar-row { grid-template-columns:96px 1fr 72px; }
+  .bar-note { display:none; }
+}
+
+/* Advertised vs delivered: two values per claim, so a dumbbell rather than a
+   bar. The connecting segment is the gap, which is the thing worth seeing. */
+.dumb { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:10px 18px; }
+.dumb-row {
+  display:grid; grid-template-columns:104px 1fr 92px 78px;
+  align-items:center; gap:14px; padding:10px 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+.dumb-row:last-child { border-bottom:0; }
+.dumb-label { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dumb-label small { display:block; color:var(--ink-3); font-size:10.5px;
+                    letter-spacing:.08em; text-transform:uppercase; }
+.dumb-track { position:relative; height:18px; }
+.dumb-track::before {
+  content:""; position:absolute; left:0; right:0; top:8px; height:2px;
+  background:var(--rule-soft);
+}
+.dumb-seg { position:absolute; top:8px; height:2px; background:var(--warn); }
+.dumb-dot { position:absolute; top:4px; width:10px; height:10px;
+            border-radius:50%; margin-left:-5px;
+            box-shadow:0 0 0 2px var(--panel); }
+.dot-ad { background:var(--ink-3); }
+.dot-got { background:var(--warn); }
+.dumb-row.is-holds .dumb-seg, .dumb-row.is-holds .dot-got { background:var(--ok); }
+.dumb-row.is-unverified .dot-got { display:none; }
+.dumb-price { font-family:"IBM Plex Mono", monospace; font-size:13px;
+              font-variant-numeric:tabular-nums; text-align:right;
+              white-space:nowrap; }
+.dumb-price b { font-weight:600; }
+.dumb-price span { color:var(--ink-3); }
+.legend { display:flex; gap:18px; align-items:center; margin:0 0 12px;
+          font-size:12.5px; color:var(--ink-2); flex-wrap:wrap; }
+.key { display:inline-flex; align-items:center; gap:7px; }
+.key i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+@media (max-width:640px) {
+  .dumb-row { grid-template-columns:88px 1fr 84px; }
+  .dumb-row > .chip-cell { display:none; }
+}
+
+.scroll { overflow-x:auto; background:var(--panel);
+          border:1px solid var(--rule); border-radius:6px; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th {
+  font-family:"IBM Plex Mono", monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule);
+  white-space:nowrap; background:var(--raise);
+}
+th.num { text-align:right; }
+td { padding:9px 14px; border-bottom:1px solid var(--rule-soft);
+     white-space:nowrap; }
+tr:last-child td { border-bottom:0; }
+tr.is-blocked td, tr.is-unparsed td, tr.is-empty td, tr.is-error td,
+tr.is-unverified td { color:var(--ink-3); }
+td.same { color:var(--ink-3); }
+td.diff { color:var(--warn); font-weight:600; }
+td.gone { color:var(--ink-3); }
+.detail { color:var(--ink-2); font-size:13px; max-width:280px;
+          overflow:hidden; text-overflow:ellipsis; }
+.chip {
+  display:inline-block; font-family:"IBM Plex Mono", monospace;
+  font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 8px; border-radius:999px; font-weight:500;
+}
+.chip-ok, .chip-holds { background:var(--ok-bg); color:var(--ok); }
+.chip-blocked, .chip-higher { background:var(--warn-bg); color:var(--warn); }
+.chip-empty, .chip-unverified { background:var(--raise); color:var(--ink-3);
+                                border:1px solid var(--rule); }
+.chip-unparsed, .chip-error { background:var(--bad-bg); color:var(--bad); }
+
+footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--rule);
+         color:var(--ink-3); font-size:13px; }
+footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+              background:var(--raise); padding:1px 6px; border-radius:3px; }
+.empty { color:var(--ink-3); padding:12px 0; }
+</style>
+
+<style>
+
+/* ---------- landing stage ---------- */
+/* The bleed has to be clipped on the page, not on the column: `overflow` on an
+   ancestor of the full-bleed element clips the bleed itself back to that
+   ancestor's box, which is exactly what it is escaping. */
+body { overflow-x: clip; }
+/* The shared theme gives every <section> a top margin; the two view
+   sections are page regions rather than content blocks. */
+#landing, #results { margin-top:0; }
+/* Full-bleed: the hero is the page's opening, not a card sitting on it. The
+   negative margin pulls it out of the centred column, and the inner div puts
+   the copy back on that column's grid. */
+.stage {
+  min-height:min(88vh, 780px);
+  margin-top:-32px;                 /* cancel the column's top padding */
+  display:flex; align-items:center;
+  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  width:100vw; border-radius:0; border-left:0; border-right:0;
+  padding:96px 0 108px;
+  --stage-1:#d7e7f8; --stage-2:#f0f6fc; --stage-edge:#c2d5ea;
+  --stage-ink:#0b1730; --stage-ink-2:#3f5474; --stage-kicker:#1d4ed8;
+  --stage-em:#2563eb; --stage-shadow:0 14px 36px rgba(20,40,70,.16);
+  position:relative; overflow:hidden;
+  background:var(--stage-1); border-top:0;
+  border-bottom:1px solid var(--stage-edge);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .stage {
+    --stage-1:#070b16; --stage-2:#101d3b; --stage-edge:#16203a;
+    --stage-ink:#f4f7ff; --stage-ink-2:#a9b8d4; --stage-kicker:#8ab4ff;
+    --stage-em:#5b9bff; --stage-shadow:0 20px 50px rgba(4,8,20,.45);
+  }
+}
+:root[data-theme="dark"] .stage {
+  --stage-1:#070b16; --stage-2:#101d3b; --stage-edge:#16203a;
+  --stage-ink:#f4f7ff; --stage-ink-2:#a9b8d4; --stage-kicker:#8ab4ff;
+  --stage-em:#5b9bff; --stage-shadow:0 20px 50px rgba(4,8,20,.45);
+}
+.stage canvas { position:absolute; inset:0; width:100%; height:100%;
+                display:block; }
+.stage .inner { position:relative; z-index:1; max-width:1020px; margin:0 auto;
+                padding:0 20px; width:100%; }
+.stage .copy { max-width:36rem; }
+.scrollcue { position:absolute; left:50%; bottom:22px; transform:translateX(-50%);
+             z-index:1; display:flex; flex-direction:column; align-items:center;
+             gap:7px; color:var(--stage-ink-2); font-family:"IBM Plex Mono",
+             monospace; font-size:10px; letter-spacing:.18em;
+             text-transform:uppercase; }
+.scrollcue i { width:1px; height:26px; background:currentColor; opacity:.5;
+               animation:drop 2.4s ease-in-out infinite; }
+@keyframes drop { 0%,100% { transform:scaleY(.35); transform-origin:top; }
+                  50% { transform:scaleY(1); transform-origin:top; } }
+@media (prefers-reduced-motion: reduce) { .scrollcue i { animation:none; } }
+.kicker { display:flex; align-items:center; gap:12px;
+          font-family:"IBM Plex Mono", monospace; font-size:11px;
+          letter-spacing:.2em; text-transform:uppercase;
+          color:var(--stage-kicker); }
+.kicker::before { content:""; width:34px; height:2px;
+                  background:var(--stage-em); }
+.hero-h { font-family:"Saira Condensed", ui-sans-serif, sans-serif;
+          font-weight:700; text-transform:uppercase; letter-spacing:.01em;
+          font-size:clamp(44px,7.4vw,88px); line-height:.94; margin:18px 0 0;
+          text-wrap:balance; color:var(--stage-ink); }
+.hero-h em { font-style:normal; color:var(--stage-em); }
+.hero-p { font-size:17.5px; color:var(--stage-ink-2); max-width:46ch;
+          margin:22px 0 0; line-height:1.5; }
+@media (max-width:640px) {
+  .stage { min-height:auto; padding:64px 0 84px; }
+  .hero-p { font-size:16px; }
+}
+
+
+form.finder {
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  overflow:hidden; box-shadow:var(--shadow);
+}
+.cell { background:var(--panel); padding:11px 16px; flex:1 1 170px;
+        display:flex; flex-direction:column; justify-content:center; }
+.cell.narrow { flex:0 1 138px; }
+.cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
+              letter-spacing:.16em; text-transform:uppercase;
+              color:var(--ink-3); }
+.cell input, .cell select {
+  border:0; background:none; color:var(--ink); font-size:16px; font-weight:500;
+  font-family:inherit; padding:3px 0 0; width:100%;
+}
+.cell input:focus, .cell select:focus { outline:none; }
+/* Native select chrome is a different widget on every platform and none of
+   them match this page, so the arrow is ours and drawn in the ink colour. */
+select {
+  appearance:none; -webkit-appearance:none; cursor:pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-size:5px 5px, 5px 5px;
+  background-position:calc(100% - 10px) center, calc(100% - 5px) center;
+  background-repeat:no-repeat;
+  padding-right:22px !important;
+}
+select::-ms-expand { display:none; }
+select option { background:var(--panel); color:var(--ink); }
+.cell:focus-within { background:var(--raise); }
+.go {
+  border:0; cursor:pointer; background:var(--ink); color:var(--ground);
+  font-family:"Saira Condensed", sans-serif; text-transform:uppercase;
+  letter-spacing:.07em; font-weight:700; font-size:16px; padding:0 30px;
+  flex:0 0 auto;
+}
+.go:hover { background:var(--accent); }
+.go:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
+
+.how { display:grid; gap:16px; margin-top:44px;
+       grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+.how div { border-top:2px solid var(--ink); padding-top:12px; }
+.how b { display:block; font-family:"Saira Condensed", sans-serif;
+         text-transform:uppercase; letter-spacing:.05em; font-size:15px; }
+.how span { font-size:13.5px; color:var(--ink-2); }
+.proof { margin-top:38px; background:var(--panel); border:1px solid var(--rule);
+         border-radius:10px; padding:20px 24px; box-shadow:var(--shadow); }
+.proof .line { font-family:"IBM Plex Mono", monospace; font-size:14px;
+               font-variant-numeric:tabular-nums; }
+.proof .line b { color:var(--accent); font-size:19px; }
+.proof p { margin:8px 0 0; color:var(--ink-2); font-size:14px; }
+
+.progress { margin-top:16px; background:var(--panel); border:1px solid var(--rule);
+            border-radius:10px; padding:16px 20px; box-shadow:var(--shadow);
+            display:flex; align-items:center; gap:14px; }
+.progress .spin { width:16px; height:16px; border-radius:50%; flex:0 0 auto;
+                  border:2px solid var(--rule); border-top-color:var(--accent);
+                  animation:turn .9s linear infinite; }
+@keyframes turn { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .progress .spin { animation:none; } }
+.widening { display:flex; align-items:center; gap:10px; margin-top:12px;
+            background:var(--raise); border:1px solid var(--rule);
+            border-radius:8px; padding:9px 14px; font-size:13px;
+            color:var(--ink-2); }
+.widening .spin { width:13px; height:13px; border-radius:50%; flex:0 0 auto;
+                  border:2px solid var(--rule); border-top-color:var(--accent);
+                  animation:turn .9s linear infinite; }
+.finder.busy { opacity:.55; pointer-events:none; }
+.progress b { font-weight:600; }
+.progress small { display:block; color:var(--ink-3); font-size:12.5px;
+                  margin-top:2px; }
+.nope { background:var(--panel); border:1px solid var(--warn);
+        border-radius:10px; padding:18px 22px; margin-top:18px;
+        font-size:14.5px; color:var(--ink-2); }
+.nope b { color:var(--ink); }
+.offers { display:flex; flex-direction:column; align-items:flex-start;
+          gap:6px; margin-top:12px; }
+.linkish { background:none; border:1px solid var(--rule); border-radius:6px;
+           padding:5px 11px; cursor:pointer; color:var(--accent);
+           font:inherit; font-size:13.5px; text-align:left; }
+.linkish:hover { border-color:var(--accent); }
+
+/* ---------- results ---------- */
+.crumb { background:none; border:0; padding:0; cursor:pointer; font:inherit;
+         font-size:13.5px; color:var(--ink-2); }
+.crumb:hover { color:var(--ink); }
+.search {
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:20px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  overflow:hidden;
+}
+.field { background:var(--panel); padding:12px 18px; flex:1 1 150px; }
+.field .k { font-family:"IBM Plex Mono", monospace; font-size:10px;
+            letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); }
+.field .v { font-size:16px; font-weight:500; margin-top:3px; }
+.snapshot { font-size:12.5px; color:var(--ink-3); margin:8px 2px 0; }
+
+.pick { margin-top:24px; background:var(--panel); border:1px solid var(--rule);
+        border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
+.pick-top { display:flex; flex-wrap:wrap; gap:26px; align-items:center;
+            padding:24px 26px; }
+.pick-price { font-family:"IBM Plex Mono", monospace; font-weight:600;
+              font-size:clamp(42px,7vw,64px); line-height:1; color:var(--accent);
+              font-variant-numeric:tabular-nums; }
+.pick-when { font-size:20px; font-weight:500; }
+.pick-meta { color:var(--ink-2); font-size:14px; margin-top:4px; }
+.pick-why { padding:16px 26px; background:var(--raise); margin:0;
+            border-top:1px solid var(--rule-soft); font-size:14.5px;
+            color:var(--ink-2); }
+.pick-why strong { color:var(--ink); }
+.trust { display:flex; flex-wrap:wrap; gap:8px 22px; margin:16px 2px 0;
+         font-size:13px; color:var(--ink-3); }
+.trust b { color:var(--ink-2); font-weight:600; }
+
+.controls { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;
+            margin:30px 0 16px; }
+.group { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.group .k { font-family:"IBM Plex Mono", monospace; font-size:10px;
+            letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+.pill { font-size:13px; padding:5px 13px; border-radius:999px; cursor:pointer;
+        border:1px solid var(--rule); background:var(--panel);
+        color:var(--ink-2); }
+.pill:hover { border-color:var(--ink-3); color:var(--ink); }
+.pill[aria-pressed="true"] { background:var(--ink); color:var(--ground);
+                             border-color:var(--ink); }
+.pill:focus-visible, .save:focus-visible { outline:2px solid var(--accent);
+                                           outline-offset:2px; }
+.tally { margin-left:auto; font-size:13px; color:var(--ink-3); }
+.controls.refine { margin-top:-4px; gap:10px 12px; }
+.sel { display:inline-flex; flex-direction:column; gap:3px;
+       background:var(--panel); border:1px solid var(--rule);
+       border-radius:8px; padding:6px 12px 7px; }
+.sel span { font-family:"IBM Plex Mono", monospace; font-size:9.5px;
+            letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+.sel select { border:0; background-color:transparent; color:var(--ink);
+              font:inherit; font-size:13.5px; padding:0 22px 0 0; }
+.sel:focus-within { border-color:var(--accent); }
+.plus { font-family:"IBM Plex Mono", monospace; font-size:10px;
+        color:var(--warn); vertical-align:super; margin-left:2px;
+        letter-spacing:.04em; }
+
+.flights { display:flex; flex-direction:column; gap:10px; }
+.flight { display:grid; grid-template-columns:1fr auto; gap:8px 22px;
+          background:var(--panel); border:1px solid var(--rule);
+          border-radius:8px; padding:16px 20px; align-items:center; }
+.flight:hover { border-color:var(--ink-3); }
+.flight.best { border-color:var(--accent); }
+.legrow { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
+.legrow.back { margin-top:7px; padding-top:7px;
+               border-top:1px dashed var(--rule-soft); }
+.leg.missing { color:var(--ink-3); font-style:italic; }
+.way { font-family:"IBM Plex Mono", monospace; font-size:10px;
+       letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+       width:30px; flex:0 0 auto; }
+.times { font-family:"IBM Plex Mono", monospace; font-size:19px;
+         font-weight:500; font-variant-numeric:tabular-nums; }
+.times .arrow { color:var(--ink-3); margin:0 7px; }
+.leg { color:var(--ink-2); font-size:13.5px; margin-top:3px; }
+.leg .dot { color:var(--ink-3); margin:0 7px; }
+.tag { font-family:"IBM Plex Mono", monospace; font-size:10.5px;
+       letter-spacing:.08em; text-transform:uppercase; padding:2px 7px;
+       border-radius:4px; background:var(--raise); border:1px solid var(--rule);
+       color:var(--ink-2); }
+.tag.nonstop { background:var(--ok-bg); color:var(--ok);
+               border-color:transparent; }
+.buy { text-align:right; display:flex; flex-direction:column;
+       align-items:flex-end; gap:4px; }
+.buy .amount { font-family:"IBM Plex Mono", monospace; font-size:24px;
+               font-weight:600; font-variant-numeric:tabular-nums; }
+.buy .where { font-size:12.5px; color:var(--ink-2); }
+.elsewhere { grid-column:1 / -1; border-top:1px solid var(--rule-soft);
+             padding-top:10px; margin-top:4px; display:flex; flex-wrap:wrap;
+             gap:6px 10px; align-items:center; font-size:12.5px;
+             color:var(--ink-3); }
+.elsewhere .o { font-family:"IBM Plex Mono", monospace; }
+.elsewhere .over { color:var(--warn); }
+.save { background:none; border:1px solid var(--rule); border-radius:6px;
+        cursor:pointer; font-size:12px; padding:4px 10px; color:var(--ink-3); }
+.save:hover { color:var(--ink); border-color:var(--ink-3); }
+.save[aria-pressed="true"] { color:var(--accent); border-color:var(--accent); }
+.none { background:var(--panel); border:1px dashed var(--rule);
+        border-radius:8px; padding:30px; text-align:center; color:var(--ink-3); }
+
+@media (max-width:560px) {
+  .flight { grid-template-columns:1fr; }
+  .buy { text-align:left; align-items:flex-start; }
+  .go { width:100%; padding:14px; }
+}
+</style>
+
+<div class="wrap">
+
+<!-- ============ landing ============ -->
+<section id="landing">
+  <div class="stage">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <div class="inner">
+      <div class="copy">
+        <div class="kicker">Fare Board</div>
+        <h1 class="hero-h">The cheapest way there, <em>not the first way you
+          find</em></h1>
+        <p class="hero-p">One search checks every big booking site and every
+          airport around your destination at once, then tells you which flight
+          to take and which site is selling it for least.</p>
+      </div>
+
+      <form class="finder" id="finder" autocomplete="off">
+        <div class="cell">
+          <label for="from">From</label>
+          <input id="from" name="from" list="places" placeholder="City or airport"
+            value="New York JFK" required>
+        </div>
+        <div class="cell">
+          <label for="to">To</label>
+          <input id="to" name="to" list="places" placeholder="City or airport"
+            value="London" required>
+        </div>
+        <div class="cell">
+          <label for="when">Depart</label>
+          <select id="when" name="when"></select>
+        </div>
+        <div class="cell narrow">
+          <label for="trip">Trip</label>
+          <select id="trip" name="trip">
+            <option value="oneway">One way</option>
+            <option value="return">Return</option>
+          </select>
+        </div>
+        <div class="cell narrow">
+          <label for="stops">Stops</label>
+          <select id="stops" name="stops">
+            <option value="any">Any</option>
+            <option value="0">Nonstop only</option>
+          </select>
+        </div>
+        <button class="go" type="submit">Find the fare</button>
+      </form>
+      <div id="nope"></div>
+    </div>
+    <div class="scrollcue" aria-hidden="true"><i></i>How it works</div>
+  </div>
+
+  <datalist id="places"></datalist>
+  <div id="progress" class="progress" hidden></div>
+  <div id="nope"></div>
+
+  <div class="how">
+    <div><b>Every site at once</b><span>Google Flights, Kayak, Momondo,
+      Expedia, Priceline and Skyscanner, searched in parallel rather than one
+      after another.</span></div>
+    <div><b>Every nearby airport</b><span>The airport you had in mind and every
+      other one in the same metro area, because that is where the money usually
+      is.</span></div>
+    <div><b>No commission</b><span>We do not sell tickets. You book on whichever
+      site was cheapest, and we have no reason to prefer one.</span></div>
+  </div>
+
+  <div class="proof">
+    <div class="line">Last run: <b>$154</b> Norse Atlantic UK to Gatwick, New York to London</div>
+    <p>Found by checking 3 sites across 5 airports &mdash; 15 searches in 50 seconds. The same seat was $154 on Momondo.</p>
+  </div>
+</section>
+
+<!-- ============ results ============ -->
+<section id="results" hidden>
+  <button class="crumb" id="back">&larr; New search</button>
+  <div id="widening" class="widening" hidden></div>
+  <header class="mast" style="margin-top:12px">
+    <h1 id="route-h"></h1>
+    <div class="sub"><span class="eyebrow" id="read-at"></span></div>
+  </header>
+
+  <div class="search" id="summary"></div>
+  <p class="snapshot">A snapshot of real fares at the time shown, not a live
+    search &mdash; a published page cannot drive cloud browsers. Airlines move
+    prices constantly, so treat these as where to look, then book on the site
+    named.</p>
+
+  <div class="pick" id="pick"></div>
+  <div class="trust" id="trust"></div>
+
+  <div class="controls">
+    <div class="group"><span class="k">Stops</span>
+      <button class="pill" data-filter="stops" data-value="any" aria-pressed="true">Any</button>
+      <button class="pill" data-filter="stops" data-value="1" aria-pressed="false">1 or fewer</button>
+      <button class="pill" data-filter="stops" data-value="0" aria-pressed="false">Nonstop</button>
+    </div>
+    <div class="group"><span class="k">Land at</span><span id="airports"></span></div>
+    <button class="pill" data-filter="saved" data-value="1" aria-pressed="false"
+      id="savedonly">Saved only</button>
+    <span class="tally" id="tally"></span>
+  </div>
+
+  <div class="controls refine">
+    <label class="sel"><span>Take off</span>
+      <select id="f-depart">
+        <option value="any">Any time</option>
+        <option value="0-6">Red-eye, before 6am</option>
+        <option value="6-12">Morning, 6am to noon</option>
+        <option value="12-18">Afternoon, noon to 6pm</option>
+        <option value="18-24">Evening, after 6pm</option>
+      </select></label>
+    <label class="sel"><span>Land</span>
+      <select id="f-arrive">
+        <option value="any">Any time</option>
+        <option value="0-6">Before 6am</option>
+        <option value="6-12">Morning</option>
+        <option value="12-18">Afternoon</option>
+        <option value="18-24">Evening</option>
+      </select></label>
+    <label class="sel"><span>Airline</span>
+      <select id="f-airline"><option value="any">Any airline</option></select></label>
+    <label class="sel"><span>Journey under</span>
+      <select id="f-max">
+        <option value="any">Any length</option>
+        <option value="480">8 hours</option>
+        <option value="720">12 hours</option>
+        <option value="1080">18 hours</option>
+        <option value="1440">24 hours</option>
+      </select></label>
+    <label class="sel"><span>Sort by</span>
+      <select id="f-sort">
+        <option value="price">Cheapest</option>
+        <option value="minutes">Shortest</option>
+        <option value="depart_at">Earliest take-off</option>
+        <option value="arrive_at">Earliest landing</option>
+      </select></label>
+    <button class="pill" id="reset">Clear</button>
+  </div>
+
+  <div class="flights" id="flights"></div>
+</section>
+
+  <footer>
+    Fares are read from each site&rsquo;s own public results page and move
+    constantly. We do not sell tickets and take no commission. <a href="https://claude.ai/code/artifact/4dbcddcf-2a9d-4ddb-9b52-3a108f48374e" style="color:var(--accent)">See every search behind these prices</a>.
+  </footer>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("sky");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  // The aircraft is a silhouette, not a picture: every filled cell becomes a
+  // glowing dot, and cells on the outline burn brighter, which is what makes a
+  // cloud of points read as a shape rather than a smudge.
+  const MASK = [
+    "....###...................",
+    "....####..................",
+    "....#####.................",
+    "....######................",
+    "..#########...............",
+    ".######################...",
+    "##########################",
+    "##########################",
+    ".######################...",
+    "...##########.............",
+    "....#######...............",
+    ".....#####................",
+  ];
+  const lit = (r, c) => MASK[r] && MASK[r][c] === "#";
+  const CELLS = [];
+  for (let r = 0; r < MASK.length; r++) {
+    for (let c = 0; c < MASK[r].length; c++) {
+      if (!lit(r, c)) continue;
+      CELLS.push({
+        r, c,
+        edge: !lit(r - 1, c) || !lit(r + 1, c) || !lit(r, c - 1) || !lit(r, c + 1),
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  const DOT = 7;
+  const CX = MASK[0].length / 2, CY = MASK.length / 2;
+
+  const NIGHT = {
+    sky: ["#070b16", "#0b1428", "#101d3b"], stars: "#dbe9ff",
+    halo: "91,155,255", core: "#f2f8ff", edge: "#bcd8ff", body: "#6f9fe8",
+    smoke: "224,236,255", smokeMax: 0.34,
+  };
+  const DAY = {
+    sky: ["#d7e7f8", "#e9f2fb", "#f6fafd"], stars: null,
+    halo: "120,170,235", core: "#08152c", edge: "#17376b", body: "#5d84ba",
+    smoke: "255,255,255", smokeMax: 0.95,
+  };
+
+  let W = 0, H = 0, dpr = 1, pal = DAY, puffs = [], t = 0, raf = null;
+  let backdrop = null, puffSprite = null, haloSprite = null;
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  const darkOS = matchMedia("(prefers-color-scheme: dark)");
+  const isDark = () => {
+    const stamped = document.documentElement.getAttribute("data-theme");
+    return stamped ? stamped === "dark" : darkOS.matches;
+  };
+
+  // The climb enters bottom-centre and leaves through the top right, so it
+  // never crosses the headline on the left.
+  const path = u => {
+    const ax = 0.30 * W, ay = H * 1.25;
+    const bx = 0.80 * W, by = H * 0.80;
+    const cx = 1.05 * W, cy = -0.20 * H;
+    const k = 1 - u;
+    return {x: k * k * ax + 2 * k * u * bx + u * u * cx,
+            y: k * k * ay + 2 * k * u * by + u * u * cy};
+  };
+
+  const layer = (w, h) => {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w));
+    c.height = Math.max(1, Math.round(h));
+    return c;
+  };
+
+  // Everything that does not move is painted once. Rebuilding a full-canvas
+  // gradient and a field of stars sixty times a second is most of the cost of
+  // a scene where neither ever changes.
+  function buildBackdrop() {
+    backdrop = layer(W * dpr, H * dpr);
+    const b = backdrop.getContext("2d");
+    b.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bg = b.createLinearGradient(0, 0, W * 0.7, H);
+    bg.addColorStop(0, pal.sky[0]);
+    bg.addColorStop(0.55, pal.sky[1]);
+    bg.addColorStop(1, pal.sky[2]);
+    b.fillStyle = bg;
+    b.fillRect(0, 0, W, H);
+    if (pal.stars) {
+      b.fillStyle = pal.stars;
+      for (let i = 0, n = Math.round(W * H / 5200); i < n; i++) {
+        b.globalAlpha = 0.15 + Math.random() * 0.5;
+        b.fillRect(Math.random() * W, Math.random() * H,
+                   Math.random() < 0.15 ? 2 : 1, Math.random() < 0.15 ? 2 : 1);
+      }
+    }
+  }
+
+  // One soft blob, drawn once and stamped for every puff. A radial gradient per
+  // puff per frame was the whole lag: the further the aircraft climbed the more
+  // puffs were alive, so the page got heavier the higher it went.
+  function buildSprites() {
+    puffSprite = layer(64, 64);
+    const s = puffSprite.getContext("2d");
+    const g = s.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, "rgba(" + pal.smoke + ",1)");
+    g.addColorStop(1, "rgba(" + pal.smoke + ",0)");
+    s.fillStyle = g;
+    s.fillRect(0, 0, 64, 64);
+
+    // The halo is smooth, so a small sprite scaled up is indistinguishable
+    // from a full-size gradient and costs a fraction of it.
+    haloSprite = layer(256, 256);
+    const h = haloSprite.getContext("2d");
+    const hg = h.createRadialGradient(128, 128, 0, 128, 128, 128);
+    hg.addColorStop(0, "rgba(" + pal.halo + ",.22)");
+    hg.addColorStop(1, "rgba(" + pal.halo + ",0)");
+    h.fillStyle = hg;
+    h.fillRect(0, 0, 256, 256);
+  }
+
+  function size() {
+    dpr = Math.min(devicePixelRatio || 1, 1.5);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    puffs = Array.from({length: 130}, (_, i) => ({
+      u: i / 130,
+      off: (Math.random() - 0.5) * 30,
+      rise: (Math.random() - 0.5) * 0.8,
+      size: 5 + Math.random() * 15,
+      a: 0.30 + Math.random() * 0.7,
+    }));
+    buildBackdrop();
+    buildSprites();
+  }
+
+  const FAINT = 0.015;      // below this a puff cannot be seen, so skip it
+
+  const fade = u => Math.max(0, Math.min(1, u / 0.12, (1 - u) / 0.14));
+
+  // Two climbs, half a cycle apart. One aircraft alone leaves the sky empty
+  // for a second and a half between leaving the top and the next entering at
+  // the bottom, which reads as a pause and a reset. Overlapping them means
+  // something is always on the way up, and the wrap has nothing to give away.
+  const PHASES = [0, 0.5];
+
+  function flight(u, withHalo) {
+    const seam = fade(u);
+    if (seam < 0.02) return;               // wholly invisible, so no work
+
+    const nose = path(u);
+    // The halo is the largest alpha blend in the frame, so only the climb
+    // that is actually lighting the sky draws one; a second, fainter glow
+    // costs as much as the first and is not visible next to it.
+    if (withHalo) {
+      const R = Math.max(W, H) * 0.32;
+      ctx.globalAlpha = seam;
+      ctx.drawImage(haloSprite, nose.x - R, nose.y - R, R * 2, R * 2);
+    }
+
+    // Walk back from the newest puff and stop at the first invisible one.
+    // They only fade with age, so everything beyond it is invisible too --
+    // which is what keeps the cost flat however high the aircraft is.
+    let last = 0;
+    while (last < puffs.length && puffs[last].u <= u) last++;
+    for (let i = last - 1; i >= 0; i--) {
+      const puff = puffs[i];
+      const age = (u - puff.u) / Math.max(u, 0.001);
+      const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, 1.5) * seam;
+      if (alpha < FAINT) break;
+      const at = path(puff.u);
+      const r = puff.size * (1 + age * 3.2);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(puffSprite,
+                    at.x + puff.off * (0.4 + age * 1.6) - r,
+                    at.y + puff.off * 0.4 + puff.rise * age * 90 - r,
+                    r * 2, r * 2);
+    }
+
+    // The aircraft, one dot per cell, rotated onto the tangent of the climb.
+    const ahead = path(Math.min(u + 0.012, 1));
+    const ang = Math.atan2(ahead.y - nose.y, ahead.x - nose.x);
+    const cos = Math.cos(ang), sin = Math.sin(ang);
+    for (const cell of CELLS) {
+      const dx = (cell.c - CX) * DOT, dy = (cell.r - CY) * DOT;
+      const x = nose.x + dx * cos - dy * sin;
+      const y = nose.y + dx * sin + dy * cos;
+      const twinkle = 0.62 + 0.38 * Math.sin(t / 260 + cell.phase);
+      const d = cell.edge ? 3.4 : 2.4;
+      ctx.globalAlpha = (cell.edge ? 0.95 : 0.5) * twinkle * seam;
+      ctx.fillStyle = cell.edge ? pal.edge : pal.body;
+      ctx.fillRect(x - d / 2, y - d / 2, d, d);
+      if (cell.edge && twinkle > 0.92) {
+        ctx.globalAlpha = 0.9 * seam;
+        ctx.fillStyle = pal.core;
+        ctx.fillRect(x - 1, y - 1, 2, 2);
+      }
+    }
+  }
+
+  function scene(u) {
+    ctx.globalAlpha = 1;
+    ctx.drawImage(backdrop, 0, 0, W, H);
+    const at = PHASES.map(phase => (u + phase) % 1);
+    const lead = at.reduce((best, v) => fade(v) > fade(best) ? v : best, at[0]);
+    for (const v of at) flight(v, v === lead);
+    ctx.globalAlpha = 1;
+  }
+
+  const CYCLE = 17000;              // ms for one climb, wall clock
+  let slow = 0, lastAt = 0, startAt = 0;
+
+  function frame(now) {
+    const gap = lastAt ? now - lastAt : 16;
+    lastAt = now;
+    // Two seconds of missed frames means this device is not enjoying it.
+    // A still sky is better than a page that stutters while you use it.
+    slow = gap > 34 ? slow + 1 : 0;
+    if (slow > 120) { cancelAnimationFrame(raf); raf = null; scene(0.58); return; }
+
+    if (!startAt) startAt = now;
+    t = now - startAt;
+    scene(((now - startAt) / CYCLE) % 1);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    pal = isDark() ? NIGHT : DAY;
+    size();
+    if (still.matches) { scene(0.58); return; }   // one composed frame
+    slow = 0; lastAt = 0; startAt = 0;
+    raf = requestAnimationFrame(frame);
+  }
+
+  addEventListener("resize", start);
+  still.addEventListener("change", start);
+  darkOS.addEventListener("change", start);
+  new MutationObserver(start).observe(document.documentElement,
+    {attributes: true, attributeFilter: ["data-theme"]});
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
+    else if (!document.hidden) start();
+  });
+  start();
+})();
+</script>
+
+<script type="application/json" id="data">{"live": false, "trips": [{"id": "jfk-lon-2026-10-13-ow", "kind": "oneway", "ret": null, "ret_label": null, "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-13", "date_label": "Tue 13 Oct 2026", "read_at": "2026-09-01 16:29", "flights": [{"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 154, "offers": [{"site": "Google Flights", "price": 154, "country": "us"}, {"site": "Kayak", "price": 154, "country": "us"}, {"site": "Momondo", "price": 154, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "12:30 AM", "depart_at": 30, "arrive": "7:40 AM", "arrive_at": 460, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "26h 10m", "minutes": 1570, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 250, "offers": [{"site": "Kayak", "price": 250, "country": "us"}, {"site": "Momondo", "price": 250, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "12:30 AM", "depart_at": 30, "arrive": "11:20 PM", "arrive_at": 1400, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "17h 50m", "minutes": 1070, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 255, "offers": [{"site": "Kayak", "price": 255, "country": "us"}, {"site": "Momondo", "price": 255, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "1:25 PM", "depart_at": 805, "arrive": "12:10 AM", "arrive_at": 10, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "29h 45m", "minutes": 1785, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 262, "offers": [{"site": "Kayak", "price": 262, "country": "us"}, {"site": "Momondo", "price": 262, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "1:25 PM", "depart_at": 805, "arrive": "11:45 PM", "arrive_at": 1425, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "29h 20m", "minutes": 1760, "stops": 3, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 265, "offers": [{"site": "Kayak", "price": 265, "country": "us"}, {"site": "Momondo", "price": 265, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "1:25 PM", "depart_at": 805, "arrive": "10:30 PM", "arrive_at": 1350, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "28h 05m", "minutes": 1685, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 265, "offers": [{"site": "Kayak", "price": 265, "country": "us"}, {"site": "Momondo", "price": 265, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "12:30 AM", "depart_at": 30, "arrive": "11:25 AM", "arrive_at": 685, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "29h 55m", "minutes": 1795, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 265, "offers": [{"site": "Kayak", "price": 265, "country": "us"}, {"site": "Momondo", "price": 265, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "2:40 PM", "arrive_at": 880, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 30 min", "minutes": 630, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 268, "offers": [{"site": "Momondo", "price": 268, "country": "us"}, {"site": "Kayak", "price": 279, "country": "us"}, {"site": "Google Flights", "price": 291, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "8:30 PM", "depart_at": 1230, "arrive": "2:40 PM", "arrive_at": 880, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13h 10m", "minutes": 790, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 268, "offers": [{"site": "Momondo", "price": 268, "country": "us"}, {"site": "Kayak", "price": 279, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "8:30 PM", "depart_at": 1230, "arrive": "11:55 AM", "arrive_at": 715, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 25 min", "minutes": 625, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 273, "offers": [{"site": "Kayak", "price": 273, "country": "us"}, {"site": "Momondo", "price": 273, "country": "us"}, {"site": "Google Flights", "price": 291, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "8:20 PM", "arrive_at": 1220, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr 10 min", "minutes": 970, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 273, "offers": [{"site": "Kayak", "price": 273, "country": "us"}, {"site": "Momondo", "price": 273, "country": "us"}, {"site": "Google Flights", "price": 291, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "8:30 PM", "depart_at": 1230, "arrive": "8:20 PM", "arrive_at": 1220, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "18h 50m", "minutes": 1130, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 273, "offers": [{"site": "Kayak", "price": 273, "country": "us"}, {"site": "Momondo", "price": 273, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Wizz Air", "depart": "12:30 AM", "depart_at": 30, "arrive": "9:05 PM", "arrive_at": 1265, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15h 35m", "minutes": 935, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 274, "offers": [{"site": "Kayak", "price": 274, "country": "us"}, {"site": "Momondo", "price": 274, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Wizz Air", "depart": "12:30 AM", "depart_at": 30, "arrive": "8:30 AM", "arrive_at": 510, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "27h 00m", "minutes": 1620, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 274, "offers": [{"site": "Kayak", "price": 274, "country": "us"}, {"site": "Momondo", "price": 274, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "1:25 PM", "depart_at": 805, "arrive": "11:45 PM", "arrive_at": 1425, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "29h 20m", "minutes": 1760, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 275, "offers": [{"site": "Kayak", "price": 275, "country": "us"}, {"site": "Momondo", "price": 275, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "12:30 AM", "depart_at": 30, "arrive": "8:55 PM", "arrive_at": 1255, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "39h 25m", "minutes": 2365, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 276, "offers": [{"site": "Kayak", "price": 276, "country": "us"}, {"site": "Momondo", "price": 276, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "11:55 AM", "arrive_at": 715, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31h 45m", "minutes": 1905, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 280, "offers": [{"site": "Momondo", "price": 280, "country": "us"}, {"site": "Kayak", "price": 282, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "3:35 PM", "arrive_at": 935, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12 hr 30 min", "minutes": 750, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 287, "offers": [{"site": "Kayak", "price": 287, "country": "us"}, {"site": "Momondo", "price": 287, "country": "us"}, {"site": "Google Flights", "price": 302, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "5:45 PM", "arrive_at": 1065, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14h 40m", "minutes": 880, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 287, "offers": [{"site": "Kayak", "price": 287, "country": "us"}, {"site": "Momondo", "price": 287, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "6:50 PM", "arrive_at": 1130, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 45m", "minutes": 945, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 287, "offers": [{"site": "Kayak", "price": 287, "country": "us"}, {"site": "Momondo", "price": 287, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "12:30 AM", "depart_at": 30, "arrive": "1:10 AM", "arrive_at": 70, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "19h 40m", "minutes": 1180, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 288, "offers": [{"site": "Kayak", "price": 288, "country": "us"}, {"site": "Momondo", "price": 288, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-13", "ret": null, "airline": "Multiple airlines", "depart": "1:25 PM", "depart_at": 805, "arrive": "9:05 PM", "arrive_at": 1265, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "26h 40m", "minutes": 1600, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 292, "offers": [{"site": "Kayak", "price": 292, "country": "us"}, {"site": "Momondo", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "arrive_at": 1210, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "arrive_at": 1245, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-13", "ret": null, "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "arrive_at": 1300, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": "12:15 PM", "arrive_at": 735, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31 hr 25 min", "minutes": 1885, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 298, "offers": [{"site": "Google Flights", "price": 298, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": "10:50 PM", "arrive_at": 1370, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "18 hr", "minutes": 1080, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 310, "offers": [{"site": "Google Flights", "price": 310, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-13", "ret": null, "airline": "Air France", "depart": "6:30 PM", "depart_at": 1110, "arrive": "9:25 AM", "arrive_at": 565, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "9 hr 55 min", "minutes": 595, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Google Flights", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "arrive_at": 520, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 323, "offers": [{"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Kayak", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "United Airlines", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 323, "offers": [{"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Kayak", "price": 323, "country": "us"}, {"site": "Momondo", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "United Airlines", "depart": "4:15 PM", "depart_at": 975, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 20m", "minutes": 920, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 323, "offers": [{"site": "Kayak", "price": 323, "country": "us"}, {"site": "Momondo", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "5:25 PM", "arrive_at": 1045, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 55m", "minutes": 955, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 323, "offers": [{"site": "Kayak", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "Finnair, British Airways", "depart": "4:55 PM", "depart_at": 1015, "arrive": "9:00 AM", "arrive_at": 540, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 05m", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 326, "offers": [{"site": "Momondo", "price": 326, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "Finnair, British Airways", "depart": "4:20 PM", "depart_at": 980, "arrive": "9:00 AM", "arrive_at": 540, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 40m", "minutes": 700, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 326, "offers": [{"site": "Momondo", "price": 326, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "arrive_at": 475, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "Delta, KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "KLMDelta, Virgin Atlantic", "depart": "9:15 PM", "depart_at": 1275, "arrive": "4:40 PM", "arrive_at": 1000, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14 hr 25 min", "minutes": 865, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-13", "ret": null, "airline": "Delta, KLMVirgin Atlantic", "depart": "10:40 PM", "depart_at": 1360, "arrive": "4:40 PM", "arrive_at": 1000, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13 hr", "minutes": 780, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "4:50 PM", "arrive_at": 1010, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr", "minutes": 960, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-13", "ret": null, "airline": "Iberia, Royal Air MarocBritish Airways", "depart": "8:40 PM", "depart_at": 1240, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 3, "back_arrive_next_day": 0, "duration": "52 hr 40 min", "minutes": 3160, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 909, "offers": [{"site": "Google Flights", "price": 909, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 119, "sites": 3, "airports": 5, "searches": 15, "seconds": 50}, {"id": "jfk-lon-2026-10-15-ow", "kind": "oneway", "ret": null, "ret_label": null, "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-15", "date_label": "Thu 15 Oct 2026", "read_at": "2026-09-01 12:53", "flights": [{"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 192, "offers": [{"site": "Momondo", "price": 192, "country": "us"}, {"site": "Kayak", "price": 203, "country": "us"}, {"site": "Google Flights", "price": 204, "country": "us"}, {"site": "Expedia", "price": 225, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:55 AM", "arrive_at": 55, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "30h 25m", "minutes": 1825, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 215, "offers": [{"site": "Kayak", "price": 215, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "arrive_at": 895, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 25m", "minutes": 1225, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 252, "offers": [{"site": "Kayak", "price": 252, "country": "us"}, {"site": "Momondo", "price": 252, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:35 PM", "arrive_at": 875, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 05m", "minutes": 1205, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 256, "offers": [{"site": "Kayak", "price": 256, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "18h 05m", "minutes": 1085, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 259, "offers": [{"site": "Kayak", "price": 259, "country": "us"}, {"site": "Momondo", "price": 259, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:55 PM", "arrive_at": 895, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 25m", "minutes": 1225, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 266, "offers": [{"site": "Kayak", "price": 266, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "arrive_at": 1210, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Google Flights", "price": 295, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "8:35 PM", "depart_at": 1235, "arrive": "8:50 AM", "arrive_at": 530, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 15m", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "7:00 PM", "depart_at": 1140, "arrive": "7:15 AM", "arrive_at": 435, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 15m", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:45 AM", "arrive_at": 405, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 15m", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "6:00 PM", "depart_at": 1080, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 20m", "minutes": 440, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "10:00 PM", "depart_at": 1320, "arrive": "10:20 AM", "arrive_at": 620, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 20m", "minutes": 440, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 272, "offers": [{"site": "Momondo", "price": 272, "country": "us"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:45 PM", "arrive_at": 885, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 15m", "minutes": 1215, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 276, "offers": [{"site": "Kayak", "price": 276, "country": "us"}, {"site": "Momondo", "price": 276, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "11:55 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "31 hr 45 min", "minutes": 1905, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 277, "offers": [{"site": "Google Flights", "price": 277, "country": "us"}, {"site": "Kayak", "price": 287, "country": "gb"}, {"site": "Momondo", "price": 287, "country": "de"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "arrive_at": 840, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "19h 30m", "minutes": 1170, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 284, "offers": [{"site": "Kayak", "price": 284, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "arrive_at": 1245, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:00 PM", "arrive_at": 840, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "19h 30m", "minutes": 1170, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 286, "offers": [{"site": "Kayak", "price": 286, "country": "us"}, {"site": "Momondo", "price": 286, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:50 PM", "arrive_at": 890, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 20m", "minutes": 1220, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 288, "offers": [{"site": "Kayak", "price": 288, "country": "us"}, {"site": "Momondo", "price": 288, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "10:40 PM", "depart_at": 1360, "arrive": "10:35 AM", "arrive_at": 635, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6h 55m", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "7:35 PM", "depart_at": 1175, "arrive": "7:45 AM", "arrive_at": 465, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:40 AM", "arrive_at": 400, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "8:20 PM", "depart_at": 1220, "arrive": "8:30 AM", "arrive_at": 510, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "jp"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "arrive_at": 545, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 40m", "minutes": 580, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 290, "offers": [{"site": "Kayak", "price": 290, "country": "gb"}, {"site": "Momondo", "price": 290, "country": "de"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "18 hr 20 min", "minutes": 1100, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 292, "offers": [{"site": "Google Flights", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Multiple airlines", "depart": "1:30 PM", "depart_at": 810, "arrive": "1:35 PM", "arrive_at": 815, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "19h 05m", "minutes": 1145, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "arrive_at": 1300, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 294, "offers": [{"site": "Kayak", "price": 294, "country": "gb"}, {"site": "Momondo", "price": 294, "country": "de"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Delta", "depart": "8:15 PM", "depart_at": 1215, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 35 min", "minutes": 455, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "Virgin Atlantic", "depart": "11:55 PM", "depart_at": 1435, "arrive": "12:05 PM", "arrive_at": 725, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "9:40 PM", "depart_at": 1300, "arrive": "9:50 AM", "arrive_at": 590, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": null, "airline": "British Airways", "depart": "8:55 PM", "depart_at": 1255, "arrive": "9:10 AM", "arrive_at": 550, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 15m", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Expedia", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "arrive_at": 545, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 40m", "minutes": 580, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 297, "offers": [{"site": "Expedia", "price": 297, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "American, British Airways", "depart": "11:59 AM", "depart_at": 719, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "17 hr 41 min", "minutes": 1061, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 299, "offers": [{"site": "Google Flights", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Aer Lingus", "depart": "4:55 PM", "depart_at": 1015, "arrive": "8:05 AM", "arrive_at": 485, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 10m", "minutes": 610, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Aer Lingus", "depart": "11:55 PM", "depart_at": 1435, "arrive": "3:00 PM", "arrive_at": 900, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 5m", "minutes": 605, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Aer Lingus", "depart": "5:35 PM", "depart_at": 1055, "arrive": "8:05 AM", "arrive_at": 485, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 30m", "minutes": 570, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 301, "offers": [{"site": "Expedia", "price": 301, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15 hr 25 min", "minutes": 925, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 304, "offers": [{"site": "Google Flights", "price": 304, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": null, "airline": "Iberia", "depart": "4:55 PM", "depart_at": 1015, "arrive": "10:50 AM", "arrive_at": 650, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "12h 55m", "minutes": 775, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 309, "offers": [{"site": "Expedia", "price": 309, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15h 20m", "minutes": 920, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}, {"site": "Expedia", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "5:30 PM", "arrive_at": 1050, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16h 00m", "minutes": 960, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "6:40 PM", "arrive_at": 1120, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "17h 10m", "minutes": 1030, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "5:30 PM", "arrive_at": 1050, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 15m", "minutes": 1215, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 314, "offers": [{"site": "Kayak", "price": 314, "country": "us"}, {"site": "Momondo", "price": 314, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "6:20 PM", "arrive_at": 1100, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "13h 30m", "minutes": 810, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 316, "offers": [{"site": "Kayak", "price": 316, "country": "us"}, {"site": "Momondo", "price": 316, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "9:00 PM", "arrive_at": 1260, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16h 10m", "minutes": 970, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 317, "offers": [{"site": "Momondo", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "Delta, KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "KLMDelta, Virgin Atlantic", "depart": "9:15 PM", "depart_at": 1275, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14 hr 25 min", "minutes": 865, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "Delta, KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "13 hr", "minutes": 780, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": null, "airline": "Delta", "depart": "4:40 PM", "depart_at": 1000, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 50m", "minutes": 710, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Expedia", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}, {"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15 hr 50 min", "minutes": 950, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Turkish Airlines", "depart": "6:50 AM", "depart_at": 410, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "22h 5m", "minutes": 1325, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "33h 5m", "minutes": 1985, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 582, "offers": [{"site": "Expedia", "price": 582, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "Royal Air Maroc", "depart": "10:50 AM", "depart_at": 650, "arrive": "6:20 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14 hr 30 min", "minutes": 870, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 852, "offers": [{"site": "Google Flights", "price": 852, "country": "us"}, {"site": "Expedia", "price": 852, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": null, "airline": "SWISS, British Airways", "depart": "8:30 PM", "depart_at": 1230, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "40 hr", "minutes": 2400, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 5056, "offers": [{"site": "Google Flights", "price": 5056, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 80, "sites": 6, "airports": 5, "searches": 54, "seconds": 194}, {"id": "jfk-lon-2026-10-17-ow", "kind": "oneway", "ret": null, "ret_label": null, "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-17", "date_label": "Sat 17 Oct 2026", "read_at": "2026-09-01 16:30", "flights": [{"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 203, "offers": [{"site": "Kayak", "price": 203, "country": "us"}, {"site": "Momondo", "price": 203, "country": "us"}, {"site": "Google Flights", "price": 204, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "2:35 PM", "arrive_at": 875, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 25 min", "minutes": 625, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 267, "offers": [{"site": "Kayak", "price": 267, "country": "us"}, {"site": "Momondo", "price": 268, "country": "us"}, {"site": "Google Flights", "price": 291, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "11:55 AM", "arrive_at": 715, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31 hr 45 min", "minutes": 1905, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 270, "offers": [{"site": "Momondo", "price": 270, "country": "us"}, {"site": "Google Flights", "price": 277, "country": "us"}, {"site": "Kayak", "price": 282, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "arrive_at": 545, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "9h 40m", "minutes": 580, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 290, "offers": [{"site": "Momondo", "price": 290, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": "12:00 PM", "arrive_at": 720, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31 hr 10 min", "minutes": 1870, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 292, "offers": [{"site": "Google Flights", "price": 292, "country": "us"}, {"site": "Momondo", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "British Airways", "depart": "7:10 PM", "depart_at": 1150, "arrive": "7:20 AM", "arrive_at": 440, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "British Airways", "depart": "9:40 PM", "depart_at": 1300, "arrive": "9:50 AM", "arrive_at": 590, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "British Airways", "depart": "8:20 PM", "depart_at": 1220, "arrive": "8:30 AM", "arrive_at": 510, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}, {"site": "Momondo", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "British Airways", "depart": "7:35 PM", "depart_at": 1175, "arrive": "7:45 AM", "arrive_at": 465, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 293, "offers": [{"site": "Kayak", "price": 293, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "arrive_at": 1210, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "arrive_at": 1300, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "Virgin Atlantic", "depart": "6:00 PM", "depart_at": 1080, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr 20 min", "minutes": 440, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-17", "ret": null, "airline": "American", "depart": "6:10 PM", "depart_at": 1090, "arrive": "6:25 AM", "arrive_at": 385, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr 15 min", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "LEVEL", "depart": "11:50 PM", "depart_at": 1430, "arrive": "12:20 PM", "arrive_at": 740, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31h 30m", "minutes": 1890, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 298, "offers": [{"site": "Momondo", "price": 298, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "American Airlines", "depart": "11:59 AM", "depart_at": 719, "arrive": "8:40 AM", "arrive_at": 520, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 41m", "minutes": 941, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 299, "offers": [{"site": "Kayak", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "American Airlines", "depart": "10:00 AM", "depart_at": 600, "arrive": "8:40 AM", "arrive_at": 520, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17h 40m", "minutes": 1060, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 299, "offers": [{"site": "Kayak", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "12:30 AM", "depart_at": 30, "arrive": "8:00 AM", "arrive_at": 480, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "26h 30m", "minutes": 1590, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 299, "offers": [{"site": "Kayak", "price": 299, "country": "us"}, {"site": "Momondo", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Norse Atlantic Airways, Ryanair", "depart": "12:30 AM", "depart_at": 30, "arrive": "11:25 PM", "arrive_at": 1405, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "17h 55m", "minutes": 1075, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 306, "offers": [{"site": "Kayak", "price": 306, "country": "us"}, {"site": "Momondo", "price": 306, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "LEVEL, Ryanair", "depart": "11:50 PM", "depart_at": 1430, "arrive": "11:55 AM", "arrive_at": 715, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31h 05m", "minutes": 1865, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 309, "offers": [{"site": "Kayak", "price": 309, "country": "us"}, {"site": "Momondo", "price": 309, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "LEVEL, Wizz Air", "depart": "11:50 PM", "depart_at": 1430, "arrive": "11:00 AM", "arrive_at": 660, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "30h 10m", "minutes": 1810, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 312, "offers": [{"site": "Kayak", "price": 312, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "Air France", "depart": "1:00 AM", "depart_at": 60, "arrive": "4:00 PM", "arrive_at": 960, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr", "minutes": 600, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Google Flights", "price": 315, "country": "us"}, {"site": "Momondo", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "Delta, Air France", "depart": "10:40 PM", "depart_at": 1360, "arrive": "4:00 PM", "arrive_at": 960, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12 hr 20 min", "minutes": 740, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Google Flights", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-17", "ret": null, "airline": "Air France", "depart": "11:30 PM", "depart_at": 1410, "arrive": "4:00 PM", "arrive_at": 960, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr 30 min", "minutes": 690, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Google Flights", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Icelandair, Ryanair", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:10 AM", "arrive_at": 10, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "22h 40m", "minutes": 1360, "stops": 3, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 319, "offers": [{"site": "Kayak", "price": 319, "country": "us"}, {"site": "Momondo", "price": 319, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Icelandair, Ryanair", "depart": "11:10 PM", "depart_at": 1390, "arrive": "7:35 AM", "arrive_at": 455, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "27h 25m", "minutes": 1645, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 321, "offers": [{"site": "Kayak", "price": 321, "country": "us"}, {"site": "Momondo", "price": 321, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Icelandair, Ryanair", "depart": "8:30 PM", "depart_at": 1230, "arrive": "11:30 PM", "arrive_at": 1410, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "22h 00m", "minutes": 1320, "stops": 3, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 325, "offers": [{"site": "Kayak", "price": 325, "country": "us"}, {"site": "Momondo", "price": 325, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Norse Atlantic Airways, Wizz Air", "depart": "12:30 AM", "depart_at": 30, "arrive": "9:05 PM", "arrive_at": 1265, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15h 35m", "minutes": 935, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 329, "offers": [{"site": "Kayak", "price": 329, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Multiple airlines", "depart": "12:30 AM", "depart_at": 30, "arrive": "11:50 PM", "arrive_at": 1430, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "18h 20m", "minutes": 1100, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 331, "offers": [{"site": "Kayak", "price": 331, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Icelandair, Wizz Air", "depart": "8:30 PM", "depart_at": 1230, "arrive": "7:15 AM", "arrive_at": 435, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "29h 45m", "minutes": 1785, "stops": 3, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 332, "offers": [{"site": "Kayak", "price": 332, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "Delta", "depart": "4:40 PM", "depart_at": 1000, "arrive": "1:15 PM", "arrive_at": 795, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15 hr 35 min", "minutes": 935, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Kayak", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": "5:20 PM", "arrive_at": 1040, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13 hr 40 min", "minutes": 820, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}, {"site": "Kayak", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": "6:30 PM", "arrive_at": 1110, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14h 50m", "minutes": 890, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Kayak", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16h 05m", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Kayak", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": "8:15 PM", "arrive_at": 1215, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16h 35m", "minutes": 995, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Kayak", "price": 334, "country": "us"}, {"site": "Momondo", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "8:20 AM", "arrive_at": 500, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10h 25m", "minutes": 625, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 340, "offers": [{"site": "Kayak", "price": 340, "country": "us"}, {"site": "Momondo", "price": 363, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "ITA", "depart": "4:05 PM", "depart_at": 965, "arrive": "1:10 PM", "arrive_at": 790, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 355, "offers": [{"site": "Google Flights", "price": 355, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "ITA", "depart": "5:35 PM", "depart_at": 1055, "arrive": "3:55 PM", "arrive_at": 955, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17 hr 20 min", "minutes": 1040, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 355, "offers": [{"site": "Google Flights", "price": 355, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "10:30 AM", "arrive_at": 630, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12h 35m", "minutes": 755, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 366, "offers": [{"site": "Momondo", "price": 366, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Icelandair, easyJet", "depart": "11:10 PM", "depart_at": 1390, "arrive": "4:25 PM", "arrive_at": 985, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12h 15m", "minutes": 735, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 371, "offers": [{"site": "Momondo", "price": 371, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "Iberia, British Airways", "depart": "11:50 PM", "depart_at": 1430, "arrive": "6:30 PM", "arrive_at": 1110, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13 hr 40 min", "minutes": 820, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 390, "offers": [{"site": "Google Flights", "price": 390, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-17", "ret": null, "airline": "American, British Airways", "depart": "8:40 PM", "depart_at": 1240, "arrive": "12:40 PM", "arrive_at": 760, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr", "minutes": 660, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 407, "offers": [{"site": "Google Flights", "price": 407, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-17", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "11:55 PM", "depart_at": 1435, "arrive": "4:05 PM", "arrive_at": 965, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 10m", "minutes": 670, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 450, "offers": [{"site": "Momondo", "price": 450, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 592, "offers": [{"site": "Google Flights", "price": 592, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "4:40 PM", "arrive_at": 1000, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15 hr 50 min", "minutes": 950, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 592, "offers": [{"site": "Google Flights", "price": 592, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Iberia, Royal Air MarocBritish Airways", "depart": "8:40 PM", "depart_at": 1240, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "28 hr 40 min", "minutes": 1720, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 664, "offers": [{"site": "Google Flights", "price": 664, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Royal Air Maroc", "depart": "8:45 PM", "depart_at": 1245, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "28 hr 35 min", "minutes": 1715, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 805, "offers": [{"site": "Google Flights", "price": 805, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-17", "ret": null, "airline": "Royal Air Maroc", "depart": "10:50 AM", "depart_at": 650, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14 hr 30 min", "minutes": 870, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 852, "offers": [{"site": "Google Flights", "price": 852, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 67, "sites": 3, "airports": 5, "searches": 15, "seconds": 67}, {"id": "jfk-lon-2026-10-20-ow", "kind": "oneway", "ret": null, "ret_label": null, "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-20", "date_label": "Tue 20 Oct 2026", "read_at": "2026-09-01 16:32", "flights": [{"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 219, "offers": [{"site": "Google Flights", "price": 219, "country": "us"}, {"site": "Kayak", "price": 219, "country": "us"}, {"site": "Momondo", "price": 219, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "3:35 PM", "arrive_at": 935, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12 hr 30 min", "minutes": 750, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 283, "offers": [{"site": "Momondo", "price": 283, "country": "us"}, {"site": "Kayak", "price": 287, "country": "us"}, {"site": "Google Flights", "price": 302, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "5:45 PM", "arrive_at": 1065, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14h 40m", "minutes": 880, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 285, "offers": [{"site": "Kayak", "price": 285, "country": "us"}, {"site": "Momondo", "price": 285, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "6:50 PM", "arrive_at": 1130, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 45m", "minutes": 945, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 285, "offers": [{"site": "Kayak", "price": 285, "country": "us"}, {"site": "Momondo", "price": 285, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "10:00 PM", "arrive_at": 1320, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "18h 55m", "minutes": 1135, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 285, "offers": [{"site": "Kayak", "price": 285, "country": "us"}, {"site": "Momondo", "price": 285, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "arrive_at": 1245, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 289, "offers": [{"site": "Kayak", "price": 289, "country": "us"}, {"site": "Momondo", "price": 289, "country": "us"}, {"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:05 AM", "arrive_at": 545, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "9h 40m", "minutes": 580, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 290, "offers": [{"site": "Kayak", "price": 290, "country": "us"}, {"site": "Momondo", "price": 290, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "9:45 AM", "arrive_at": 585, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "30h 40m", "minutes": 1840, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 291, "offers": [{"site": "Momondo", "price": 291, "country": "us"}, {"site": "Kayak", "price": 298, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "LEVEL", "depart": "11:50 PM", "depart_at": 1430, "arrive": "12:10 PM", "arrive_at": 730, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31 hr 20 min", "minutes": 1880, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 292, "offers": [{"site": "Google Flights", "price": 292, "country": "us"}, {"site": "Kayak", "price": 292, "country": "us"}, {"site": "Momondo", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "10:20 AM", "arrive_at": 620, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "31h 15m", "minutes": 1875, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 292, "offers": [{"site": "Kayak", "price": 292, "country": "us"}, {"site": "Momondo", "price": 292, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "Virgin Atlantic", "depart": "8:15 AM", "depart_at": 495, "arrive": "8:10 PM", "arrive_at": 1210, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6 hr 55 min", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "arrive_at": 1300, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "Delta", "depart": "8:15 PM", "depart_at": 1215, "arrive": "8:50 AM", "arrive_at": 530, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr 35 min", "minutes": 455, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-20", "ret": null, "airline": "Virgin Atlantic", "depart": "6:00 PM", "depart_at": 1080, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "7 hr 20 min", "minutes": 440, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Google Flights", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "Icelandair, easyJet", "depart": "11:10 PM", "depart_at": 1390, "arrive": "5:35 PM", "arrive_at": 1055, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13h 25m", "minutes": 805, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 295, "offers": [{"site": "Kayak", "price": 295, "country": "us"}, {"site": "Momondo", "price": 295, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "TAP AIR PORTUGAL", "depart": "10:05 PM", "depart_at": 1325, "arrive": "8:25 PM", "arrive_at": 1225, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17h 20m", "minutes": 1040, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 297, "offers": [{"site": "Momondo", "price": 297, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "LEVEL", "depart": "11:50 PM", "depart_at": 1430, "arrive": "1:50 PM", "arrive_at": 830, "arrive_next_day": 2, "back_arrive_next_day": 0, "duration": "33h 00m", "minutes": 1980, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 298, "offers": [{"site": "Kayak", "price": 298, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "American, British Airways", "depart": "7:58 AM", "depart_at": 478, "arrive": "6:35 AM", "arrive_at": 395, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17 hr 37 min", "minutes": 1057, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 299, "offers": [{"site": "Google Flights", "price": 299, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-20", "ret": null, "airline": "Air France", "depart": "1:00 AM", "depart_at": 60, "arrive": "4:00 PM", "arrive_at": 960, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr", "minutes": 600, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Google Flights", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "arrive_at": 520, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Momondo", "price": 315, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "United Airlines", "depart": "4:15 PM", "depart_at": 975, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 20m", "minutes": 920, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Momondo", "price": 315, "country": "us"}, {"site": "Kayak", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "5:25 PM", "arrive_at": 1045, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "15h 55m", "minutes": 955, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 315, "offers": [{"site": "Momondo", "price": 315, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "SWISSUnited", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 316, "offers": [{"site": "Momondo", "price": 316, "country": "us"}, {"site": "Google Flights", "price": 323, "country": "us"}, {"site": "Kayak", "price": 323, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "5:25 PM", "arrive_at": 1045, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "20h 10m", "minutes": 1210, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 316, "offers": [{"site": "Momondo", "price": 316, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "American, British AirwaysIberia", "depart": "4:20 PM", "depart_at": 980, "arrive": "3:15 PM", "arrive_at": 915, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17 hr 55 min", "minutes": 1075, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 317, "offers": [{"site": "Google Flights", "price": 317, "country": "us"}, {"site": "Kayak", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "Iberia", "depart": "8:40 PM", "depart_at": 1240, "arrive": "3:15 PM", "arrive_at": 915, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13 hr 35 min", "minutes": 815, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 317, "offers": [{"site": "Google Flights", "price": 317, "country": "us"}, {"site": "Kayak", "price": 317, "country": "us"}, {"site": "Momondo", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "Iberia", "depart": "4:55 PM", "depart_at": 1015, "arrive": "3:15 PM", "arrive_at": 915, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "17h 20m", "minutes": 1040, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 317, "offers": [{"site": "Kayak", "price": 317, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Icelandair, easyJet", "depart": "11:10 PM", "depart_at": 1390, "arrive": "6:30 PM", "arrive_at": 1110, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "14h 20m", "minutes": 860, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 318, "offers": [{"site": "Momondo", "price": 318, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "Finnair, British Airways", "depart": "4:55 PM", "depart_at": 1015, "arrive": "9:00 AM", "arrive_at": 540, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 05m", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 326, "offers": [{"site": "Kayak", "price": 326, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "arrive_at": 475, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-20", "ret": null, "airline": "Delta, KLMVirgin Atlantic", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 334, "offers": [{"site": "Google Flights", "price": 334, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "9:15 AM", "arrive_at": 555, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 20m", "minutes": 680, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 357, "offers": [{"site": "Momondo", "price": 357, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "7:50 AM", "arrive_at": 470, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "9h 55m", "minutes": 595, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 361, "offers": [{"site": "Kayak", "price": 361, "country": "us"}, {"site": "Momondo", "price": 363, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "11:55 PM", "depart_at": 1435, "arrive": "5:35 PM", "arrive_at": 1055, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "12h 40m", "minutes": 760, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 362, "offers": [{"site": "Kayak", "price": 362, "country": "us"}, {"site": "Momondo", "price": 363, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "12:45 PM", "arrive_at": 765, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10h 40m", "minutes": 640, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 363, "offers": [{"site": "Kayak", "price": 363, "country": "us"}, {"site": "Momondo", "price": 365, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "9:50 AM", "arrive_at": 590, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 55m", "minutes": 715, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 363, "offers": [{"site": "Kayak", "price": 363, "country": "us"}, {"site": "Momondo", "price": 365, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "11:55 PM", "depart_at": 1435, "arrive": "3:30 PM", "arrive_at": 930, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "10h 35m", "minutes": 635, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 363, "offers": [{"site": "Momondo", "price": 363, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "1:25 PM", "arrive_at": 805, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "11h 20m", "minutes": 680, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 363, "offers": [{"site": "Momondo", "price": 363, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "3:30 PM", "arrive_at": 930, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "13h 25m", "minutes": 805, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 364, "offers": [{"site": "Momondo", "price": 364, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-20", "ret": null, "airline": "Air Europa, easyJet", "depart": "10:05 PM", "depart_at": 1325, "arrive": "11:45 PM", "arrive_at": 1425, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "20h 40m", "minutes": 1240, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 442, "offers": [{"site": "Momondo", "price": 442, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}, {"site": "Kayak", "price": 552, "country": "us"}, {"site": "Momondo", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "4:50 PM", "arrive_at": 1010, "arrive_next_day": 1, "back_arrive_next_day": 0, "duration": "16 hr", "minutes": 960, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 552, "offers": [{"site": "Google Flights", "price": 552, "country": "us"}, {"site": "Kayak", "price": 552, "country": "us"}, {"site": "Momondo", "price": 552, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-20", "ret": null, "airline": "Iberia, Royal Air MarocBritish Airways", "depart": "8:40 PM", "depart_at": 1240, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 3, "back_arrive_next_day": 0, "duration": "52 hr 40 min", "minutes": 3160, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 767, "offers": [{"site": "Google Flights", "price": 767, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 66, "sites": 3, "airports": 5, "searches": 15, "seconds": 110}, {"id": "jfk-lon-2026-10-15-rt", "kind": "return", "ret": "2026-10-22", "ret_label": "Thu 22 Oct 2026", "from_label": "New York", "from_full": "New York JFK", "to_label": "London", "from_keys": ["jfk", "new york", "new york jfk"], "to_keys": ["gatwick", "heathrow", "lcy", "lgw", "lhr", "lon", "london", "london city", "ltn", "luton", "stansted", "stn"], "date": "2026-10-15", "date_label": "Thu 15 Oct 2026", "read_at": "2026-09-01 14:59", "flights": [{"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 00m", "minutes": 420, "stops": 0, "back_airline": "Norse Atlantic UK", "back_depart": "1:05 PM", "back_arrive": "3:55 PM", "back_duration": "7h 50m", "back_minutes": 470, "back_stops": 0, "price": 598, "offers": [{"site": "Momondo", "price": 598, "country": "us"}, {"site": "Kayak", "price": 599, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Norse Atlantic UK", "depart": "6:20 PM", "depart_at": 1100, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr", "minutes": 420, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 599, "offers": [{"site": "Google Flights", "price": 599, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air Europa, easyJet", "depart": "10:05 PM", "depart_at": 1325, "arrive": "6:10 PM", "arrive_at": 1090, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15h 05m", "minutes": 905, "stops": 1, "back_airline": "Wizz Air, Air Europa", "back_depart": "8:00 AM", "back_arrive": "5:45 PM", "back_duration": "14h 45m", "back_minutes": 885, "back_stops": 1, "price": 600, "offers": [{"site": "Kayak", "price": 600, "country": "us"}, {"site": "Momondo", "price": 600, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Scandinavian Airlines", "depart": "5:10 PM", "depart_at": 1030, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 622, "offers": [{"site": "Google Flights", "price": 622, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air Europa, Wizz Air", "depart": "10:05 PM", "depart_at": 1325, "arrive": "2:05 PM", "arrive_at": 845, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 00m", "minutes": 660, "stops": 1, "back_airline": "Wizz Air, Air Europa", "back_depart": "8:00 AM", "back_arrive": "5:45 PM", "back_duration": "14h 45m", "back_minutes": 885, "back_stops": 1, "price": 643, "offers": [{"site": "Kayak", "price": 643, "country": "us"}, {"site": "Momondo", "price": 643, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air Europa, Ryanair", "depart": "10:05 PM", "depart_at": 1325, "arrive": "3:00 PM", "arrive_at": 900, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 55m", "minutes": 715, "stops": 1, "back_airline": "Ryanair, Air Europa", "back_depart": "6:00 AM", "back_arrive": "5:45 PM", "back_duration": "16h 45m", "back_minutes": 1005, "back_stops": 1, "price": 649, "offers": [{"site": "Kayak", "price": 649, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air Europa, Ryanair", "depart": "10:05 PM", "depart_at": 1325, "arrive": "3:00 PM", "arrive_at": 900, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 55m", "minutes": 715, "stops": 1, "back_airline": "Ryanair, Air Europa", "back_depart": "10:00 AM", "back_arrive": "5:45 PM", "back_duration": "12h 45m", "back_minutes": 765, "back_stops": 1, "price": 650, "offers": [{"site": "Momondo", "price": 650, "country": "us"}, {"site": "Kayak", "price": 673, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "18 hr 20 min", "minutes": 1100, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 666, "offers": [{"site": "Google Flights", "price": 666, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Tap Air Portugal", "depart": "10:05 PM", "depart_at": 1325, "arrive": "5:45 PM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14 hr 40 min", "minutes": 880, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 669, "offers": [{"site": "Google Flights", "price": 669, "country": "us"}, {"site": "Expedia", "price": 669, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15 hr 25 min", "minutes": 925, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 678, "offers": [{"site": "Google Flights", "price": 678, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "LEVEL, Vueling", "depart": "11:50 PM", "depart_at": 1430, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "12 hr 55 min", "minutes": 775, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 701, "offers": [{"site": "Google Flights", "price": 701, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air Europa", "depart": "10:05 PM", "depart_at": 1325, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "13 hr 20 min", "minutes": 800, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 722, "offers": [{"site": "Google Flights", "price": 722, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 35m", "minutes": 695, "stops": 1, "back_airline": "Wizz Air, Icelandair", "back_depart": "8:30 AM", "back_arrive": "7:20 PM", "back_duration": "15h 50m", "back_minutes": 950, "back_stops": 2, "price": 740, "offers": [{"site": "Kayak", "price": 740, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Norse Atlantic Airways, Wizz Air", "depart": "1:30 PM", "depart_at": 810, "arrive": "2:35 PM", "arrive_at": 875, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "20h 05m", "minutes": 1205, "stops": 2, "back_airline": "Wizz Air, LEVEL", "back_depart": "5:40 AM", "back_arrive": "10:00 PM", "back_duration": "21h 20m", "back_minutes": 1280, "back_stops": 1, "price": 744, "offers": [{"site": "Kayak", "price": 744, "country": "us"}, {"site": "Momondo", "price": 744, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "arrive_at": 1245, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 00m", "minutes": 420, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 747, "offers": [{"site": "Kayak", "price": 747, "country": "us"}, {"site": "Momondo", "price": 747, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "JetBlue", "depart": "8:45 AM", "depart_at": 525, "arrive": "8:45 PM", "arrive_at": 1245, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 00m", "minutes": 420, "stops": 0, "back_airline": "Austrian Airlines", "back_depart": "12:20 PM", "back_arrive": "8:05 PM", "back_duration": "12h 45m", "back_minutes": 765, "back_stops": 1, "price": 750, "offers": [{"site": "Kayak", "price": 750, "country": "us"}, {"site": "Momondo", "price": 750, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6h 55m", "minutes": 415, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 754, "offers": [{"site": "Kayak", "price": 754, "country": "us"}, {"site": "Momondo", "price": 754, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "British Airways", "depart": "10:40 PM", "depart_at": 1360, "arrive": "10:35 AM", "arrive_at": 635, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6h 55m", "minutes": 415, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 754, "offers": [{"site": "Kayak", "price": 754, "country": "us"}, {"site": "Momondo", "price": 754, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "British Airways", "depart": "8:20 PM", "depart_at": 1220, "arrive": "8:30 AM", "arrive_at": 510, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 754, "offers": [{"site": "Kayak", "price": 754, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Virgin Atlantic", "depart": "11:55 PM", "depart_at": 1435, "arrive": "12:05 PM", "arrive_at": 725, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 10m", "minutes": 430, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 755, "offers": [{"site": "Momondo", "price": 755, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Virgin Atlantic", "depart": "6:30 PM", "depart_at": 1110, "arrive": "6:45 AM", "arrive_at": 405, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 15m", "minutes": 435, "stops": 0, "back_airline": "SWISS", "back_depart": "8:45 AM", "back_arrive": "4:35 PM", "back_duration": "12h 50m", "back_minutes": 770, "back_stops": 1, "price": 755, "offers": [{"site": "Momondo", "price": 755, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "British Airways", "depart": "7:50 AM", "depart_at": 470, "arrive": "7:45 PM", "arrive_at": 1185, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6h 55m", "minutes": 415, "stops": 0, "back_airline": "Austrian Airlines", "back_depart": "12:20 PM", "back_arrive": "8:05 PM", "back_duration": "12h 45m", "back_minutes": 765, "back_stops": 1, "price": 756, "offers": [{"site": "Kayak", "price": 756, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Icelandair", "depart": "11:10 PM", "depart_at": 1390, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "31 hr 45 min", "minutes": 1905, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 759, "offers": [{"site": "Google Flights", "price": 759, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Virgin Atlantic", "depart": "6:30 PM", "depart_at": 1110, "arrive": "9:25 AM", "arrive_at": 565, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 55m", "minutes": 595, "stops": 1, "back_airline": "Norse Atlantic UK", "back_depart": "1:05 PM", "back_arrive": "3:55 PM", "back_duration": "7h 50m", "back_minutes": 470, "back_stops": 0, "price": 773, "offers": [{"site": "Momondo", "price": 773, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISS", "depart": "8:30 PM", "depart_at": 1230, "arrive": "12:35 PM", "arrive_at": 755, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 05m", "minutes": 665, "stops": 1, "back_airline": "SWISS", "back_depart": "9:15 AM", "back_arrive": "4:35 PM", "back_duration": "12h 20m", "back_minutes": 740, "back_stops": 1, "price": 783, "offers": [{"site": "Kayak", "price": 783, "country": "us"}, {"site": "Momondo", "price": 783, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": "8:40 AM", "arrive_at": 520, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11h 25m", "minutes": 685, "stops": 1, "back_airline": "SWISS", "back_depart": "9:15 AM", "back_arrive": "4:35 PM", "back_duration": "12h 20m", "back_minutes": 740, "back_stops": 1, "price": 783, "offers": [{"site": "Kayak", "price": 783, "country": "us"}, {"site": "Momondo", "price": 783, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "American", "depart": "7:15 PM", "depart_at": 1155, "arrive": "7:20 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 792, "offers": [{"site": "Google Flights", "price": 792, "country": "us"}, {"site": "Expedia", "price": 794, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "American", "depart": "9:35 AM", "depart_at": 575, "arrive": "9:40 PM", "arrive_at": 1300, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 5 min", "minutes": 425, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 792, "offers": [{"site": "Google Flights", "price": 792, "country": "us"}, {"site": "Expedia", "price": 794, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "American", "depart": "6:10 PM", "depart_at": 1090, "arrive": "6:25 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7 hr 15 min", "minutes": 435, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 792, "offers": [{"site": "Google Flights", "price": 792, "country": "us"}, {"site": "Expedia", "price": 794, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Delta", "depart": "10:00 PM", "depart_at": 1320, "arrive": "10:20 AM", "arrive_at": 620, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "7h 20m", "minutes": 440, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 802, "offers": [{"site": "Expedia", "price": 802, "country": "us"}]}, {"origin": "JFK", "destination": "LHR", "date": "2026-10-15", "ret": "2026-10-22", "airline": "British Airways", "depart": "10:40 PM", "depart_at": 1360, "arrive": "10:35 AM", "arrive_at": 635, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "6h 55m", "minutes": 415, "stops": 0, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 802, "offers": [{"site": "Expedia", "price": 802, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Air France", "depart": "6:30 PM", "depart_at": 1110, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9 hr 55 min", "minutes": 595, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 834, "offers": [{"site": "Google Flights", "price": 834, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISS", "depart": "4:15 PM", "depart_at": 975, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11 hr 25 min", "minutes": 685, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 844, "offers": [{"site": "Google Flights", "price": 844, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISSUnited", "depart": "8:30 PM", "depart_at": 1230, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "11 hr 5 min", "minutes": 665, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 844, "offers": [{"site": "Google Flights", "price": 844, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "KLMDelta, Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr 15 min", "minutes": 615, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 865, "offers": [{"site": "Google Flights", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Delta, KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10 hr 5 min", "minutes": 605, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 865, "offers": [{"site": "Google Flights", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "KLMDelta", "depart": "9:15 PM", "depart_at": 1275, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14 hr 25 min", "minutes": 865, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 865, "offers": [{"site": "Google Flights", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Delta, KLM", "depart": "10:40 PM", "depart_at": 1360, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "13 hr", "minutes": 780, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 865, "offers": [{"site": "Google Flights", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "KLM", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 05m", "minutes": 605, "stops": 1, "back_airline": "KLM", "back_depart": "10:00 AM", "back_arrive": "5:07 PM", "back_duration": "12h 07m", "back_minutes": 727, "back_stops": 1, "price": 865, "offers": [{"site": "Momondo", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "KLM", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "arrive_at": 475, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 15m", "minutes": 615, "stops": 1, "back_airline": "KLM", "back_depart": "10:00 AM", "back_arrive": "5:07 PM", "back_duration": "12h 07m", "back_minutes": 727, "back_stops": 1, "price": 865, "offers": [{"site": "Momondo", "price": 865, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Delta", "depart": "11:30 AM", "depart_at": 690, "arrive": "9:25 AM", "arrive_at": 565, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16h 55m", "minutes": 1015, "stops": 2, "back_airline": "Delta", "back_depart": "10:25 AM", "back_arrive": "5:10 PM", "back_duration": "11h 45m", "back_minutes": 705, "back_stops": 1, "price": 888, "offers": [{"site": "Kayak", "price": 888, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Virgin Atlantic, easyJet", "depart": "1:00 AM", "depart_at": 60, "arrive": "8:40 PM", "arrive_at": 1240, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14h 40m", "minutes": 880, "stops": 2, "back_airline": "Wizz Air, LEVEL", "back_depart": "5:40 AM", "back_arrive": "10:00 PM", "back_duration": "21h 20m", "back_minutes": 1280, "back_stops": 1, "price": 932, "offers": [{"site": "Momondo", "price": 932, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "4:55 PM", "depart_at": 1015, "arrive": "7:50 AM", "arrive_at": 470, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 55m", "minutes": 595, "stops": 1, "back_airline": "Ryanair, Aer Lingus", "back_depart": "4:15 PM", "back_arrive": "10:25 PM", "back_duration": "11h 10m", "back_minutes": 670, "back_stops": 1, "price": 942, "offers": [{"site": "Momondo", "price": 942, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "12:25 PM", "arrive_at": 745, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 20m", "minutes": 620, "stops": 1, "back_airline": "Ryanair, Aer Lingus", "back_depart": "3:50 PM", "back_arrive": "10:25 PM", "back_duration": "11h 35m", "back_minutes": 695, "back_stops": 1, "price": 949, "offers": [{"site": "Kayak", "price": 949, "country": "us"}, {"site": "Momondo", "price": 949, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "11:55 PM", "depart_at": 1435, "arrive": "2:35 PM", "arrive_at": 875, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "9h 40m", "minutes": 580, "stops": 1, "back_airline": "Ryanair, Aer Lingus", "back_depart": "4:15 PM", "back_arrive": "10:25 PM", "back_duration": "11h 10m", "back_minutes": 670, "back_stops": 1, "price": 953, "offers": [{"site": "Momondo", "price": 953, "country": "us"}]}, {"origin": "JFK", "destination": "LTN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "12:25 PM", "arrive_at": 745, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 20m", "minutes": 620, "stops": 1, "back_airline": "Ryanair, Aer Lingus", "back_depart": "1:00 PM", "back_arrive": "7:20 PM", "back_duration": "11h 20m", "back_minutes": 680, "back_stops": 1, "price": 960, "offers": [{"site": "Kayak", "price": 960, "country": "us"}, {"site": "Momondo", "price": 960, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Virgin Atlantic", "depart": "4:40 PM", "depart_at": 1000, "arrive": "7:55 AM", "arrive_at": 475, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 15m", "minutes": 615, "stops": 1, "back_airline": "Virgin Atlantic", "back_depart": "8:25 AM", "back_arrive": "2:35 PM", "back_duration": "11h 10m", "back_minutes": 670, "back_stops": 1, "price": 967, "offers": [{"site": "Momondo", "price": 967, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus, Ryanair", "depart": "9:05 PM", "depart_at": 1265, "arrive": "12:45 PM", "arrive_at": 765, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 40m", "minutes": 640, "stops": 1, "back_airline": "Ryanair, Aer Lingus", "back_depart": "1:15 PM", "back_arrive": "7:20 PM", "back_duration": "11h 05m", "back_minutes": 665, "back_stops": 1, "price": 1001, "offers": [{"site": "Kayak", "price": 1001, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Delta", "depart": "6:25 PM", "depart_at": 1105, "arrive": "9:30 AM", "arrive_at": 570, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 05m", "minutes": 605, "stops": 1, "back_airline": "Delta", "back_depart": "9:20 AM", "back_arrive": "2:35 PM", "back_duration": "10h 15m", "back_minutes": 615, "back_stops": 1, "price": 1016, "offers": [{"site": "Kayak", "price": 1016, "country": "us"}, {"site": "Momondo", "price": 1016, "country": "us"}]}, {"origin": "JFK", "destination": "LGW", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "12:25 AM", "depart_at": 25, "arrive": "10:30 PM", "arrive_at": 1350, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "17h 05m", "minutes": 1025, "stops": 1, "back_airline": "Norse Atlantic UK", "back_depart": "1:05 PM", "back_arrive": "3:55 PM", "back_duration": "7h 50m", "back_minutes": 470, "back_stops": 0, "price": 1031, "offers": [{"site": "Kayak", "price": 1031, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "6:50 AM", "depart_at": 410, "arrive": "9:55 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "22 hr 5 min", "minutes": 1325, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 1043, "offers": [{"site": "Google Flights", "price": 1043, "country": "us"}, {"site": "Expedia", "price": 1093, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15 hr 50 min", "minutes": 950, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 1043, "offers": [{"site": "Google Flights", "price": 1043, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "4:40 PM", "arrive_at": 1000, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "15h 50m", "minutes": 950, "stops": 1, "back_airline": "Turkish Airlines", "back_depart": "5:35 PM", "back_arrive": "10:55 AM", "back_duration": "22h 20m", "back_minutes": 1340, "back_stops": 1, "price": 1043, "offers": [{"site": "Momondo", "price": 1043, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "6:50 AM", "depart_at": 410, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "22h 05m", "minutes": 1325, "stops": 1, "back_airline": "Turkish Airlines", "back_depart": "5:35 PM", "back_arrive": "10:55 AM", "back_duration": "22h 20m", "back_minutes": 1340, "back_stops": 1, "price": 1043, "offers": [{"site": "Momondo", "price": 1043, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "7:50 PM", "depart_at": 1190, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "33h 5m", "minutes": 1985, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 1093, "offers": [{"site": "Expedia", "price": 1093, "country": "us"}]}, {"origin": "JFK", "destination": "LCY", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Aer Lingus", "depart": "4:55 PM", "depart_at": 1015, "arrive": "8:35 AM", "arrive_at": 515, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "10h 40m", "minutes": 640, "stops": 1, "back_airline": "Aer Lingus", "back_depart": "1:45 PM", "back_arrive": "7:20 PM", "back_duration": "10h 35m", "back_minutes": 635, "back_stops": 1, "price": 1147, "offers": [{"site": "Kayak", "price": 1147, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16 hr 5 min", "minutes": 965, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 1243, "offers": [{"site": "Google Flights", "price": 1243, "country": "us"}, {"site": "Expedia", "price": 1273, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Turkish Airlines", "depart": "12:50 PM", "depart_at": 770, "arrive": "9:55 AM", "arrive_at": 595, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "16h 05m", "minutes": 965, "stops": 1, "back_airline": "Turkish Airlines", "back_depart": "5:35 PM", "back_arrive": "10:55 AM", "back_duration": "22h 20m", "back_minutes": 1340, "back_stops": 1, "price": 1243, "offers": [{"site": "Momondo", "price": 1243, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Royal Air Maroc", "depart": "10:50 AM", "depart_at": 650, "arrive": "6:20 AM", "arrive_at": 380, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "14h 30m", "minutes": 870, "stops": 1, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 1850, "offers": [{"site": "Expedia", "price": 1850, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "Lufthansa, Air AlgerieUnited", "depart": "9:50 PM", "depart_at": 1310, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "35 hr 40 min", "minutes": 2140, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 4893, "offers": [{"site": "Google Flights", "price": 4893, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISS, Turkish Airlines", "depart": "4:15 PM", "depart_at": 975, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "19 hr 25 min", "minutes": 1165, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 7504, "offers": [{"site": "Google Flights", "price": 7504, "country": "us"}]}, {"origin": "JFK", "destination": "STN", "date": "2026-10-15", "ret": "2026-10-22", "airline": "SWISS, Turkish Airlines", "depart": "8:30 PM", "depart_at": 1230, "arrive": null, "arrive_at": null, "arrive_next_day": 0, "back_arrive_next_day": 0, "duration": "32 hr 25 min", "minutes": 1945, "stops": 2, "back_airline": null, "back_depart": null, "back_arrive": null, "back_duration": null, "back_minutes": null, "back_stops": null, "price": 7504, "offers": [{"site": "Google Flights", "price": 7504, "country": "us"}]}], "asked_airport": "Heathrow", "airport_saving": 24, "sites": 5, "airports": 5, "searches": 25, "seconds": 168}], "places": ["London", "New York JFK"], "dates": [{"iso": "2026-10-13", "label": "Tue 13 Oct 2026"}, {"iso": "2026-10-15", "label": "Thu 15 Oct 2026"}, {"iso": "2026-10-17", "label": "Sat 17 Oct 2026"}, {"iso": "2026-10-20", "label": "Tue 20 Oct 2026"}], "airport_names": {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted", "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK", "EWR": "Newark", "LGA": "LaGuardia"}}</script>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$" + Number(n).toLocaleString();
+const stopText = s => s === 0 ? "Nonstop" : s === 1 ? "1 stop" : s + " stops";
+const norm = s => String(s || "").trim().toLowerCase();
+
+/* ---------- which searches we hold ---------- */
+function findTrip(from, to, when, kind) {
+  const f = norm(from), t = norm(to);
+  return D.trips.find(tr =>
+    tr.from_keys.includes(f) && tr.to_keys.includes(t) &&
+    (!when || tr.date === when) && (!kind || tr.kind === kind));
+}
+
+/* ---------- saved flights, per browser ---------- */
+const SAVED_KEY = "fareboard.saved";
+function loadSaved() {
+  try { return new Set(JSON.parse(localStorage.getItem(SAVED_KEY)) || []); }
+  catch (e) { return new Set(); }      // private window, or storage blocked
+}
+function keepSaved(set) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify([...set])); }
+  catch (e) { /* saving is a convenience, never a requirement */ }
+}
+let saved = loadSaved();
+
+const PAGE = 20;
+const state = {trip: null, stops: "any", airport: "all", sort: "price",
+               saved: false, shown: PAGE,
+               depart: "any", arrive: "any", airline: "any", max: "any"};
+const REFINE = {depart: "f-depart", arrive: "f-arrive", airline: "f-airline",
+                max: "f-max", sort: "f-sort"};
+const within = (mins, window) => {
+  if (window === "any") return true;
+  if (mins === null || mins === undefined) return false;
+  const [from, to] = window.split("-").map(Number);
+  const hour = mins / 60;
+  return hour >= from && hour < to;
+};
+const idOf = f => `${f.destination}|${f.airline}|${f.depart_at}|${f.minutes}`;
+
+/* ---------- landing ---------- */
+if (D.live) {
+  document.getElementById("places").innerHTML =
+    D.places.map(p => `<option value="${esc(p.label)}">`).join("");
+  const when = document.getElementById("when");
+  const soon = new Date(Date.now() + 42 * 86400000);
+  when.value = soon.toISOString().slice(0, 10);
+  when.min = new Date().toISOString().slice(0, 10);
+  const retcell = document.getElementById("retcell");
+  document.getElementById("trip").addEventListener("change", e => {
+    retcell.hidden = e.target.value !== "return";
+    if (!retcell.hidden && !document.getElementById("retdate").value) {
+      const back = new Date(Date.now() + 49 * 86400000);
+      document.getElementById("retdate").value = back.toISOString().slice(0, 10);
+    }
+  });
+} else {
+  document.getElementById("places").innerHTML =
+    D.places.map(p => `<option value="${esc(p)}">`).join("");
+  document.getElementById("when").innerHTML =
+    D.dates.map(d => `<option value="${esc(d.iso)}">${esc(d.label)}</option>`).join("");
+}
+
+const progress = document.getElementById("progress");
+
+function working(headline, detail) {
+  document.getElementById("finder").classList.add("busy");
+  progress.hidden = false;
+  progress.innerHTML = `<span class="spin"></span><div><b>${esc(headline)}</b>
+    <small>${esc(detail || "")}</small></div>`;
+}
+function stopWorking() {
+  progress.hidden = true;
+  progress.innerHTML = "";
+  document.getElementById("finder").classList.remove("busy");
+  const strip = document.getElementById("widening");
+  strip.hidden = true;
+  strip.innerHTML = "";
+}
+
+function stillWidening(detail) {
+  const strip = document.getElementById("widening");
+  strip.hidden = false;
+  strip.innerHTML = `<span class="spin"></span><span>${esc(detail)}</span>`;
+}
+
+const codeOf = value => {
+  const inParens = String(value).match(/[(]([A-Za-z]{3})[)]\s*$/);
+  if (inParens) return inParens[1].toUpperCase();
+  const bare = String(value).trim().toUpperCase();
+  if (/^[A-Z]{3}$/.test(bare)) return bare;
+  const needle = String(value).trim().toLowerCase();
+  const hit = (D.places || []).find(p => p.label.toLowerCase().includes(needle));
+  return hit ? hit.code : null;
+};
+
+function showJob(job) {
+  if (!job.trip) return false;
+  const arriving = document.getElementById("results").hidden;
+  state.trip = job.trip;
+  document.getElementById("landing").hidden = true;
+  document.getElementById("results").hidden = false;
+  renderTrip();
+  if (arriving) {
+    progress.hidden = true;                 // the spinner lived on the search
+    window.scrollTo(0, 0);
+  }
+  return true;
+}
+
+async function liveSearch(from, to, date, ret) {
+  const body = {from, to, date, ret: ret || null, nearby: true};
+  working("Checking every site at once",
+          `${from} to ${to}, ${date}. Four sites in parallel, about twenty seconds.`);
+  progress.scrollIntoView({block: "center", behavior: "smooth"});
+  let job;
+  try {
+    const res = await fetch("/api/search", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)});
+    job = await res.json();
+    if (!res.ok) throw new Error(job.error || "the search was refused");
+  } catch (err) {
+    stopWorking();
+    document.getElementById("nope").innerHTML =
+      `<div class="nope">Could not reach the search service. Is
+       <code>python server.py</code> running? <b>${esc(err.message)}</b></div>`;
+    return;
+  }
+
+  if (job.from_cache && showJob(job)) {
+    stopWorking();
+    return;
+  }
+
+  const started = Date.now();
+  const timer = setInterval(async () => {
+    let now;
+    try { now = await (await fetch("/api/search/" + job.id)).json(); }
+    catch (err) { return; }                       // a dropped poll is not fatal
+
+    if (now.phase === "failed" || (now.phase === "done" && !now.trip)) {
+      clearInterval(timer); stopWorking();
+      document.getElementById("nope").innerHTML =
+        `<div class="nope">${esc(now.error || "No fares came back for that route.")}
+         </div>`;
+      return;
+    }
+    const onResults = !document.getElementById("results").hidden;
+    if (now.trip) showJob(now);
+    if (now.phase === "widening") {
+      const also = (now.widening_to || []).join(", ");
+      if (onResults || now.trip) {
+        stillWidening(`Also checking ${also} — ${now.answered} searches answered so far.`);
+      } else {
+        working("Now trying the nearby airports",
+                `Found ${now.answered} so far. Adding ${also}.`);
+      }
+    } else if (now.phase !== "done") {
+      working("Checking every site at once",
+              `${Math.round((Date.now() - started) / 1000)}s so far. Nothing to show until the first site answers.`);
+    }
+    if (now.phase === "done") { clearInterval(timer); stopWorking(); }
+  }, 1500);
+}
+
+document.getElementById("finder").addEventListener("submit", e => {
+  e.preventDefault();
+  document.getElementById("nope").innerHTML = "";
+
+  if (D.live) {
+    const from = codeOf(document.getElementById("from").value);
+    const to = codeOf(document.getElementById("to").value);
+    const date = document.getElementById("when").value;
+    const kind = document.getElementById("trip").value;
+    const ret = kind === "return"
+      ? document.getElementById("retdate").value : null;
+    if (!from || !to) {
+      document.getElementById("nope").innerHTML = `<div class="nope">
+        Use an airport code or pick from the list &mdash; <b>JFK</b>,
+        <b>LHR</b>, <b>Barcelona (BCN)</b>.</div>`;
+      return;
+    }
+    if (kind === "return" && !ret) {
+      document.getElementById("nope").innerHTML =
+        `<div class="nope">A return trip needs a date to come back on.</div>`;
+      return;
+    }
+    location.hash = `#/live?from=${from}&to=${to}&date=${date}` +
+                    (ret ? `&ret=${ret}` : "");
+    return;
+  }
+
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
+  const when = document.getElementById("when").value;
+  const kind = document.getElementById("trip").value;
+  const trip = findTrip(from, to, when, kind);
+  if (!trip) {
+    document.getElementById("nope").innerHTML = `<div class="nope">
+      We have not priced <b>${esc(from)} &rarr; ${esc(to)}</b>${
+        kind === "return" ? " as a return" : " one way"} yet. Every route
+      here was gathered by actually running the searches, so the list is short
+      and honest rather than long and made up.
+      <div class="offers">${D.trips.map(t =>
+        `<button class="linkish" data-go="${esc(t.id)}">${esc(t.from_label)}
+         &rarr; ${esc(t.to_label)}, ${esc(t.date_label)}${
+           t.kind === "return" ? ", back " + esc(t.ret_label) : ", one way"
+         }</button>`).join("")}</div>
+      </div>`;
+    return;
+  }
+  const stops = document.getElementById("stops").value;
+  // The choice rides in the URL, so a filtered result is still a link you can
+  // send someone, and the results page can offer to widen it again.
+  location.hash = "#/" + trip.id + (stops === "0" ? "?stops=0" : "");
+});
+
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go]");
+  if (go) { location.hash = "#/" + go.dataset.go; return; }
+
+  const pill = e.target.closest(".pill");
+  if (pill && pill.dataset.filter) {
+    const {filter, value} = pill.dataset;
+    state.shown = PAGE;
+    if (filter === "saved") {
+      state.saved = !state.saved;
+      pill.setAttribute("aria-pressed", state.saved);
+    } else {
+      state[filter] = value;
+      document.querySelectorAll(`.pill[data-filter="${filter}"]`).forEach(p =>
+        p.setAttribute("aria-pressed", p.dataset.value === value));
+      if (filter === "stops" && state.trip) {
+        history.replaceState(null, "", "#/" + state.trip.id +
+          (value === "0" ? "?stops=0" : ""));   // no hashchange, no re-route
+      }
+    }
+    renderFlights();
+    return;
+  }
+  if (e.target.id === "more") { state.shown += PAGE; renderFlights(); return; }
+
+  const save = e.target.closest(".save");
+  if (save) {
+    const id = save.dataset.id;
+    if (saved.has(id)) saved.delete(id); else saved.add(id);
+    keepSaved(saved);
+    save.setAttribute("aria-pressed", saved.has(id));
+    save.textContent = saved.has(id) ? "Saved" : "Save";
+    if (state.saved) renderFlights();
+  }
+});
+
+document.getElementById("back").addEventListener("click", () => {
+  location.hash = "";
+});
+
+for (const [key, id] of Object.entries(REFINE)) {
+  document.getElementById(id).addEventListener("change", e => {
+    state[key] = e.target.value;
+    state.shown = PAGE;
+    renderFlights();
+  });
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  Object.assign(state, {depart: "any", arrive: "any", airline: "any",
+                        max: "any", sort: "price", stops: "any",
+                        airport: "all", saved: false, shown: PAGE});
+  for (const [key, id] of Object.entries(REFINE)) {
+    document.getElementById(id).value = state[key];
+  }
+  document.querySelectorAll(".pill[data-filter]").forEach(p =>
+    p.setAttribute("aria-pressed",
+      (p.dataset.filter === "stops" && p.dataset.value === "any") ||
+      (p.dataset.filter === "airport" && p.dataset.value === "all")));
+  renderFlights();
+});
+
+/* ---------- results ---------- */
+function visible() {
+  return state.trip.flights.filter(f =>
+    (state.stops === "any" || (f.stops !== null && f.stops <= +state.stops)) &&
+    (state.airport === "all" || f.destination === state.airport) &&
+    (state.airline === "any" || f.airline === state.airline) &&
+    (state.max === "any" || (f.minutes || 0) <= +state.max) &&
+    within(f.depart_at, state.depart) &&
+    within(f.arrive_at, state.arrive) &&
+    (!state.saved || saved.has(idOf(f)))
+  ).sort((a, b) => (a[state.sort] ?? 1e9) - (b[state.sort] ?? 1e9));
+}
+
+function renderTrip() {
+  const t = state.trip;
+  document.getElementById("route-h").innerHTML =
+    `${esc(t.from_label)} <span style="color:var(--ink-3)">&rarr;</span> ${esc(t.to_label)}`;
+  document.getElementById("read-at").textContent = "prices read " + t.read_at;
+  document.getElementById("summary").innerHTML = [
+    ["From", t.from_full], ["To", t.to_label + ", any airport"],
+    ["Depart", t.date_label],
+    t.ret_label ? ["Return", t.ret_label] : ["Trip", "One way"],
+    ["Travellers", "1 adult, economy"],
+  ].map(([k, v]) => `<div class="field"><div class="k">${k}</div>
+      <div class="v">${esc(v)}</div></div>`).join("");
+
+  const best = t.flights[0];
+  const cheapest = best.offers[0];
+  const dearest = best.offers[best.offers.length - 1];
+  const bits = [];
+  if (dearest.price > cheapest.price) {
+    bits.push(`The identical flight is <strong>${money(dearest.price)} on
+      ${esc(dearest.site)}</strong> &mdash; booking the first site you thought
+      of would cost ${money(dearest.price - cheapest.price)} more for the same
+      seat.`);
+  }
+  if (t.airport_saving > 0) {
+    bits.push(`Landing at ${esc(t.asked_airport)} instead would add
+      <strong>${money(t.airport_saving)}</strong>.`);
+  }
+  document.getElementById("pick").innerHTML = `
+    <div class="pick-top">
+      <div><div class="eyebrow">best fare found</div>
+        <div class="pick-price">${money(best.price)}</div></div>
+      <div>
+        <div class="pick-when">${esc(best.depart)}${best.arrive ?
+          ' <span style="color:var(--ink-3)">&rarr;</span> ' + esc(best.arrive) : ""}</div>
+        <div class="pick-meta">${esc(best.airline)} &middot; ${esc(best.duration)}
+          &middot; ${stopText(best.stops)} &middot; lands
+          ${esc(D.airport_names[best.destination] || best.destination)}</div>
+        ${best.back_depart ? `<div class="pick-meta">Back ${esc(best.back_depart)}
+          <span style="color:var(--ink-3)">&rarr;</span> ${esc(best.back_arrive || "")}
+          &middot; ${esc(best.back_airline || "")} &middot; ${esc(best.back_duration || "")}
+          &middot; ${stopText(best.back_stops)}</div>` : ""}
+        <div class="pick-meta">Book on <strong style="color:var(--ink)">${
+          esc(cheapest.site)}</strong></div>
+      </div>
+    </div>
+    ${bits.length ? `<p class="pick-why">${bits.join(" ")}</p>` : ""}`;
+
+  document.getElementById("trust").innerHTML = `
+    <span><b>${t.sites}</b> booking sites checked</span>
+    <span><b>${t.airports}</b> airports around the destination</span>
+    <span><b>${t.searches}</b> searches in <b>${t.seconds}s</b></span>`;
+
+  const airlines = [...new Set(t.flights.map(f => f.airline).filter(Boolean))].sort();
+  document.getElementById("f-airline").innerHTML =
+    `<option value="any">Any airline</option>` + airlines.map(a =>
+      `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+
+  const codes = [...new Set(t.flights.map(f => f.destination))].sort();
+  document.getElementById("airports").innerHTML =
+    [["all", "Any"], ...codes.map(c => [c, c])].map(([v, label]) =>
+      `<button class="pill" data-filter="airport" data-value="${v}"
+        aria-pressed="${state.airport === v}">${esc(label)}</button>`).join(" ");
+  renderFlights();
+}
+
+function legRow(f, back) {
+  const dep = back ? f.back_depart : f.depart;
+  const arr = back ? f.back_arrive : f.arrive;
+  const air = back ? f.back_airline : f.airline;
+  const dur = back ? f.back_duration : f.duration;
+  const stp = back ? f.back_stops : f.stops;
+  const where = back ? f.origin : f.destination;
+  const over = back ? f.back_arrive_next_day : f.arrive_next_day;
+  return `<div class="legrow${back ? " back" : ""}">
+    ${f.back_depart ? `<span class="way">${back ? "Back" : "Out"}</span>` : ""}
+    <span class="times">${esc(dep)}${arr ?
+      `<span class="arrow">&rarr;</span>${esc(arr)}${over ?
+        `<span class="plus" title="lands the next day">+${over}</span>` : ""}` : ""}</span>
+    <span class="leg">${esc(air || "")}${dur ?
+      `<span class="dot">&middot;</span>${esc(dur)}` : ""}
+      ${stp === null || stp === undefined ? "" :
+        `<span class="dot">&middot;</span><span class="tag ${
+          stp === 0 ? "nonstop" : ""}">${stopText(stp)}</span>`}
+      <span class="dot">&middot;</span><span class="tag">${esc(where)}</span>
+    </span>
+  </div>`;
+}
+
+function renderFlights() {
+  const all = visible();
+  const rows = all.slice(0, state.shown);
+  const cheapest = rows.length ? Math.min(...all.map(f => f.price)) : null;
+  document.getElementById("tally").textContent =
+    `${all.length} of ${state.trip.flights.length} flights`;
+  document.getElementById("flights").innerHTML = rows.length ? rows.map(f => {
+    const id = idOf(f);
+    const best = f.offers[0];
+    const others = f.offers.slice(1);
+    return `<article class="flight${f.price === cheapest ? " best" : ""}">
+      <div>
+        ${legRow(f, false)}
+        ${f.back_depart ? legRow(f, true)
+          : state.trip.kind === "return"
+          ? `<div class="legrow back"><span class="way">Back</span>
+             <span class="leg missing">return leg not listed by ${
+               esc(f.offers[0].site)} &mdash; the price is for the whole
+               trip</span></div>` : ""}
+      </div>
+      <div class="buy">
+        <span class="amount">${money(f.price)}</span>
+        <span class="where">on ${esc(best.site)}</span>
+        <button class="save" data-id="${esc(id)}"
+          aria-pressed="${saved.has(id)}">${saved.has(id) ? "Saved" : "Save"}</button>
+      </div>
+      ${others.length ? `<div class="elsewhere">Also
+        ${others.map(o => `<span class="o${o.price > best.price ? " over" : ""}">${
+          esc(o.site)} ${money(o.price)}</span>`).join(" ")}</div>` : ""}
+    </article>`;
+  }).join("") + (all.length > rows.length ?
+    `<button class="pill" id="more" style="align-self:center;margin-top:6px">
+       Show ${Math.min(PAGE, all.length - rows.length)} more of ${
+       all.length - rows.length}</button>` : "")
+    : `<div class="none">No flights match those filters.</div>`;
+}
+
+/* ---------- routing ---------- */
+function route() {
+  const raw = location.hash.replace(/^#\/?/, "");
+  const [id, query] = raw.split("?");
+  const params = new URLSearchParams(query || "");
+
+  // A live search is a link too: the route rides in the hash, so a result can
+  // be sent to someone and the service answers it again from cache.
+  if (D.live && id === "live" && params.get("from")) {
+    state.stops = "any"; state.airport = "all"; state.sort = "price";
+    state.saved = false; state.shown = PAGE;
+    state.depart = "any"; state.arrive = "any";
+    state.airline = "any"; state.max = "any";
+    liveSearch(params.get("from"), params.get("to"),
+               params.get("date"), params.get("ret"));
+    return;
+  }
+
+  const trip = D.trips.find(t => t.id === id);
+  const onResults = Boolean(trip);
+  document.getElementById("landing").hidden = onResults;
+  document.getElementById("results").hidden = !onResults;
+  if (onResults) {
+    state.trip = trip;
+    state.stops = params.get("stops") === "0" ? "0" : "any";
+    state.airport = "all"; state.sort = "price";
+    state.saved = false; state.shown = PAGE;
+    state.depart = "any"; state.arrive = "any";
+    state.airline = "any"; state.max = "any";
+    for (const [key, id] of Object.entries(REFINE)) {
+      const el = document.getElementById(id);
+      if (el) el.value = state[key];
+    }
+    document.querySelectorAll(".pill[data-filter]").forEach(p =>
+      p.setAttribute("aria-pressed",
+        (p.dataset.filter === "stops" && p.dataset.value === state.stops) ||
+        (p.dataset.filter === "sort" && p.dataset.value === "price")));
+    renderTrip();
+    window.scrollTo(0, 0);
+  } else {
+    document.getElementById("nope").innerHTML = "";
+  }
+}
+addEventListener("hashchange", route);
+route();
+</script>

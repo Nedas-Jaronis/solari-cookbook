@@ -1,0 +1,285 @@
+<title>Teaser Check</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --ground:#e9ecf0; --panel:#ffffff; --raise:#f6f7f9;
+  --ink:#0e141b; --ink-2:#4d5966; --ink-3:#7b8794;
+  --rule:#d3d9e0; --rule-soft:#e4e8ed;
+  --accent:#b45c07;
+  --bar:#c2670a; --bar-best:#0e141b;
+  --ok:#0f7a4d; --ok-bg:#dff0e6;
+  --warn:#9a5b00; --warn-bg:#f7e6cb;
+  --bad:#a63232; --bad-bg:#f6dede;
+  --shadow:0 1px 2px rgba(14,20,27,.06), 0 8px 24px rgba(14,20,27,.05);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --ground:#0f1216; --panel:#171c22; --raise:#1d232a;
+  --ink:#f1ede4; --ink-2:#a7b1bc; --ink-3:#7c8794;
+  --rule:#29313a; --rule-soft:#212831;
+  --accent:#f0a63c;
+  --bar:#d98f2c; --bar-best:#f6d9a8;
+  --ok:#5fcf95; --ok-bg:#12301f;
+  --warn:#e0a44a; --warn-bg:#33260f;
+  --bad:#f08a8a; --bad-bg:#361b1b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+} }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground:#0f1216; --panel:#171c22; --raise:#1d232a;
+  --ink:#f1ede4; --ink-2:#a7b1bc; --ink-3:#7c8794;
+  --rule:#29313a; --rule-soft:#212831;
+  --accent:#f0a63c;
+  --bar:#d98f2c; --bar-best:#f6d9a8;
+  --ok:#5fcf95; --ok-bg:#12301f;
+  --warn:#e0a44a; --warn-bg:#33260f;
+  --bad:#f08a8a; --bad-bg:#361b1b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:1020px; margin:0 auto; padding:32px 20px 72px; }
+.mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
+.num { font-variant-numeric:tabular-nums; text-align:right; }
+
+.mast { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:baseline;
+        border-bottom:2px solid var(--ink); padding-bottom:14px; }
+.mast h1 {
+  font-family:"Saira Condensed", ui-sans-serif, sans-serif;
+  font-weight:700; font-size:clamp(30px,5vw,44px); letter-spacing:.01em;
+  margin:0; text-transform:uppercase; text-wrap:balance;
+}
+.mast .sub { color:var(--ink-2); font-size:14px; margin-left:auto;
+             font-variant-numeric:tabular-nums; }
+.eyebrow { font-family:"IBM Plex Mono", monospace; font-size:11px;
+           letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); }
+
+.hero { margin-top:20px; background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; box-shadow:var(--shadow); overflow:hidden; }
+.hero-top { display:flex; flex-wrap:wrap; align-items:center; gap:28px;
+            padding:26px 28px; border-bottom:1px solid var(--rule-soft); }
+.price {
+  font-family:"IBM Plex Mono", monospace; font-weight:600;
+  font-size:clamp(46px,8vw,72px); line-height:1; letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums; color:var(--accent);
+}
+.flap { display:flex; gap:6px; }
+.flap span {
+  font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:26px;
+  background:var(--raise); border:1px solid var(--rule); border-radius:4px;
+  padding:6px 10px; letter-spacing:.06em;
+}
+.hero-note { padding:18px 28px; background:var(--raise); font-size:15px;
+             color:var(--ink-2); margin:0; }
+.hero-note strong { color:var(--ink); }
+
+.stats { display:grid; gap:12px; margin-top:20px;
+         grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+.stat { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:14px 16px; }
+.stat b { display:block; font-family:"IBM Plex Mono", monospace;
+          font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; }
+.stat span { font-size:12.5px; color:var(--ink-2); }
+
+section { margin-top:38px; }
+section > h2 {
+  font-family:"Saira Condensed", sans-serif; text-transform:uppercase;
+  font-size:19px; letter-spacing:.05em; margin:0 0 4px;
+}
+section > p.lede { margin:0 0 16px; color:var(--ink-2); max-width:62ch; }
+
+.bars { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:8px 16px; }
+.bar-row {
+  display:grid; grid-template-columns:58px 1fr 78px minmax(0,150px);
+  align-items:center; gap:14px; padding:9px 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+.bar-row:last-child { border-bottom:0; }
+.bars.wide .bar-row { grid-template-columns:118px 1fr 78px minmax(0,130px); }
+.bar-label { font-family:"IBM Plex Mono", monospace; font-size:13px;
+             font-weight:500; white-space:nowrap; overflow:hidden;
+             text-overflow:ellipsis; }
+.bar-track { background:var(--rule-soft); border-radius:4px; height:12px; }
+.bar-fill { display:block; height:100%; background:var(--bar);
+            border-radius:0 4px 4px 0; min-width:3px; }
+.bar-row.is-best .bar-fill { background:var(--bar-best); }
+.bar-value { font-family:"IBM Plex Mono", monospace; font-weight:600;
+             font-variant-numeric:tabular-nums; text-align:right; }
+.bar-note { font-size:12.5px; color:var(--ink-3); overflow:hidden;
+            text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:640px) {
+  .bar-row, .bars.wide .bar-row { grid-template-columns:96px 1fr 72px; }
+  .bar-note { display:none; }
+}
+
+/* Advertised vs delivered: two values per claim, so a dumbbell rather than a
+   bar. The connecting segment is the gap, which is the thing worth seeing. */
+.dumb { background:var(--panel); border:1px solid var(--rule);
+        border-radius:6px; padding:10px 18px; }
+.dumb-row {
+  display:grid; grid-template-columns:104px 1fr 92px 78px;
+  align-items:center; gap:14px; padding:10px 0;
+  border-bottom:1px solid var(--rule-soft);
+}
+.dumb-row:last-child { border-bottom:0; }
+.dumb-label { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dumb-label small { display:block; color:var(--ink-3); font-size:10.5px;
+                    letter-spacing:.08em; text-transform:uppercase; }
+.dumb-track { position:relative; height:18px; }
+.dumb-track::before {
+  content:""; position:absolute; left:0; right:0; top:8px; height:2px;
+  background:var(--rule-soft);
+}
+.dumb-seg { position:absolute; top:8px; height:2px; background:var(--warn); }
+.dumb-dot { position:absolute; top:4px; width:10px; height:10px;
+            border-radius:50%; margin-left:-5px;
+            box-shadow:0 0 0 2px var(--panel); }
+.dot-ad { background:var(--ink-3); }
+.dot-got { background:var(--warn); }
+.dumb-row.is-holds .dumb-seg, .dumb-row.is-holds .dot-got { background:var(--ok); }
+.dumb-row.is-unverified .dot-got { display:none; }
+.dumb-price { font-family:"IBM Plex Mono", monospace; font-size:13px;
+              font-variant-numeric:tabular-nums; text-align:right;
+              white-space:nowrap; }
+.dumb-price b { font-weight:600; }
+.dumb-price span { color:var(--ink-3); }
+.legend { display:flex; gap:18px; align-items:center; margin:0 0 12px;
+          font-size:12.5px; color:var(--ink-2); flex-wrap:wrap; }
+.key { display:inline-flex; align-items:center; gap:7px; }
+.key i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+@media (max-width:640px) {
+  .dumb-row { grid-template-columns:88px 1fr 84px; }
+  .dumb-row > .chip-cell { display:none; }
+}
+
+.scroll { overflow-x:auto; background:var(--panel);
+          border:1px solid var(--rule); border-radius:6px; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th {
+  font-family:"IBM Plex Mono", monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule);
+  white-space:nowrap; background:var(--raise);
+}
+th.num { text-align:right; }
+td { padding:9px 14px; border-bottom:1px solid var(--rule-soft);
+     white-space:nowrap; }
+tr:last-child td { border-bottom:0; }
+tr.is-blocked td, tr.is-unparsed td, tr.is-empty td, tr.is-error td,
+tr.is-unverified td { color:var(--ink-3); }
+.detail { color:var(--ink-2); font-size:13px; max-width:280px;
+          overflow:hidden; text-overflow:ellipsis; }
+.chip {
+  display:inline-block; font-family:"IBM Plex Mono", monospace;
+  font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 8px; border-radius:999px; font-weight:500;
+}
+.chip-ok, .chip-holds { background:var(--ok-bg); color:var(--ok); }
+.chip-blocked, .chip-higher { background:var(--warn-bg); color:var(--warn); }
+.chip-empty, .chip-unverified { background:var(--raise); color:var(--ink-3);
+                                border:1px solid var(--rule); }
+.chip-unparsed, .chip-error { background:var(--bad-bg); color:var(--bad); }
+
+footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--rule);
+         color:var(--ink-3); font-size:13px; }
+footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+              background:var(--raise); padding:1px 6px; border-radius:3px; }
+.empty { color:var(--ink-3); padding:12px 0; }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <h1>Is that price real?</h1>
+    <div class="sub">JFK &rarr; LHR &middot; 2026-10-15<br>
+      <span class="eyebrow">checked 2026-09-01T13:15:28+00:00</span></div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">advertised prices that held</div>
+        <div class="price">8/8</div>
+      </div>
+      <div>
+        <div class="eyebrow">how</div>
+        <div style="max-width:44ch;color:var(--ink-2);font-size:14px">
+          Read what each site advertises for a search you have not run, then
+          run every one of those searches at once and compare.
+        </div>
+      </div>
+    </div>
+    <p class="hero-note"><strong>All 8 advertised fares were still there</strong> when the search behind them was run &mdash; 5 to the dollar, and 3 came back cheaper than advertised (best $37 under).</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>3/4</b><span>results pages read</span></div>
+    <div class="stat"><b>8</b><span>advertised prices found</span></div>
+    <div class="stat"><b>8</b><span>verified against a real search</span></div>
+    <div class="stat"><b>49s</b><span>wall clock, both waves</span></div>
+  </div>
+
+  <section>
+    <h2>Advertised against delivered</h2>
+    <p class="lede">The grey dot is the price the site put on screen; the
+      coloured dot is what the search behind it returned. The segment between
+      them is the difference &mdash; and it runs in both directions, since a
+      fare can come back cheaper than the teaser as easily as dearer.</p>
+    <div class="legend">
+      <span class="key"><i style="background:var(--ink-3)"></i>advertised</span>
+      <span class="key"><i style="background:var(--ok)"></i>delivered, at or under</span>
+      <span class="key"><i style="background:var(--warn)"></i>delivered, higher</span>
+    </div>
+    <div class='dumb'>
+<div class='dumb-row is-holds'><span class='dumb-label'>LGW<small>Kayak</small></span><span class='dumb-track'><span class='dumb-seg' style='left:6.9%;width:0.0%'></span><span class='dumb-dot dot-ad' style='left:6.9%'></span><span class='dumb-dot dot-got' style='left:6.9%'></span></span><span class='dumb-price'><b>$203</b> <span>(exact)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>LCY<small>Kayak</small></span><span class='dumb-track'><span class='dumb-seg' style='left:85.9%;width:0.0%'></span><span class='dumb-dot dot-ad' style='left:85.9%'></span><span class='dumb-dot dot-got' style='left:85.9%'></span></span><span class='dumb-price'><b>$323</b> <span>(exact)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>LGW<small>Momondo</small></span><span class='dumb-track'><span class='dumb-seg' style='left:6.9%;width:0.0%'></span><span class='dumb-dot dot-ad' style='left:6.9%'></span><span class='dumb-dot dot-got' style='left:6.9%'></span></span><span class='dumb-price'><b>$203</b> <span>(exact)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>STN<small>Momondo</small></span><span class='dumb-track'><span class='dumb-seg' style='left:14.8%;width:0.0%'></span><span class='dumb-dot dot-ad' style='left:14.8%'></span><span class='dumb-dot dot-got' style='left:14.8%'></span></span><span class='dumb-price'><b>$215</b> <span>(exact)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>LTN<small>Momondo</small></span><span class='dumb-track'><span class='dumb-seg' style='left:18.7%;width:0.0%'></span><span class='dumb-dot dot-ad' style='left:18.7%'></span><span class='dumb-dot dot-got' style='left:18.7%'></span></span><span class='dumb-price'><b>$221</b> <span>(exact)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>LCY<small>Momondo</small></span><span class='dumb-track'><span class='dumb-seg' style='left:85.9%;width:7.2%'></span><span class='dumb-dot dot-ad' style='left:93.1%'></span><span class='dumb-dot dot-got' style='left:85.9%'></span></span><span class='dumb-price'><b>$323</b> <span>(-11)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>LTN<small>Kayak</small></span><span class='dumb-track'><span class='dumb-seg' style='left:18.7%;width:23.0%'></span><span class='dumb-dot dot-ad' style='left:41.8%'></span><span class='dumb-dot dot-got' style='left:18.7%'></span></span><span class='dumb-price'><b>$221</b> <span>(-35)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+<div class='dumb-row is-holds'><span class='dumb-label'>STN<small>Kayak</small></span><span class='dumb-track'><span class='dumb-seg' style='left:14.8%;width:24.3%'></span><span class='dumb-dot dot-ad' style='left:39.1%'></span><span class='dumb-dot dot-got' style='left:14.8%'></span></span><span class='dumb-price'><b>$215</b> <span>(-37)</span></span><span class='chip-cell'><span class='chip chip-holds'>holds</span></span></div>
+</div>
+  </section>
+
+  <section>
+    <h2>Every claim, and the search that tested it</h2>
+    <p class="lede">A sidebar &ldquo;from&rdquo; price sits next to a list of
+      every airport in the metro area, so it is a promise about all of New York
+      rather than about JFK. Those rows are marked <code>metro</code> and were
+      tested that way &mdash; the reading most favourable to the site.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Site</th><th>What the page said</th>
+          <th class="num">Advertised</th><th class="num">Delivered</th>
+          <th class="num">Gap</th><th>Search run</th><th>Scope</th>
+          <th>Verdict</th>
+        </tr></thead>
+        <tbody><tr class='is-holds'><td>Kayak</td><td class='detail'>LCY: London City $323</td><td class='mono num'>$323</td><td class='mono num'>$323</td><td class='mono num'>+0</td><td class='mono'>NYC&rarr;LCY</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Kayak</td><td class='detail'>LGW: Gatwick $203</td><td class='mono num'>$203</td><td class='mono num'>$203</td><td class='mono num'>+0</td><td class='mono'>NYC&rarr;LGW</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Kayak</td><td class='detail'>LTN: Luton $256</td><td class='mono num'>$256</td><td class='mono num'>$221</td><td class='mono num'>-35</td><td class='mono'>NYC&rarr;LTN</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Kayak</td><td class='detail'>STN: Stansted $252</td><td class='mono num'>$252</td><td class='mono num'>$215</td><td class='mono num'>-37</td><td class='mono'>NYC&rarr;STN</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Momondo</td><td class='detail'>LCY: London City $334</td><td class='mono num'>$334</td><td class='mono num'>$323</td><td class='mono num'>-11</td><td class='mono'>NYC&rarr;LCY</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Momondo</td><td class='detail'>LGW: Gatwick $203</td><td class='mono num'>$203</td><td class='mono num'>$203</td><td class='mono num'>+0</td><td class='mono'>NYC&rarr;LGW</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Momondo</td><td class='detail'>LTN: Luton $221</td><td class='mono num'>$221</td><td class='mono num'>$221</td><td class='mono num'>+0</td><td class='mono'>NYC&rarr;LTN</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr>
+<tr class='is-holds'><td>Momondo</td><td class='detail'>STN: Stansted $215</td><td class='mono num'>$215</td><td class='mono num'>$215</td><td class='mono num'>+0</td><td class='mono'>NYC&rarr;STN</td><td class='mono'>metro</td><td><span class='chip chip-holds'>holds</span></td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    A gap is not proof of bad faith. Teasers go stale, cheap seats sell between
+    the two reads, and a &ldquo;from&rdquo; price may be a fare class the
+    results page then filters out. What is worth knowing is simply how often
+    the number on screen survives the click. Generated by <code>verify.py</code>
+    on Solari cloud browsers.
+  </footer>
+</div>

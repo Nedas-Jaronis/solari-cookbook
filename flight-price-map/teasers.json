@@ -1,0 +1,259 @@
+{
+ "generated_at": "2026-09-01T13:15:28+00:00",
+ "origin": "JFK",
+ "destination": "LHR",
+ "date": "2026-10-15",
+ "ret": null,
+ "seconds": 48.8,
+ "site_names": {
+  "google": "Google Flights",
+  "kayak": "Kayak",
+  "momondo": "Momondo",
+  "expedia": "Expedia",
+  "skyscanner": "Skyscanner",
+  "kiwi": "Kiwi",
+  "priceline": "Priceline"
+ },
+ "pages": [
+  {
+   "site": "google",
+   "url": "https://www.google.com/travel/flights?curr=USD&hl=en&q=one%20way%20flights%20from%20JFK%20to%20LHR%20on%202026-10-15",
+   "ok": true,
+   "baseline": 277,
+   "seconds": 14.1,
+   "error": null,
+   "claims": []
+  },
+  {
+   "site": "kayak",
+   "url": "https://www.kayak.com/flights/JFK-LHR/2026-10-15?sort=price_a&currency=USD",
+   "ok": true,
+   "baseline": 286,
+   "seconds": 15.8,
+   "error": null,
+   "claims": [
+    {
+     "site": "kayak",
+     "kind": "airport",
+     "advertised": 203,
+     "source": "LGW: Gatwick $203",
+     "date": null,
+     "destination": "LGW",
+     "metro_wide": true
+    },
+    {
+     "site": "kayak",
+     "kind": "airport",
+     "advertised": 323,
+     "source": "LCY: London City $323",
+     "date": null,
+     "destination": "LCY",
+     "metro_wide": true
+    },
+    {
+     "site": "kayak",
+     "kind": "airport",
+     "advertised": 252,
+     "source": "STN: Stansted $252",
+     "date": null,
+     "destination": "STN",
+     "metro_wide": true
+    },
+    {
+     "site": "kayak",
+     "kind": "airport",
+     "advertised": 256,
+     "source": "LTN: Luton $256",
+     "date": null,
+     "destination": "LTN",
+     "metro_wide": true
+    }
+   ]
+  },
+  {
+   "site": "momondo",
+   "url": "https://www.momondo.com/flight-search/JFK-LHR/2026-10-15?sort=price_a",
+   "ok": true,
+   "baseline": 286,
+   "seconds": 15.3,
+   "error": null,
+   "claims": [
+    {
+     "site": "momondo",
+     "kind": "airport",
+     "advertised": 203,
+     "source": "LGW: Gatwick $203",
+     "date": null,
+     "destination": "LGW",
+     "metro_wide": true
+    },
+    {
+     "site": "momondo",
+     "kind": "airport",
+     "advertised": 334,
+     "source": "LCY: London City $334",
+     "date": null,
+     "destination": "LCY",
+     "metro_wide": true
+    },
+    {
+     "site": "momondo",
+     "kind": "airport",
+     "advertised": 215,
+     "source": "STN: Stansted $215",
+     "date": null,
+     "destination": "STN",
+     "metro_wide": true
+    },
+    {
+     "site": "momondo",
+     "kind": "airport",
+     "advertised": 221,
+     "source": "LTN: Luton $221",
+     "date": null,
+     "destination": "LTN",
+     "metro_wide": true
+    }
+   ]
+  },
+  {
+   "site": "skyscanner",
+   "url": "https://www.skyscanner.com/transport/flights/jfk/lhr/261015/?currency=USD&adults=1",
+   "ok": false,
+   "baseline": null,
+   "seconds": 9.0,
+   "error": "anti-bot wall",
+   "claims": []
+  }
+ ],
+ "checked": [
+  {
+   "site": "kayak",
+   "kind": "airport",
+   "advertised": 203,
+   "source": "LGW: Gatwick $203",
+   "date": null,
+   "destination": "LGW",
+   "metro_wide": true,
+   "url": "https://www.kayak.com/flights/NYC-LGW/2026-10-15?sort=price_a&currency=USD",
+   "tested_origin": "NYC",
+   "delivered": 203,
+   "gap": 0,
+   "verdict": "holds",
+   "seconds": 14.3,
+   "error": null
+  },
+  {
+   "site": "kayak",
+   "kind": "airport",
+   "advertised": 323,
+   "source": "LCY: London City $323",
+   "date": null,
+   "destination": "LCY",
+   "metro_wide": true,
+   "url": "https://www.kayak.com/flights/NYC-LCY/2026-10-15?sort=price_a&currency=USD",
+   "tested_origin": "NYC",
+   "delivered": 323,
+   "gap": 0,
+   "verdict": "holds",
+   "seconds": 11.8,
+   "error": null
+  },
+  {
+   "site": "kayak",
+   "kind": "airport",
+   "advertised": 252,
+   "source": "STN: Stansted $252",
+   "date": null,
+   "destination": "STN",
+   "metro_wide": true,
+   "url": "https://www.kayak.com/flights/NYC-STN/2026-10-15?sort=price_a&currency=USD",
+   "tested_origin": "NYC",
+   "delivered": 215,
+   "gap": -37,
+   "verdict": "holds",
+   "seconds": 14.9,
+   "error": null
+  },
+  {
+   "site": "kayak",
+   "kind": "airport",
+   "advertised": 256,
+   "source": "LTN: Luton $256",
+   "date": null,
+   "destination": "LTN",
+   "metro_wide": true,
+   "url": "https://www.kayak.com/flights/NYC-LTN/2026-10-15?sort=price_a&currency=USD",
+   "tested_origin": "NYC",
+   "delivered": 221,
+   "gap": -35,
+   "verdict": "holds",
+   "seconds": 14.4,
+   "error": null
+  },
+  {
+   "site": "momondo",
+   "kind": "airport",
+   "advertised": 203,
+   "source": "LGW: Gatwick $203",
+   "date": null,
+   "destination": "LGW",
+   "metro_wide": true,
+   "url": "https://www.momondo.com/flight-search/NYC-LGW/2026-10-15?sort=price_a",
+   "tested_origin": "NYC",
+   "delivered": 203,
+   "gap": 0,
+   "verdict": "holds",
+   "seconds": 14.4,
+   "error": null
+  },
+  {
+   "site": "momondo",
+   "kind": "airport",
+   "advertised": 334,
+   "source": "LCY: London City $334",
+   "date": null,
+   "destination": "LCY",
+   "metro_wide": true,
+   "url": "https://www.momondo.com/flight-search/NYC-LCY/2026-10-15?sort=price_a",
+   "tested_origin": "NYC",
+   "delivered": 323,
+   "gap": -11,
+   "verdict": "holds",
+   "seconds": 12.4,
+   "error": null
+  },
+  {
+   "site": "momondo",
+   "kind": "airport",
+   "advertised": 215,
+   "source": "STN: Stansted $215",
+   "date": null,
+   "destination": "STN",
+   "metro_wide": true,
+   "url": "https://www.momondo.com/flight-search/NYC-STN/2026-10-15?sort=price_a",
+   "tested_origin": "NYC",
+   "delivered": 215,
+   "gap": 0,
+   "verdict": "holds",
+   "seconds": 14.4,
+   "error": null
+  },
+  {
+   "site": "momondo",
+   "kind": "airport",
+   "advertised": 221,
+   "source": "LTN: Luton $221",
+   "date": null,
+   "destination": "LTN",
+   "metro_wide": true,
+   "url": "https://www.momondo.com/flight-search/NYC-LTN/2026-10-15?sort=price_a",
+   "tested_origin": "NYC",
+   "delivered": 221,
+   "gap": 0,
+   "verdict": "holds",
+   "seconds": 14.4,
+   "error": null
+  }
+ ]
+}

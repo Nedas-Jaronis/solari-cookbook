@@ -3,9 +3,76 @@
 Short, runnable examples for [Solari](https://getsolari.com) — cloud browsers,
 sandboxes, and desktops behind one API key.
 
-Every example in this repo is a complete program you can run in under a minute.
-They are deliberately small: one idea each, no framework, no scaffolding to read
-past. Copy one into your project and change the parts you care about.
+This is a fork. Alongside the upstream examples it carries one thing built on
+top of them:
+
+---
+
+## Fare Board — what this fork adds
+
+**[`flight-price-map/`](flight-price-map)** prices one trip across every major
+travel site, and every airport around your destination, at the same time.
+
+Ask for any route on any date and it launches a browser per search, reads the
+results pages, and tells you which flight to take and which site is selling it
+for least. Twenty seconds for a straight answer; a minute more to widen it to
+the nearby airports.
+
+![The traveller's view](flight-price-map/shots/landing-dark.png)
+
+### What it found
+
+The tool exists to answer questions that are tedious by hand, so the point of
+it is what it measured — including the times it disproved what we expected.
+
+| Question | Answer |
+|---|---|
+| Does a nearby airport save money? | Gatwick was **$80** under Heathrow — but Google and Kayak both suggest that swap themselves. Against the best hint any single site gave, cross-site search won by **$12**. |
+| Does the site you book on matter? | **$23** on JFK–LHR. **$141 (39%)** on Tampa–Barcelona. It is worth almost nothing on the corridors everyone benchmarks and a great deal on the routes nobody checks. |
+| Do fares change by country? | Barely. Kayak quoted the **identical fare from all seven countries** it answered; the widest spread any site showed was $14, with prices forced to USD so this is pricing rather than exchange rates. |
+| Are the "from $175" teasers real? | **8 of 8 held** — 5 to the dollar, 3 cheaper than advertised. Our first run said otherwise and that was our bug, not theirs. |
+| Round trips? | They **invert** the one-way answer: the airport is worth $24 and the site $125. |
+
+Three of those are negative results. They are in the README because a tool that
+only reports the findings it hoped for is not measuring anything.
+
+### Why cloud browsers, specifically
+
+Each leg of this was tested rather than assumed:
+
+- **No API exists.** Google Flights, Kayak and Momondo publish nothing. A
+  browser is not a shortcut here, it is the only door.
+- **The sites fight automation.** Skyscanner walls us, Expedia walls us
+  intermittently. Stealth and residential egress are load-bearing.
+- **Asking everything at once is the product.** Thirty searches in 113 seconds
+  against about eight minutes one after another.
+
+The honest ceiling is blocking rather than engineering: four sweeps by one
+person was enough to lose Skyscanner for a day, which is why the live service
+caches hard and throttles per site.
+
+### Run it
+
+```bash
+cd flight-price-map
+pip install -r requirements.txt
+cp .env.example .env                 # paste your slr_live_ key in
+
+python trip.py --live --out live.html
+python server.py                     # -> http://localhost:8080
+```
+
+Then type any two airports and any date.
+
+There is a full write-up in
+**[flight-price-map/README.md](flight-price-map/README.md)** — the parser
+faults it has had and how they were caught, why round trips were silently
+wrong, what gets past an anti-bot wall and what does not, and the measurements
+behind every number above.
+
+---
+
+Everything below is the upstream cookbook, unchanged.
 
 ## Examples
 
@@ -76,6 +143,16 @@ Things that cost you an afternoon if you meet them cold:
 - **`timeoutMs` is a rolling idle window**, not a hard deadline — it resets on
   every use.
 
+Two more the Fare Board added:
+
+- **`proxy` and a plain string behave identically.** `proxy="gb"` and
+  `ProxyRequest(country="gb")` are the same call. When every non-US country
+  times out at once it is an outage, not an entitlement — a proxy failure and a
+  missing feature look identical from the client, so re-test before concluding.
+- **`launch(captcha=True)` and `proxy="smart"` are not magic.** Against a site
+  that has decided about you, neither helps: six launch configurations, zero
+  through. The lever is a cooldown.
+
 ## Links
 
 - Docs — [docs.getsolari.com](https://docs.getsolari.com)
@@ -87,5 +164,3 @@ Things that cost you an afternoon if you meet them cold:
 
 New examples are welcome. Keep them small, make them run end-to-end against the
 real API, and put anything surprising in a comment right where it bites.
-
-MIT licensed.
