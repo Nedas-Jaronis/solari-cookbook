@@ -25,19 +25,30 @@ def expected(runs: list[str]) -> dict:
     loaded = [json.loads((HERE / r).read_text(encoding="utf-8"))
               for r in runs if (HERE / r).exists()]
     flights = itineraries.collect(loaded)
+    oneway = [f for f in flights if not f["ret"]]
+    ret = [f for f in flights if f["ret"]]
     return {
-        "total": len(flights),
-        "nonstop": sum(1 for f in flights if f["stops"] == 0),
-        "lhr": sum(1 for f in flights if f["destination"] == "LHR"),
-        "best": f"${min(f['price'] for f in flights):,}",
+        "total": len(oneway),
+        "nonstop": sum(1 for f in oneway if f["stops"] == 0),
+        "lhr": sum(1 for f in oneway if f["destination"] == "LHR"),
+        "best": f"${min(f['price'] for f in oneway):,}",
+        "return_total": len(ret),
+        "return_best": f"${min((f['price'] for f in ret), default=0):,}",
     }
+
+
+# The trip id spells out the trip type, so a one-way link can never open a
+# return search by accident.
+ONEWAY = "#/jfk-lon-2026-10-15-ow"
+RETURN = "#/jfk-lon-2026-10-15-rt"
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--page", default="preview.html")
     ap.add_argument("--runs", nargs="+",
-                    default=["results.json", "countries.json"])
+                    default=["results.json", "countries.json",
+                             "roundtrip.json"])
     args = ap.parse_args()
 
     want = expected(args.runs)
@@ -77,7 +88,7 @@ def main() -> int:
         page.fill("#from", "New York JFK"); page.fill("#to", "London")
         page.click(".go"); page.wait_for_timeout(600)
         check("url carries the search", page.evaluate("location.hash"),
-              "#/jfk-lon-2026-10-15")
+              ONEWAY)
         check("best fare", page.eval_on_selector(".pick-price", "e=>e.textContent.trim()"),
               want["best"])
         check("names a site to book on",
@@ -133,34 +144,50 @@ def main() -> int:
               page.eval_on_selector("#tally", "e=>e.textContent"),
               f"{want['nonstop']} of {want['total']} flights")
         check("the choice rides in the link", page.evaluate("location.hash"),
-              "#/jfk-lon-2026-10-15?stops=0")
+              ONEWAY + "?stops=0")
         check("and the pill agrees", page.eval_on_selector(
             '.pill[data-value="0"]', "e=>e.getAttribute('aria-pressed')"), "true")
         page.click('.pill[data-value="any"]'); page.wait_for_timeout(250)
         check("widening drops it from the link",
-              page.evaluate("location.hash"), "#/jfk-lon-2026-10-15")
+              page.evaluate("location.hash"), ONEWAY)
         check("and shows everything again",
               page.eval_on_selector("#tally", "e=>e.textContent"),
               f"{want['total']} of {want['total']} flights")
 
         print("\n-- a nonstop deep link --")
-        page.goto(url + "#/jfk-lon-2026-10-15?stops=0"); page.wait_for_timeout(800)
+        page.goto(url + ONEWAY + "?stops=0"); page.wait_for_timeout(800)
         check("opens already filtered",
               page.eval_on_selector("#tally", "e=>e.textContent"),
               f"{want['nonstop']} of {want['total']} flights")
 
-        print("\n-- a return trip, which we have not priced --")
+        print("\n-- a return trip --")
         page.goto(url); page.wait_for_timeout(350)
         page.fill("#from", "New York JFK"); page.fill("#to", "London")
         page.select_option("#trip", "return")
-        page.click(".go"); page.wait_for_timeout(350)
-        check("says so", page.eval_on_selector(
-            ".nope", "e=>e.textContent.includes('one-way')"), True)
-        check("stays on the search",
-              page.eval_on_selector("#results", "e=>e.hidden"), True)
+        page.click(".go"); page.wait_for_timeout(700)
+        check("opens the return search", page.evaluate("location.hash"),
+              RETURN)
+        check("its own flights, not the one-way ones",
+              page.eval_on_selector("#tally", "e=>e.textContent"),
+              f"{want['return_total']} of {want['return_total']} flights")
+        check("best return fare",
+              page.eval_on_selector(".pick-price", "e=>e.textContent.trim()"),
+              want["return_best"])
+        check("the pick names the way back",
+              page.eval_on_selector("#pick", "e=>e.textContent.includes('Back')"), True)
+        check("summary shows a return date", page.eval_on_selector_all(
+            "#summary .k", "els=>els.some(e=>e.textContent==='Return')"), True)
+        check("every card carries two legs", page.eval_on_selector_all(
+            ".flight:first-child .way", "els=>els.map(e=>e.textContent).join()"),
+            "Out,Back")
+        page.click("#back"); page.wait_for_timeout(300)
+        page.select_option("#trip", "oneway"); page.click(".go")
+        page.wait_for_timeout(600)
+        check("and one way is untouched by it",
+              page.eval_on_selector_all(".flight:first-child .legrow", "e=>e.length"), 1)
 
         print("\n-- deep link and back --")
-        page.goto(url + "#/jfk-lon-2026-10-15"); page.wait_for_timeout(800)
+        page.goto(url + ONEWAY); page.wait_for_timeout(800)
         check("deep link opens results",
               page.eval_on_selector("#results", "e=>!e.hidden"), True)
         page.click("#back"); page.wait_for_timeout(350)

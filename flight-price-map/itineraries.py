@@ -93,6 +93,7 @@ def collect(runs: list[dict]) -> list[dict]:
     flights: dict[tuple, dict] = {}
     for run in runs:
         names = run.get("site_names", {})
+        when, back = run.get("date"), run.get("ret")
         for result in run.get("results", []):
             if not result.get("ok"):
                 continue
@@ -110,7 +111,17 @@ def collect(runs: list[dict]) -> list[dict]:
                 # carriers sharing an airport, minute, duration and stop count
                 # would merge wrongly; on real timetables that does not happen.
                 stops = stop_count(fare.get("stops"))
-                key = (result["destination"], clock(dep) or dep, dur, stops)
+                # A round trip is only the same trip if both legs match, so
+                # the return leg joins the key. Without it two trips sharing an
+                # outbound but returning on different flights would merge, and
+                # the cheaper one would quietly swallow the other.
+                # The date and trip type are part of the identity: a one-way
+                # and a round trip on the same outbound flight are different
+                # products at different prices, and merging them would let the
+                # cheaper one-way fare masquerade as a return fare.
+                key = (when, back, result["destination"], clock(dep) or dep,
+                       dur, stops, clock(fare.get("back_depart")),
+                       fare.get("back_duration"))
                 offer = {"site": names.get(result["site"], result["site"]),
                          "price": fare["price"], "country": result["country"]}
                 entry = flights.get(key)
@@ -119,6 +130,8 @@ def collect(runs: list[dict]) -> list[dict]:
                         "names": {air: 1},
                         "origin": result["origin"],
                         "destination": result["destination"],
+                        "date": when,
+                        "ret": back,
                         "airline": air,
                         "depart": dep,
                         "depart_at": clock(dep),
@@ -126,6 +139,14 @@ def collect(runs: list[dict]) -> list[dict]:
                         "duration": fare.get("duration"),
                         "minutes": dur,
                         "stops": stops,
+                        "back_airline": carrier(fare.get("back_airline")),
+                        "back_depart": show_time(clock(fare.get("back_depart")),
+                                                 fare.get("back_depart")),
+                        "back_arrive": show_time(clock(fare.get("back_arrive")),
+                                                 fare.get("back_arrive")),
+                        "back_duration": fare.get("back_duration"),
+                        "back_minutes": minutes(fare.get("back_duration")),
+                        "back_stops": stop_count(fare.get("back_stops")),
                         "price": fare["price"],
                         "offers": [offer],
                     }

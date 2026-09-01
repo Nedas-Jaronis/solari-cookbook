@@ -408,6 +408,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--compare", default="results.json")
     ap.add_argument("--countries", default="countries.json")
+    ap.add_argument("--roundtrip", default="roundtrip.json")
     ap.add_argument("--teasers", default="teasers.json")
     ap.add_argument("--out", default="board.html")
     ap.add_argument("--standalone", action="store_true")

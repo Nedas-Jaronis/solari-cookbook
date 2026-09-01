@@ -134,6 +134,13 @@ form.finder {
           border-radius:8px; padding:16px 20px; align-items:center; }
 .flight:hover { border-color:var(--ink-3); }
 .flight.best { border-color:var(--accent); }
+.legrow { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
+.legrow.back { margin-top:7px; padding-top:7px;
+               border-top:1px dashed var(--rule-soft); }
+.leg.missing { color:var(--ink-3); font-style:italic; }
+.way { font-family:"IBM Plex Mono", monospace; font-size:10px;
+       letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+       width:30px; flex:0 0 auto; }
 .times { font-family:"IBM Plex Mono", monospace; font-size:19px;
          font-weight:500; font-variant-numeric:tabular-nums; }
 .times .arrow { color:var(--ink-3); margin:0 7px; }
@@ -179,47 +186,52 @@ TEMPLATE = """__HEAD__
 <section id="landing">
   <div class="stage">
     <canvas id="sky" aria-hidden="true"></canvas>
-    <div class="copy">
-      <div class="kicker">Fare Board</div>
-      <h1 class="hero-h">The cheapest way there, <em>not the first way you
-        find</em></h1>
-      <p class="hero-p">One search checks every big booking site and every
-        airport around your destination at the same time, then tells you which
-        flight to take and which site is selling it for least.</p>
+    <div class="inner">
+      <div class="copy">
+        <div class="kicker">Fare Board</div>
+        <h1 class="hero-h">The cheapest way there, <em>not the first way you
+          find</em></h1>
+        <p class="hero-p">One search checks every big booking site and every
+          airport around your destination at once, then tells you which flight
+          to take and which site is selling it for least.</p>
+      </div>
+
+      <form class="finder" id="finder" autocomplete="off">
+        <div class="cell">
+          <label for="from">From</label>
+          <input id="from" name="from" list="places" placeholder="City or airport"
+            value="__DEF_FROM__" required>
+        </div>
+        <div class="cell">
+          <label for="to">To</label>
+          <input id="to" name="to" list="places" placeholder="City or airport"
+            value="__DEF_TO__" required>
+        </div>
+        <div class="cell">
+          <label for="when">Depart</label>
+          <select id="when" name="when"></select>
+        </div>
+        <div class="cell narrow">
+          <label for="trip">Trip</label>
+          <select id="trip" name="trip">
+            <option value="oneway">One way</option>
+            <option value="return">Return</option>
+          </select>
+        </div>
+        <div class="cell narrow">
+          <label for="stops">Stops</label>
+          <select id="stops" name="stops">
+            <option value="any">Any</option>
+            <option value="0">Nonstop only</option>
+          </select>
+        </div>
+        <button class="go" type="submit">Find the fare</button>
+      </form>
+      <div id="nope"></div>
     </div>
+    <div class="scrollcue" aria-hidden="true"><i></i>How it works</div>
   </div>
 
-  <form class="finder" id="finder" autocomplete="off">
-    <div class="cell">
-      <label for="from">From</label>
-      <input id="from" name="from" list="places" placeholder="City or airport"
-        value="__DEF_FROM__" required>
-    </div>
-    <div class="cell">
-      <label for="to">To</label>
-      <input id="to" name="to" list="places" placeholder="City or airport"
-        value="__DEF_TO__" required>
-    </div>
-    <div class="cell">
-      <label for="when">Depart</label>
-      <select id="when" name="when"></select>
-    </div>
-    <div class="cell narrow">
-      <label for="trip">Trip</label>
-      <select id="trip" name="trip">
-        <option value="oneway">One way</option>
-        <option value="return">Return</option>
-      </select>
-    </div>
-    <div class="cell narrow">
-      <label for="stops">Stops</label>
-      <select id="stops" name="stops">
-        <option value="any">Any</option>
-        <option value="0">Nonstop only</option>
-      </select>
-    </div>
-    <button class="go" type="submit">Find the fare</button>
-  </form>
   <datalist id="places"></datalist>
   <div id="nope"></div>
 
@@ -294,11 +306,11 @@ const stopText = s => s === 0 ? "Nonstop" : s === 1 ? "1 stop" : s + " stops";
 const norm = s => String(s || "").trim().toLowerCase();
 
 /* ---------- which searches we hold ---------- */
-function findTrip(from, to, when) {
+function findTrip(from, to, when, kind) {
   const f = norm(from), t = norm(to);
   return D.trips.find(tr =>
     tr.from_keys.includes(f) && tr.to_keys.includes(t) &&
-    (!when || tr.date === when));
+    (!when || tr.date === when) && (!kind || tr.kind === kind));
 }
 
 /* ---------- saved flights, per browser ---------- */
@@ -329,17 +341,12 @@ document.getElementById("finder").addEventListener("submit", e => {
   const from = document.getElementById("from").value;
   const to = document.getElementById("to").value;
   const when = document.getElementById("when").value;
-  if (document.getElementById("trip").value === "return") {
-    document.getElementById("nope").innerHTML = `<div class="nope">
-      We have only priced <b>one-way</b> trips so far. Return fares are a
-      different search and we have not run it yet, so there is nothing honest
-      to show you for one.</div>`;
-    return;
-  }
-  const trip = findTrip(from, to, when);
+  const kind = document.getElementById("trip").value;
+  const trip = findTrip(from, to, when, kind);
   if (!trip) {
     document.getElementById("nope").innerHTML = `<div class="nope">
-      We have not priced <b>${esc(from)} &rarr; ${esc(to)}</b> yet. Every route
+      We have not priced <b>${esc(from)} &rarr; ${esc(to)}</b>${
+        kind === "return" ? " as a return" : " one way"} yet. Every route
       here was gathered by actually running the searches, so the list is short
       and honest rather than long and made up.
       ${D.trips.map(t => `<button class="linkish" data-go="${esc(t.id)}">Show
@@ -409,7 +416,9 @@ function renderTrip() {
   document.getElementById("read-at").textContent = "prices read " + t.read_at;
   document.getElementById("summary").innerHTML = [
     ["From", t.from_full], ["To", t.to_label + ", any airport"],
-    ["Depart", t.date_label], ["Travellers", "1 adult, economy"],
+    ["Depart", t.date_label],
+    t.ret_label ? ["Return", t.ret_label] : ["Trip", "One way"],
+    ["Travellers", "1 adult, economy"],
   ].map(([k, v]) => `<div class="field"><div class="k">${k}</div>
       <div class="v">${esc(v)}</div></div>`).join("");
 
@@ -437,6 +446,10 @@ function renderTrip() {
         <div class="pick-meta">${esc(best.airline)} &middot; ${esc(best.duration)}
           &middot; ${stopText(best.stops)} &middot; lands
           ${esc(D.airport_names[best.destination] || best.destination)}</div>
+        ${best.back_depart ? `<div class="pick-meta">Back ${esc(best.back_depart)}
+          <span style="color:var(--ink-3)">&rarr;</span> ${esc(best.back_arrive || "")}
+          &middot; ${esc(best.back_airline || "")} &middot; ${esc(best.back_duration || "")}
+          &middot; ${stopText(best.back_stops)}</div>` : ""}
         <div class="pick-meta">Book on <strong style="color:var(--ink)">${
           esc(cheapest.site)}</strong></div>
       </div>
@@ -456,6 +469,27 @@ function renderTrip() {
   renderFlights();
 }
 
+function legRow(f, back) {
+  const dep = back ? f.back_depart : f.depart;
+  const arr = back ? f.back_arrive : f.arrive;
+  const air = back ? f.back_airline : f.airline;
+  const dur = back ? f.back_duration : f.duration;
+  const stp = back ? f.back_stops : f.stops;
+  const where = back ? f.origin : f.destination;
+  return `<div class="legrow${back ? " back" : ""}">
+    ${f.back_depart ? `<span class="way">${back ? "Back" : "Out"}</span>` : ""}
+    <span class="times">${esc(dep)}${arr ?
+      `<span class="arrow">&rarr;</span>${esc(arr)}` : ""}</span>
+    <span class="leg">${esc(air || "")}${dur ?
+      `<span class="dot">&middot;</span>${esc(dur)}` : ""}
+      ${stp === null || stp === undefined ? "" :
+        `<span class="dot">&middot;</span><span class="tag ${
+          stp === 0 ? "nonstop" : ""}">${stopText(stp)}</span>`}
+      <span class="dot">&middot;</span><span class="tag">${esc(where)}</span>
+    </span>
+  </div>`;
+}
+
 function renderFlights() {
   const all = visible();
   const rows = all.slice(0, state.shown);
@@ -468,13 +502,13 @@ function renderFlights() {
     const others = f.offers.slice(1);
     return `<article class="flight${f.price === cheapest ? " best" : ""}">
       <div>
-        <div class="times">${esc(f.depart)}${f.arrive ?
-          `<span class="arrow">&rarr;</span>${esc(f.arrive)}` : ""}</div>
-        <div class="leg">${esc(f.airline)}<span class="dot">&middot;</span>${
-          esc(f.duration)}<span class="dot">&middot;</span>
-          <span class="tag ${f.stops === 0 ? "nonstop" : ""}">${stopText(f.stops)}</span>
-          <span class="dot">&middot;</span><span class="tag">${esc(f.destination)}</span>
-        </div>
+        ${legRow(f, false)}
+        ${f.back_depart ? legRow(f, true)
+          : state.trip.kind === "return"
+          ? `<div class="legrow back"><span class="way">Back</span>
+             <span class="leg missing">return leg not listed by ${
+               esc(f.offers[0].site)} &mdash; the price is for the whole
+               trip</span></div>` : ""}
       </div>
       <div class="buy">
         <span class="amount">${money(f.price)}</span>
@@ -537,7 +571,8 @@ def label_for(code: str) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--runs", nargs="+",
-                    default=["results.json", "countries.json"])
+                    default=["results.json", "countries.json",
+                             "roundtrip.json"])
     ap.add_argument("--out", default="trip.html")
     ap.add_argument("--board-url", default="",
                     help="link to the operator's board, if it is published")
@@ -562,18 +597,25 @@ def main() -> None:
     grouped = defaultdict(list)
     for flight in flights:
         metro = airports.metro_of(flight["destination"]) or flight["destination"]
-        grouped[(flight["origin"], metro)].append(flight)
+        grouped[(flight["origin"], metro, flight["date"],
+                 flight["ret"] or "")].append(flight)
 
     trips = []
-    for (origin, metro), group in grouped.items():
-        base = runs[0]
+    for (origin, metro, when, back), group in grouped.items():
+        base = next((r for r in runs
+                     if r["date"] == when and (r.get("ret") or "") == back),
+                    runs[0])
         asked = base["destination"]
         at_asked = [f["price"] for f in group if f["destination"] == asked]
-        every = [r for run in runs for r in run.get("results", [])
-                 if r["origin"] == origin]
+        every = [r for run in runs if run["date"] == when
+                 and (run.get("ret") or "") == back
+                 for r in run.get("results", []) if r["origin"] == origin]
         from_label, to_label = label_for(origin), METRO_CITY.get(metro, metro)
         trips.append({
-            "id": f"{origin}-{metro}-{base['date']}".lower(),
+            "id": f"{origin}-{metro}-{when}-{'rt' if back else 'ow'}".lower(),
+            "kind": "return" if back else "oneway",
+            "ret": back or None,
+            "ret_label": pretty(back) if back else None,
             "from_label": from_label,
             "from_full": CITY.get(origin, origin),
             "to_label": to_label,
@@ -584,8 +626,8 @@ def main() -> None:
                               | {c.lower() for c in airports.expand(metro)}
                               | {CITY.get(c, c).lower()
                                  for c in airports.expand(metro)}),
-            "date": base["date"],
-            "date_label": pretty(base["date"]),
+            "date": when,
+            "date_label": pretty(when),
             "read_at": base.get("generated_at", "")[:16].replace("T", " "),
             "flights": group,
             "asked_airport": CITY.get(asked, asked),
@@ -594,8 +636,11 @@ def main() -> None:
             "sites": len({r["site"] for r in every}),
             "airports": len({r["destination"] for r in every}),
             "searches": len(every),
-            "seconds": round(sum(run.get("seconds", 0) for run in runs)),
+            "seconds": round(sum(run.get("seconds", 0) for run in runs
+                                 if run["date"] == when
+                                 and (run.get("ret") or "") == back)),
         })
+    trips.sort(key=lambda t: (t["kind"] != "oneway", t["date"]))
 
     lead = trips[0]
     places = sorted({t["from_full"] for t in trips} | {t["to_label"] for t in trips})

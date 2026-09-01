@@ -11,13 +11,29 @@ CSS made, so the scene and the words over it always agree.
 
 CSS = """
 /* ---------- landing stage ---------- */
+/* The bleed has to be clipped on the page, not on the column: `overflow` on an
+   ancestor of the full-bleed element clips the bleed itself back to that
+   ancestor's box, which is exactly what it is escaping. */
+body { overflow-x: clip; }
+/* The shared theme gives every <section> a top margin; the two view
+   sections are page regions rather than content blocks. */
+#landing, #results { margin-top:0; }
+/* Full-bleed: the hero is the page's opening, not a card sitting on it. The
+   negative margin pulls it out of the centred column, and the inner div puts
+   the copy back on that column's grid. */
 .stage {
+  min-height:min(88vh, 780px);
+  margin-top:-32px;                 /* cancel the column's top padding */
+  display:flex; align-items:center;
+  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  width:100vw; border-radius:0; border-left:0; border-right:0;
+  padding:96px 0 108px;
   --stage-1:#d7e7f8; --stage-2:#f0f6fc; --stage-edge:#c2d5ea;
   --stage-ink:#0b1730; --stage-ink-2:#3f5474; --stage-kicker:#1d4ed8;
   --stage-em:#2563eb; --stage-shadow:0 14px 36px rgba(20,40,70,.16);
-  position:relative; overflow:hidden; border-radius:14px; margin-top:10px;
-  background:var(--stage-1); border:1px solid var(--stage-edge);
-  box-shadow:var(--stage-shadow);
+  position:relative; overflow:hidden;
+  background:var(--stage-1); border-top:0;
+  border-bottom:1px solid var(--stage-edge);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .stage {
@@ -33,8 +49,19 @@ CSS = """
 }
 .stage canvas { position:absolute; inset:0; width:100%; height:100%;
                 display:block; }
-.stage .copy { position:relative; z-index:1; padding:64px 44px 76px;
-               max-width:34rem; }
+.stage .inner { position:relative; z-index:1; max-width:1020px; margin:0 auto;
+                padding:0 20px; width:100%; }
+.stage .copy { max-width:36rem; }
+.scrollcue { position:absolute; left:50%; bottom:22px; transform:translateX(-50%);
+             z-index:1; display:flex; flex-direction:column; align-items:center;
+             gap:7px; color:var(--stage-ink-2); font-family:"IBM Plex Mono",
+             monospace; font-size:10px; letter-spacing:.18em;
+             text-transform:uppercase; }
+.scrollcue i { width:1px; height:26px; background:currentColor; opacity:.5;
+               animation:drop 2.4s ease-in-out infinite; }
+@keyframes drop { 0%,100% { transform:scaleY(.35); transform-origin:top; }
+                  50% { transform:scaleY(1); transform-origin:top; } }
+@media (prefers-reduced-motion: reduce) { .scrollcue i { animation:none; } }
 .kicker { display:flex; align-items:center; gap:12px;
           font-family:"IBM Plex Mono", monospace; font-size:11px;
           letter-spacing:.2em; text-transform:uppercase;
@@ -43,12 +70,15 @@ CSS = """
                   background:var(--stage-em); }
 .hero-h { font-family:"Saira Condensed", ui-sans-serif, sans-serif;
           font-weight:700; text-transform:uppercase; letter-spacing:.01em;
-          font-size:clamp(38px,6.4vw,66px); line-height:.96; margin:16px 0 0;
+          font-size:clamp(44px,7.4vw,88px); line-height:.94; margin:18px 0 0;
           text-wrap:balance; color:var(--stage-ink); }
 .hero-h em { font-style:normal; color:var(--stage-em); }
-.hero-p { font-size:16.5px; color:var(--stage-ink-2); max-width:44ch;
-          margin:20px 0 0; }
-@media (max-width:640px) { .stage .copy { padding:40px 24px 52px; } }
+.hero-p { font-size:17.5px; color:var(--stage-ink-2); max-width:46ch;
+          margin:22px 0 0; line-height:1.5; }
+@media (max-width:640px) {
+  .stage { min-height:auto; padding:64px 0 84px; }
+  .hero-p { font-size:16px; }
+}
 """
 
 JS = """

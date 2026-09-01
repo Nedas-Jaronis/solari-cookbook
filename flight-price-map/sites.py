@@ -117,28 +117,65 @@ KAYAK_TIMES = re.compile(
     r"^(\d{1,2}:\d{2}\s?[ap]m)\s*[–-]\s*(\d{1,2}:\d{2}\s?[ap]m)(\+\d)?$", re.I)
 
 
-def read_kayak(text: str) -> list[Fare]:
-    """Kayak and Momondo (same engine): a time range opens each result card.
+CARD = "Go to result details"
 
-    Anchoring on the time range skips the sponsored blocks, which carry a
-    price but no itinerary line.
+
+def read_kayak(text: str) -> list[Fare]:
+    """Kayak and Momondo (same engine): one fare per result card.
+
+    The card, not the time range, is the unit. A round trip shows two time
+    ranges under a single price, so anchoring on time ranges reads one trip as
+    two flights and charges the return leg the whole trip's fare. Anchoring on
+    the card boundary gets one fare with two legs, and one-way results fall out
+    of the same code with a single leg.
+
+    Sponsored blocks carry a price but no card marker, so they are skipped.
     """
     lines = [l.strip() for l in text.splitlines() if l.strip()]
+
+    cards, current = [], None
+    for line in lines:
+        if line == CARD:
+            if current:
+                cards.append(current)
+            current = []
+        elif current is not None:
+            current.append(line)
+    if current:
+        cards.append(current)
+
     out = []
-    for i, line in enumerate(lines):
-        times = KAYAK_TIMES.match(line)
-        if not times:
-            continue
-        window = lines[i + 1:i + 16]
-        price = next((money(w) for w in window if money(w)), None)
+    for card in cards:
+        price = next((money(w) for w in card if money(w)), None)
         if not price:
             continue
+        # Everything after the price belongs to the fare brand and buttons.
+        body = card[:next(i for i, w in enumerate(card) if money(w))]
+        marks = [i for i, w in enumerate(body) if KAYAK_TIMES.match(w)]
+        if not marks:
+            continue
+
+        legs = []
+        for n, at in enumerate(marks):
+            stop = marks[n + 1] if n + 1 < len(marks) else len(body)
+            segment = body[at:stop]
+            times = KAYAK_TIMES.match(segment[0])
+            legs.append({
+                "airline": segment[1] if len(segment) > 1 else None,
+                "depart": times.group(1), "arrive": times.group(2),
+                "duration": next((w for w in segment if DURATION.match(w)), None),
+                "stops": next((w for w in segment if STOPS.match(w)), None),
+            })
+
+        back = legs[1] if len(legs) > 1 else {}
         out.append(Fare(
             price=price[1], currency=price[0],
-            airline=window[0] if window else None,
-            depart=times.group(1), arrive=times.group(2),
-            duration=next((w for w in window if DURATION.match(w)), None),
-            stops=next((w for w in window if STOPS.match(w)), None),
+            airline=legs[0]["airline"], depart=legs[0]["depart"],
+            arrive=legs[0]["arrive"], duration=legs[0]["duration"],
+            stops=legs[0]["stops"],
+            back_airline=back.get("airline"), back_depart=back.get("depart"),
+            back_arrive=back.get("arrive"), back_duration=back.get("duration"),
+            back_stops=back.get("stops"),
         ))
     return plausible(out)
 

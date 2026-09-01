@@ -91,6 +91,46 @@ python verify.py --from JFK --to LHR --date 2026-10-15
 python teaserboard.py         # -> teasers.html
 ```
 
+## Round trips
+
+Round trips were not merely untested; they were **silently wrong**. The Kayak
+and Momondo reader anchored on time ranges, and a round-trip card has two of
+them. It emitted fifty results from fifty cards, so the count looked right --
+but each one described the *return* leg while carrying the whole trip's price:
+
+```
+what it reported:   $747  SWISS     8:45 am - 4:35 pm
+what the trip is:   $747  out JetBlue 8:45 am - 8:45 pm
+                          back SWISS  8:45 am - 4:35 pm
+```
+
+Wrong airline, wrong departure time, right price, and nothing to flag it. The
+reader now parses whole cards: one fare with two legs, and one-way results fall
+out of the same code with a single leg.
+
+Measured on JFK to London, out 15 Oct, back 22 Oct:
+
+```
+best  $598  Momondo  JFK-LGW      17/25 searches, 168s
+
+cheapest by site (JFK-LHR)
+  Google     $622  <- cheapest
+  Expedia    $669    +$47
+  Kayak      $747   +$125
+  Momondo    $747   +$125
+```
+
+**Round trips invert the one-way finding.** One way, the airport was worth $80
+and the site $23. Return, the airport is worth $24 and the site **$125**. The
+same tool answers "check other airports" for a one-way and "check other sites"
+for a return, which is not a conclusion we would have reached by reasoning
+about it.
+
+Treat the $125 with some suspicion: Kayak and Momondo sort by price ascending,
+so $747 really is the cheapest they offered, but a gap that size against Google
+more likely means a fare class one of them is filtering than a real arbitrage.
+Worth a look before it goes in a post.
+
 ## The traveller's site
 
 `board.py` is for whoever runs the tool. `trip.py` is for whoever takes the

@@ -49,7 +49,12 @@ class Query:
 
 @dataclass
 class Fare:
-    """One priced itinerary as read off a results page."""
+    """One priced itinerary as read off a results page.
+
+    The unprefixed fields describe the outbound leg. A round trip is one fare
+    with two legs, never two fares -- reading it as two would double the
+    results and price the return journey at the whole trip's cost.
+    """
     price: int
     currency: str = "$"
     airline: str | None = None
@@ -57,6 +62,11 @@ class Fare:
     arrive: str | None = None
     duration: str | None = None
     stops: str | None = None
+    back_airline: str | None = None
+    back_depart: str | None = None
+    back_arrive: str | None = None
+    back_duration: str | None = None
+    back_stops: str | None = None
 
 
 def money(line: str) -> tuple[str, int] | None:
