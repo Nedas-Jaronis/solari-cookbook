@@ -426,18 +426,32 @@ input[type="date"] { position:relative; }
                    font-size:12.5px; color:var(--accent); padding:2px 4px; }
 /* Native select chrome is a different widget on every platform and none of
    them match this page, so the arrow is ours and drawn in the ink colour. */
-select {
-  appearance:none; -webkit-appearance:none; cursor:pointer;
+select { appearance:none; -webkit-appearance:none; cursor:pointer; }
+select::-ms-expand { display:none; }
+select option { background:var(--panel); color:var(--ink); }
+
+/* A drawn chevron on the cell, rather than two gradient triangles on the
+   select: the select cannot carry a pseudo-element, and stacked gradients go
+   chunky at the sizes this row uses. */
+.cell.chooser { padding-right:34px; }
+.cell.chooser select { padding-right:0 !important; }
+.cell.chooser::after {
+  content:""; position:absolute; right:15px; top:50%; width:7px; height:7px;
+  margin-top:-6px; pointer-events:none; transform:rotate(45deg);
+  border-right:1.7px solid var(--ink-3); border-bottom:1.7px solid var(--ink-3);
+  border-radius:0 0 2px 0; transition:border-color .15s;
+}
+.cell.chooser:hover::after, .cell.chooser:focus-within::after {
+  border-right-color:var(--accent); border-bottom-color:var(--accent);
+}
+.sel select {
   background-image:
     linear-gradient(45deg, transparent 50%, currentColor 50%),
     linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-size:5px 5px, 5px 5px;
-  background-position:calc(100% - 10px) center, calc(100% - 5px) center;
+  background-size:4px 4px, 4px 4px;
+  background-position:calc(100% - 8px) center, calc(100% - 4px) center;
   background-repeat:no-repeat;
-  padding-right:22px !important;
 }
-select::-ms-expand { display:none; }
-select option { background:var(--panel); color:var(--ink); }
 .cell:focus-within { background:var(--raise); }
 .go {
   border:0; cursor:pointer; background:var(--ink); color:var(--ground);
@@ -492,9 +506,18 @@ select option { background:var(--panel); color:var(--ink); }
 .linkish:hover { border-color:var(--accent); }
 
 /* ---------- results ---------- */
+.resbar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 .crumb { background:none; border:0; padding:0; cursor:pointer; font:inherit;
          font-size:13.5px; color:var(--ink-2); }
 .crumb:hover { color:var(--ink); }
+.recheck { margin-left:auto; display:inline-flex; align-items:center; gap:7px;
+           border:1px solid var(--rule); border-radius:999px;
+           padding:5px 14px; color:var(--ink-2); }
+.recheck:hover { border-color:var(--accent); color:var(--accent); }
+.recheck::before { content:""; width:11px; height:11px; flex:0 0 auto;
+                   border:1.6px solid currentColor; border-radius:50%;
+                   border-top-color:transparent; }
+.recheck.spinning::before { animation:turn .8s linear infinite; }
 .search {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:20px;
   background:var(--rule); border:1px solid var(--rule); border-radius:10px;
@@ -630,18 +653,18 @@ select option { background:var(--panel); color:var(--ink); }
             aria-expanded="false" aria-autocomplete="list" aria-controls="to-list">
           <ul class="options" id="to-list" role="listbox" hidden></ul>
         </div>
-        <div class="cell">
+        <div class="cell chooser">
           <label for="when">Depart</label>
           <select id="when" name="when"></select>
         </div>
-        <div class="cell narrow">
+        <div class="cell narrow chooser">
           <label for="trip">Trip</label>
           <select id="trip" name="trip">
             <option value="oneway">One way</option>
             <option value="return">Round trip</option>
           </select>
         </div>
-        <div class="cell narrow">
+        <div class="cell narrow chooser">
           <label for="stops">Stops</label>
           <select id="stops" name="stops">
             <option value="any">Any</option>
@@ -678,7 +701,10 @@ select option { background:var(--panel); color:var(--ink); }
 
 <!-- ============ results ============ -->
 <section id="results" hidden>
-  <button class="crumb" id="back">&larr; New search</button>
+  <div class="resbar">
+    <button class="crumb" id="back">&larr; New search</button>
+    <button class="crumb recheck" id="recheck" hidden>Check these again</button>
+  </div>
   <div id="widening" class="widening" hidden></div>
   <header class="mast" style="margin-top:12px">
     <h1 id="route-h"></h1>
@@ -1370,6 +1396,16 @@ const codeOf = value => {
   return hit ? hit.code : null;
 };
 
+function offerRecheck(age) {
+  const button = document.getElementById("recheck");
+  button.classList.remove("spinning");
+  button.hidden = false;
+  // Say how stale the answer is, so the button is a judgement and not a guess.
+  button.textContent = age > 90
+    ? `Read ${Math.round(age / 60)} min ago — check again`
+    : "Check these again";
+}
+
 function showJob(job) {
   if (!job.trip) return false;
   const arriving = document.getElementById("results").hidden;
@@ -1384,8 +1420,14 @@ function showJob(job) {
   return true;
 }
 
-async function liveSearch(from, to, date, ret) {
-  const body = {from, to, date, ret: ret || null, nearby: true};
+let lastAsked = null;
+
+async function liveSearch(from, to, date, ret, fresh) {
+  lastAsked = {from, to, date, ret};
+  const body = {from, to, date, ret: ret || null, nearby: true, fresh: !!fresh};
+  const recheck = document.getElementById("recheck");
+  recheck.hidden = true;
+  recheck.classList.add("spinning");
   working("Checking every site at once",
           `${from} to ${to}, ${date}. Four sites in parallel, about twenty seconds.`);
   progress.scrollIntoView({block: "center", behavior: "smooth"});
@@ -1406,6 +1448,7 @@ async function liveSearch(from, to, date, ret) {
 
   if (job.from_cache && showJob(job)) {
     stopWorking();
+    offerRecheck(job.cached_age);
     return;
   }
 
@@ -1436,7 +1479,11 @@ async function liveSearch(from, to, date, ret) {
       working("Checking every site at once",
               `${Math.round((Date.now() - started) / 1000)}s so far. Nothing to show until the first site answers.`);
     }
-    if (now.phase === "done") { clearInterval(timer); stopWorking(); }
+    if (now.phase === "done") {
+      clearInterval(timer);
+      stopWorking();
+      offerRecheck(0);
+    }
   }, 1500);
 }
 
@@ -1532,6 +1579,12 @@ document.getElementById("back").addEventListener("click", () => {
   location.hash = "";
 });
 
+document.getElementById("recheck").addEventListener("click", () => {
+  if (!lastAsked) return;
+  const {from, to, date, ret} = lastAsked;
+  liveSearch(from, to, date, ret, true);      // skip the store, ask the sites
+});
+
 document.getElementById("scrollcue").addEventListener("click", () => {
   const how = document.querySelector(".how");
   if (how) how.scrollIntoView({behavior: "smooth", block: "start"});
@@ -1586,6 +1639,7 @@ function renderTrip() {
     D.live ? SNAPSHOT_LIVE : SNAPSHOT_STORED;
   document.getElementById("route-h").innerHTML =
     `${esc(t.from_label)} <span style="color:var(--ink-3)">&rarr;</span> ${esc(t.to_label)}`;
+  if (!D.live) document.getElementById("recheck").hidden = true;
   const readAt = document.getElementById("read-at");
   readAt.textContent = "prices read " + t.read_at;
   // Live results are seconds old; a committed snapshot is not, and should say so.

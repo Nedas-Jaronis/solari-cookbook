@@ -233,13 +233,19 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(400, {"error": "airports are three letters"})
 
         nearby = bool(body.get("nearby", True))
+        # A stored answer is the right default and the wrong one when somebody
+        # is about to book: fares move, and asking again is the point of having
+        # browsers. The result still goes back into the cache for the next
+        # person, so one person refreshing does not cost the next one a wait.
+        fresh = bool(body.get("fresh"))
         job_id = uuid.uuid4().hex[:12]
         base = {"id": job_id, "phase": "queued", "trip": None, "error": None,
                 "searched": 0, "answered": 0, "seconds": 0, "cached_age": 0,
                 "asked": {"from": q.origin, "to": q.destination,
                           "date": q.date, "ret": q.ret, "nearby": nearby}}
 
-        stored, age = recall(DB_CONN, cache_key(q, nearby))
+        stored, age = (None, 0.0) if fresh else recall(DB_CONN,
+                                                       cache_key(q, nearby))
         if stored:
             built = tripslib.build([stored])
             base.update(phase="done", trip=built[0] if built else None,
