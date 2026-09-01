@@ -162,6 +162,12 @@ python trip.py --live --out live.html
 python server.py                     # -> http://localhost:8080
 ```
 
+**Open port 8080, not a file.** The page built without `--live` only knows the
+routes already on disk and answers anything else with "we have not priced
+that" -- which is honest for a static page and useless once the service
+exists. `server.py` serves the live build; opening the static one is the one
+way to make a working service look broken.
+
 Measured, on routes that had never been searched:
 
 ```

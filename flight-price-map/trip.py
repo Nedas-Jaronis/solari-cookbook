@@ -119,8 +119,12 @@ select option { background:var(--panel); color:var(--ink); }
         border-radius:10px; padding:18px 22px; margin-top:18px;
         font-size:14.5px; color:var(--ink-2); }
 .nope b { color:var(--ink); }
-.linkish { background:none; border:0; padding:0; cursor:pointer;
-           color:var(--accent); font:inherit; text-decoration:underline; }
+.offers { display:flex; flex-direction:column; align-items:flex-start;
+          gap:6px; margin-top:12px; }
+.linkish { background:none; border:1px solid var(--rule); border-radius:6px;
+           padding:5px 11px; cursor:pointer; color:var(--accent);
+           font:inherit; font-size:13.5px; text-align:left; }
+.linkish:hover { border-color:var(--accent); }
 
 /* ---------- results ---------- */
 .crumb { background:none; border:0; padding:0; cursor:pointer; font:inherit;
@@ -563,8 +567,11 @@ document.getElementById("finder").addEventListener("submit", e => {
         kind === "return" ? " as a return" : " one way"} yet. Every route
       here was gathered by actually running the searches, so the list is short
       and honest rather than long and made up.
-      ${D.trips.map(t => `<button class="linkish" data-go="${esc(t.id)}">Show
-        ${esc(t.from_label)} &rarr; ${esc(t.to_label)}</button>`).join(" ")}
+      <div class="offers">${D.trips.map(t =>
+        `<button class="linkish" data-go="${esc(t.id)}">${esc(t.from_label)}
+         &rarr; ${esc(t.to_label)}, ${esc(t.date_label)}${
+           t.kind === "return" ? ", back " + esc(t.ret_label) : ", one way"
+         }</button>`).join("")}</div>
       </div>`;
     return;
   }
