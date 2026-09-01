@@ -1,57 +1,37 @@
-# Solari Cookbook
+# Fare Board
 
-Short, runnable examples for [Solari](https://getsolari.com) — cloud browsers,
-sandboxes, and desktops behind one API key.
+Ask for any flight, on any date. It launches a browser per search, reads
+Google Flights, Kayak, Momondo, Expedia and Priceline at the same time, adds
+every airport around your destination, and tells you which flight to take and
+which site is selling it for least.
 
-This is a fork. Alongside the upstream examples it carries one thing built on
-top of them:
+Built on [Solari](https://getsolari.com) cloud browsers, on a fork of their
+[cookbook](https://github.com/solari-sdk/solari-cookbook).
 
----
+![Searching a route it has never seen](flight-price-map/demo/demo.gif)
 
-## Fare Board — what this fork adds
+Portland to Copenhagen, a route it had never priced: **44 seconds, 14 flights,
+$356** — and the same seat on Kayak and Momondo at the same price. Nothing in
+that recording is staged; it clears the route from the cache first so what you
+are watching is a real search.
 
-**[`flight-price-map/`](flight-price-map)** prices one trip across every major
-travel site, and every airport around your destination, at the same time.
+## What it found
 
-Ask for any route on any date and it launches a browser per search, reads the
-results pages, and tells you which flight to take and which site is selling it
-for least. Twenty seconds for a straight answer; a minute more to widen it to
-the nearby airports.
+The tool exists to answer questions that are tedious by hand, so what matters
+is what it measured — including the times it disproved what we expected.
 
-![The traveller's view](flight-price-map/shots/landing-dark.png)
-
-### What it found
-
-The tool exists to answer questions that are tedious by hand, so the point of
-it is what it measured — including the times it disproved what we expected.
-
-| Question | Answer |
+| | |
 |---|---|
-| Does a nearby airport save money? | Gatwick was **$80** under Heathrow — but Google and Kayak both suggest that swap themselves. Against the best hint any single site gave, cross-site search won by **$12**. |
-| Does the site you book on matter? | **$23** on JFK–LHR. **$141 (39%)** on Tampa–Barcelona. It is worth almost nothing on the corridors everyone benchmarks and a great deal on the routes nobody checks. |
-| Do fares change by country? | Barely. Kayak quoted the **identical fare from all seven countries** it answered; the widest spread any site showed was $14, with prices forced to USD so this is pricing rather than exchange rates. |
-| Are the "from $175" teasers real? | **8 of 8 held** — 5 to the dollar, 3 cheaper than advertised. Our first run said otherwise and that was our bug, not theirs. |
-| Round trips? | They **invert** the one-way answer: the airport is worth $24 and the site $125. |
+| **The site you book on is worth $141 on a thin route** | 39% on Tampa–Barcelona. On JFK–London it is $23. The tool is nearly worthless on the corridors everyone benchmarks and worth a lot on the routes nobody checks. |
+| **A nearby airport saved $80** | Gatwick under Heathrow. But Google and Kayak *both suggest that swap themselves* — against the best hint any single site gave, cross-site search won by **$12**. That is the honest number. |
+| **Where you browse from barely matters** | Kayak quoted the identical fare from all seven countries it answered. Widest spread on any site: $14, with prices forced to USD so this is pricing and not exchange rates. |
+| **The "from $175" teasers are real** | 8 of 8 held — 5 to the dollar, 3 *cheaper* than advertised. Our first run said otherwise, and that was our bug, not theirs. |
+| **Round trips invert all of it** | The airport is worth $24 and the site $125. |
 
-Three of those are negative results. They are in the README because a tool that
-only reports the findings it hoped for is not measuring anything.
+Three of those are negative results. They are here because a tool that only
+reports the findings it hoped for is not measuring anything.
 
-### Why cloud browsers, specifically
-
-Each leg of this was tested rather than assumed:
-
-- **No API exists.** Google Flights, Kayak and Momondo publish nothing. A
-  browser is not a shortcut here, it is the only door.
-- **The sites fight automation.** Skyscanner walls us, Expedia walls us
-  intermittently. Stealth and residential egress are load-bearing.
-- **Asking everything at once is the product.** Thirty searches in 113 seconds
-  against about eight minutes one after another.
-
-The honest ceiling is blocking rather than engineering: four sweeps by one
-person was enough to lose Skyscanner for a day, which is why the live service
-caches hard and throttles per site.
-
-### Run it
+## Run it
 
 ```bash
 cd flight-price-map
@@ -62,105 +42,102 @@ python trip.py --live --out live.html
 python server.py                     # -> http://localhost:8080
 ```
 
-Then type any two airports and any date.
+Type any two airports and any date. A straight answer takes about twenty
+seconds; the nearby airports fill in underneath it over the next minute.
 
-There is a full write-up in
-**[flight-price-map/README.md](flight-price-map/README.md)** — the parser
-faults it has had and how they were caught, why round trips were silently
-wrong, what gets past an anti-bot wall and what does not, and the measurements
-behind every number above.
+Measured on routes that had never been searched:
 
----
-
-Everything below is the upstream cookbook, unchanged.
-
-## Examples
-
-### Cloud browser
-
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [browser-quickstart-ts](examples/browser-quickstart-ts) | TypeScript | Launch a browser, open a page, read it |
-| [browser-quickstart-py](examples/browser-quickstart-py) | Python | Launch a browser, open a page, read it |
-| [browser-stealth-proxy-ts](examples/browser-stealth-proxy-ts) | TypeScript | Stealth mode + residential proxy egress |
-| [browser-profiles-ts](examples/browser-profiles-ts) | TypeScript | Log in once, reuse the session forever |
-| [browser-session-recording-py](examples/browser-session-recording-py) | Python | Record a session, download the replay |
-
-### Sandbox
-
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [sandbox-quickstart-ts](examples/sandbox-quickstart-ts) | TypeScript | Run a command, write and read files |
-| [sandbox-code-interpreter-py](examples/sandbox-code-interpreter-py) | Python | Stateful Python kernel for agent loops |
-| [sandbox-port-preview-ts](examples/sandbox-port-preview-ts) | TypeScript | Expose a server in the VM on a public URL |
-
-### Desktop
-
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [desktop-computer-use-py](examples/desktop-computer-use-py) | Python | Screenshot, click, and type on a Linux GUI |
-
-## Running an example
-
-Each directory is self-contained.
-
-```bash
-git clone https://github.com/solari-sdk/solari-cookbook.git
-cd solari-cookbook/examples/browser-quickstart-ts
-
-npm install                          # or: pip install -r requirements.txt
-export SOLARI_API_KEY=slr_live_...   # grab one at console.getsolari.com
-npm start                            # or: python main.py
+```
+BOS -> LIS   22s   4/4 sites   11 flights   $299
+MIA -> MAD   40s   4/4 sites    9 flights   $329
+SAN -> LIS   25s   4/4 sites    9 flights   $320
+BOS -> LHR   24s   quick answer, Heathrow only
+            110s   widened to all 5 London airports, 43 flights
+the same search again    0.03s, from cache
 ```
 
-One `slr_live_` key works across browsers, sandboxes, and desktops, and every
-product bills to the same balance.
+There are also committed boards you can open straight from a clone, no key
+needed: [`trip.html`](flight-price-map/trip.html) for a traveller,
+[`board.html`](flight-price-map/board.html) for whoever ran it,
+[`teasers.html`](flight-price-map/teasers.html) for the advertised-price check.
 
-## Which product do I want?
+## Why cloud browsers
 
-- **Cloud browser** — you need a *web page*: scraping, testing, filling forms,
-  anything Playwright or Puppeteer would do locally. Adds stealth, managed
-  proxies, captcha solving, profiles, and session recording.
-- **Sandbox** — you need to *run code*: an LLM's Python, an untrusted build, a
-  data job. A headless microVM that boots from a snapshot in about a second.
-- **Desktop** — you need a *screen*: computer-use agents, GUI apps, anything
-  that has to be clicked. A sandbox plus X11 and a live VNC stream.
+Each of these was tested rather than assumed:
 
-## Gotchas the examples encode
+- **No API exists.** Google Flights, Kayak and Momondo publish nothing. A
+  browser is not a shortcut here, it is the only door.
+- **The sites fight automation.** Skyscanner walls us; Expedia walls us
+  intermittently. Stealth and residential egress are load-bearing, not
+  decoration.
+- **Asking everything at once is the product.** Thirty searches in 113 seconds
+  against about eight minutes one after another.
 
-Things that cost you an afternoon if you meet them cold:
+The honest ceiling is blocking rather than engineering. Four sweeps by one
+person was enough to lose Skyscanner for a day, which is why the live service
+caches hard and throttles per site.
 
-- **TypeScript: call `await solari.close()`.** The browser client keeps a
-  loopback proxy open for connection retries. Skip the close and your script
-  prints its output and then hangs forever instead of exiting.
-- **Recording is per session, not per account.** Pass `recording: true` when you
-  create the session; without it the replay endpoint 404s forever. The upload is
-  async after release, so poll for ~30s before giving up.
-- **Sandbox commands are not shell-interpreted.** `run("ls -la")` looks for a
-  binary named `ls -la`. Put argv in `args`, or run `sh -c` explicitly.
-- **`kill()`, not `close()`, ends a VM.** `close()` drops your local control
-  channel; the VM keeps running until its idle timeout.
-- **`timeoutMs` is a rolling idle window**, not a hard deadline — it resets on
-  every use.
+## What is in here
 
-Two more the Fare Board added:
+```
+flight-price-map/
+  server.py       the live service: any route, on request
+  compare.py      the fan-out: sites x airports x countries, in parallel
+  sites.py        per-site URL builders and result parsers
+  trip.py         the traveller's page       board.py    the operator's board
+  verify.py       does the advertised price exist?
+  demo.py         records the real thing searching, unstaged
+  flowtest.py     drives the page in a browser
+  parsertest.py   holds the readers to committed fixtures
+```
 
-- **`proxy` and a plain string behave identically.** `proxy="gb"` and
-  `ProxyRequest(country="gb")` are the same call. When every non-US country
-  times out at once it is an outage, not an entitlement — a proxy failure and a
-  missing feature look identical from the client, so re-test before concluding.
-- **`launch(captcha=True)` and `proxy="smart"` are not magic.** Against a site
-  that has decided about you, neither helps: six launch configurations, zero
-  through. The lever is a cooldown.
+The **[full write-up](flight-price-map/README.md)** is worth more than this
+page: the parser faults it has had and how each was caught, why round trips
+were silently wrong for a day, what gets past an anti-bot wall and what does
+not, and the measurement behind every number above.
 
-## Links
+A taste of it — each of these shipped, and none of them raised anything:
 
-- Docs — [docs.getsolari.com](https://docs.getsolari.com)
-- Console — [console.getsolari.com](https://console.getsolari.com)
-- Changelog — [changelog.getsolari.com](https://changelog.getsolari.com)
-- Questions — [hello@getsolari.com](mailto:hello@getsolari.com)
+- Google answers a one-date search with **round-trip fares** unless you say
+  "one way", roughly double, and nothing flags it.
+- A round-trip card read as two flights, with the return leg wearing the whole
+  trip's price. The *count* was right, which is why it looked fine.
+- One flight listed four times because three sites spell `6:20 pm` differently
+  and Kayak sells it under two ticketing agents.
+- Next-day arrival markers dropped, so a flight landing 6:20 AM *tomorrow*
+  read as landing this morning.
 
-## Contributing
+## The Solari examples this is built on
 
-New examples are welcome. Keep them small, make them run end-to-end against the
-real API, and put anything surprising in a comment right where it bites.
+The upstream cookbook is still here in [`examples/`](examples) — small,
+runnable programs for cloud browsers, sandboxes and desktops. The ones this
+project leans on:
+
+| Example | What it shows |
+| --- | --- |
+| [browser-quickstart-py](examples/browser-quickstart-py) | Launch a browser, open a page, read it |
+| [browser-stealth-proxy-ts](examples/browser-stealth-proxy-ts) | Stealth mode + residential proxy egress |
+| [browser-session-recording-py](examples/browser-session-recording-py) | Record a session, download the replay |
+
+Two gotchas this project paid for, on top of the ones upstream documents:
+
+- **A proxy string and a `ProxyRequest` are the same call.** When every non-US
+  country times out at once it is an outage, not an entitlement — the two look
+  identical from the client, so re-test before concluding. Ours came back on
+  its own after a day.
+- **`captcha=True` and `proxy="smart"` are not magic.** Against a site that has
+  decided about you, neither helps: six launch configurations, zero through.
+  The lever is a cooldown.
+
+## A note on what this is
+
+Fares are read from each site's own public results page, at the rate a person
+might plausibly run them. It answers the question you would have answered by
+hand, faster. It sells nothing, takes no commission, and does not touch
+anyone's account — the price you see is the price the named site was showing,
+and you book there.
+
+- Solari — [docs](https://docs.getsolari.com) ·
+  [console](https://console.getsolari.com)
+- Upstream cookbook —
+  [solari-sdk/solari-cookbook](https://github.com/solari-sdk/solari-cookbook)
