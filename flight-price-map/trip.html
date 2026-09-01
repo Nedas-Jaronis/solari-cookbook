@@ -234,7 +234,13 @@ body { overflow-x: clip; }
   --stage-1:#d7e7f8; --stage-2:#f0f6fc; --stage-edge:#c2d5ea;
   --stage-ink:#0b1730; --stage-ink-2:#3f5474; --stage-kicker:#1d4ed8;
   --stage-em:#2563eb; --stage-shadow:0 14px 36px rgba(20,40,70,.16);
-  position:relative; overflow:hidden;
+  /* No overflow:hidden -- the search form's calendar and suggestion lists
+     hang out of the bottom of this and were being clipped by it. The canvas
+     is inset:0 so it never escapes on its own.
+     z-index because the sections after this one paint later: without it a
+     panel is drawn behind them, and clicks meant for the panel land on the
+     section instead, which reads as the calendar refusing to be clicked. */
+  position:relative; z-index:2;
   background:var(--stage-1); border-top:0;
   border-bottom:1px solid var(--stage-edge);
 }
@@ -343,7 +349,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
 .options {
   /* Sized to the longest name it holds rather than to the box it hangs from:
      "Paris Charles de Gaulle (CDG)" does not fit a 168px field. */
-  position:absolute; left:-1px; top:calc(100% + 5px); z-index:40;
+  position:absolute; left:-1px; top:calc(100% + 5px); z-index:60;
   width:max-content; min-width:calc(100% + 2px); max-width:340px;
   margin:0; padding:5px; list-style:none; max-height:270px; overflow-y:auto;
   background:var(--panel); border:1px solid var(--rule); border-radius:10px;
@@ -383,7 +389,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
 input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
 input[type="date"] { position:relative; }
 .cal {
-  position:absolute; left:-1px; top:calc(100% + 5px); z-index:50;
+  position:absolute; left:-1px; top:calc(100% + 5px); z-index:60;
   width:272px; padding:12px; background:var(--panel);
   border:1px solid var(--rule); border-radius:12px;
   box-shadow:0 16px 38px rgba(8,14,26,.35);

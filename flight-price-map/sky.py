@@ -34,7 +34,13 @@ body { overflow-x: clip; }
   --stage-1:#d7e7f8; --stage-2:#f0f6fc; --stage-edge:#c2d5ea;
   --stage-ink:#0b1730; --stage-ink-2:#3f5474; --stage-kicker:#1d4ed8;
   --stage-em:#2563eb; --stage-shadow:0 14px 36px rgba(20,40,70,.16);
-  position:relative; overflow:hidden;
+  /* No overflow:hidden -- the search form's calendar and suggestion lists
+     hang out of the bottom of this and were being clipped by it. The canvas
+     is inset:0 so it never escapes on its own.
+     z-index because the sections after this one paint later: without it a
+     panel is drawn behind them, and clicks meant for the panel land on the
+     section instead, which reads as the calendar refusing to be clicked. */
+  position:relative; z-index:2;
   background:var(--stage-1); border-top:0;
   border-bottom:1px solid var(--stage-edge);
 }
