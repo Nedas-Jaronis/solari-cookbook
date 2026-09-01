@@ -46,14 +46,20 @@ def itineraries(text: str) -> list[Itinerary]:
         money = PRICE.match(line)
         if not money:
             continue
-        following = lines[i + 1] if i + 1 < len(lines) else ""
-        if not re.match(r"^(round trip|one way)$", following, re.I):
-            continue
 
         window = lines[max(0, i - 12):i]
         times = [w for w in window if TIME_RANGE.match(w)]
         duration = next((w for w in window if DURATION.match(w)), None)
         route = next((w for w in window if ROUTE.match(w)), None)
+
+        # Round-trip results label the price 'round trip'/'one way' on the next
+        # line; one-way results label nothing at all. Either the label or a
+        # 'JFK-LHR' route line above marks this as a real itinerary rather than
+        # a filter-sidebar price.
+        following = lines[i + 1] if i + 1 < len(lines) else ""
+        labelled = re.match(r"^(round trip|one way)$", following, re.I)
+        if not labelled and not route:
+            continue
         stops = next((w for w in window
                       if re.match(r"^(Nonstop|\d+ stops?)$", w, re.I)), None)
         # The airline line sits between the times and the duration.

@@ -1,0 +1,5 @@
+# Captured page text: large, regenerated on every run, and the first thing to
+# look at locally when a parser breaks -- but not worth versioning.
+pages/
+*.log
+preview.html
