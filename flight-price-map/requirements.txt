@@ -1,1 +1,7 @@
 solari-browser>=0.1.2
+
+# Used directly by the dev tools, not just pulled in by solari-browser:
+#   preview.py, flowtest.py, parsertest.py, demo.py drive a local browser
+patchright>=1.40
+#   demo.py assembles the gif
+Pillow>=10
