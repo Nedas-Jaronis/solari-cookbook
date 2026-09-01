@@ -22,12 +22,15 @@ body { overflow-x: clip; }
    negative margin pulls it out of the centred column, and the inner div puts
    the copy back on that column's grid. */
 .stage {
-  min-height:min(88vh, 780px);
+  /* A full screen, and dvh rather than vh so a phone's address bar sliding
+     away does not leave the hero taller than the window. */
+  min-height:100vh;
+  min-height:100dvh;
   margin-top:-32px;                 /* cancel the column's top padding */
   display:flex; align-items:center;
   margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   width:100vw; border-radius:0; border-left:0; border-right:0;
-  padding:96px 0 108px;
+  padding:88px 0 96px;
   --stage-1:#d7e7f8; --stage-2:#f0f6fc; --stage-edge:#c2d5ea;
   --stage-ink:#0b1730; --stage-ink-2:#3f5474; --stage-kicker:#1d4ed8;
   --stage-em:#2563eb; --stage-shadow:0 14px 36px rgba(20,40,70,.16);
@@ -52,11 +55,15 @@ body { overflow-x: clip; }
 .stage .inner { position:relative; z-index:1; max-width:1020px; margin:0 auto;
                 padding:0 20px; width:100%; }
 .stage .copy { max-width:36rem; }
-.scrollcue { position:absolute; left:50%; bottom:22px; transform:translateX(-50%);
-             z-index:1; display:flex; flex-direction:column; align-items:center;
-             gap:7px; color:var(--stage-ink-2); font-family:"IBM Plex Mono",
-             monospace; font-size:10px; letter-spacing:.18em;
-             text-transform:uppercase; }
+.scrollcue { position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+             z-index:1; display:flex; flex-direction:column-reverse;
+             align-items:center; gap:8px; color:var(--stage-ink-2);
+             font-family:"IBM Plex Mono", monospace; font-size:10px;
+             letter-spacing:.18em; text-transform:uppercase; background:none;
+             border:0; cursor:pointer; padding:6px 10px; }
+.scrollcue:hover { color:var(--stage-ink); }
+.scrollcue:focus-visible { outline:2px solid var(--stage-em);
+                           outline-offset:3px; border-radius:6px; }
 .scrollcue i { width:1px; height:26px; background:currentColor; opacity:.5;
                animation:drop 2.4s ease-in-out infinite; }
 @keyframes drop { 0%,100% { transform:scaleY(.35); transform-origin:top; }
@@ -75,8 +82,17 @@ body { overflow-x: clip; }
 .hero-h em { font-style:normal; color:var(--stage-em); }
 .hero-p { font-size:17.5px; color:var(--stage-ink-2); max-width:46ch;
           margin:22px 0 0; line-height:1.5; }
+/* On a short screen the copy and the form together are taller than the window,
+   which pushes the scroll cue below the fold -- the one element whose whole
+   job is to be visible. Tighten rather than clip. */
+@media (max-height:780px) and (min-width:641px) {
+  .stage { padding:52px 0 74px; }
+  .hero-h { font-size:clamp(36px,5.2vw,58px); margin-top:14px; }
+  .hero-p { font-size:16px; margin-top:16px; }
+  form.finder { margin-top:22px; }
+}
 @media (max-width:640px) {
-  .stage { min-height:auto; padding:64px 0 84px; }
+  .stage { padding:64px 0 92px; }
   .hero-p { font-size:16px; }
 }
 """

@@ -291,7 +291,8 @@ __WHEN_CELLS__
       </form>
       <div id="nope"></div>
     </div>
-    <div class="scrollcue" aria-hidden="true"><i></i>How it works</div>
+    <button class="scrollcue" id="scrollcue" type="button">
+      <i></i>How it works</button>
   </div>
 
   <datalist id="places"></datalist>
@@ -651,6 +652,11 @@ document.addEventListener("click", e => {
 
 document.getElementById("back").addEventListener("click", () => {
   location.hash = "";
+});
+
+document.getElementById("scrollcue").addEventListener("click", () => {
+  const how = document.querySelector(".how");
+  if (how) how.scrollIntoView({behavior: "smooth", block: "start"});
 });
 
 for (const [key, id] of Object.entries(REFINE)) {
