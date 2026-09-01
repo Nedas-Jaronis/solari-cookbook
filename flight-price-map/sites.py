@@ -26,6 +26,7 @@ class Site:
     build: Callable[[Query], str]
     read: Callable[[str], list[Fare]]
     patience: int = 15        # seconds to keep waiting for results to appear
+    metro: bool = False       # accepts metro codes (NYC, LON) as an origin
     note: str = ""
 
 
@@ -211,10 +212,10 @@ def read_skyscanner(text: str) -> list[Fare]:
 
 
 SITES: list[Site] = [
-    Site("google", "Google Flights", google_url, read_google, patience=30),
-    Site("kayak", "Kayak", kayak_url, read_kayak, patience=70,
+    Site("google", "Google Flights", google_url, read_google, patience=30, metro=True),
+    Site("kayak", "Kayak", kayak_url, read_kayak, patience=70, metro=True,
          note="search polls; under ~35s the page is still filling in"),
-    Site("momondo", "Momondo", momondo_url, read_kayak, patience=70,
+    Site("momondo", "Momondo", momondo_url, read_kayak, patience=70, metro=True,
          note="same engine as Kayak"),
     Site("expedia", "Expedia", expedia_url, read_expedia, patience=60),
     Site("skyscanner", "Skyscanner", skyscanner_url, read_skyscanner, patience=55),

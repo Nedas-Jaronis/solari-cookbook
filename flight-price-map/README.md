@@ -26,16 +26,65 @@ cheapest by airport (all sites)       cheapest by site (JFK-LHR only)
   LCY  $314  Kayak     +$122            Priceline  $295    +$23
 ```
 
-Two findings, and the first is much larger than the second:
+**The honest number here is $12, not $80.** Gatwick came in $80 under
+Heathrow, but you do not need this tool to learn that: Google's own results
+page said *"Fly to LGW for $204"* and Kayak's said *"Fly nonstop to LGW and
+save $111."* Checking nearby airports is a feature both leaders already ship.
 
-- **Flying into Gatwick instead of Heathrow saved $80** — the same trip, an
-  airport 25 miles away, and invisible to anyone who searched only the airport
-  they had in mind.
-- **The site you search matters by about $23** on an identical route. Momondo
-  and Kayak share a search engine and still quote differently.
+What no single site did was find the $192. The cheaper airport and the cheaper
+site were two different discoveries, and each site only makes the first one —
+about its own inventory. Beating the best hint any one site gave was worth
+**$12**. That is a smaller claim and it survives someone opening Google Flights
+to check.
+
+The second finding stands on its own: **the site you search is worth about $23**
+on an identical route. Momondo and Kayak share a search engine and still quote
+differently.
 
 Fares move constantly, so treat any specific number as a direction to look
 rather than a quote. The gaps are the durable part.
+
+## Is the advertised price real?
+
+Results pages are full of prices for searches you have not run — a cheaper
+airport in a banner, a strip of nearby dates, a "from" price per airline. Each
+is a promise, and no comparison site will tell you whether its own promises
+hold. `verify.py` runs two waves of browsers: one to collect every advertised
+price, then one to run all of those searches at once and see what comes back.
+
+We expected to catch teaser prices that evaporate on click. **They did not.**
+
+![Advertised against delivered, eight claims](shots/teasers-light.png)
+
+```
+8/8 advertised prices held.  5 exact to the dollar, 3 cheaper than advertised.
+
+  Kayak    STN: Stansted $252   ->  $215   -37   holds
+  Kayak    LTN: Luton    $256   ->  $221   -35   holds
+  Momondo  LCY: London City $334 -> $323   -11   holds
+  Momondo  LGW: Gatwick  $203   ->  $203    +0   holds
+  ...
+```
+
+**The first version of this test said otherwise, and it was our bug.** It
+reported Momondo advertising $175 and delivering $192 — a broken promise. But
+that sidebar price sits beside a list containing JFK, EWR *and* LGA, so it is a
+promise about all of New York, not about JFK. Holding it to a JFK-only search
+manufactured a gap that was never there. Testing metro-wide claims against a
+metro-wide search — the reading most favourable to the site — the gap vanished.
+
+The negative result is worth more than the finding we went looking for: it says
+these sites' teaser prices are honest, and it says the methodology is careful
+enough to have caught itself being unfair.
+
+Skyscanner is the gap. It carries the richest claims — a seven-day price strip,
+each day a testable promise — and it walls us, so those six claims go
+uncollected.
+
+```bash
+python verify.py --from JFK --to LHR --date 2026-10-15
+python teaserboard.py         # -> teasers.html
+```
 
 ## Run it
 
@@ -120,10 +169,14 @@ picks it up.
 
 ```
 compare.py     the fan-out: sites x airports x countries, in parallel
+verify.py      two waves: collect advertised prices, then test every one
+claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
 airports.py    metro-area airport groups (LON -> LHR LGW STN LTN LCY)
 common.py      shared types, money parsing, block and empty-page detection
 dashboard.py   results.json -> dashboard.html
+teaserboard.py teasers.json -> teasers.html
+theme.py       the shared look: tokens, type, chart and table styles
 parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot the dashboard in both themes

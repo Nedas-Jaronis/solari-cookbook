@@ -18,6 +18,8 @@ from common import HERE
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--page", default="preview.html")
+    ap.add_argument("--name", default="dashboard",
+                    help="basename for the screenshots in shots/")
     ap.add_argument("--width", type=int, default=1100)
     ap.add_argument("--height", type=int, default=1400)
     args = ap.parse_args()
@@ -34,7 +36,7 @@ def main() -> None:
                 color_scheme=theme)
             page.goto(url)
             page.wait_for_timeout(1200)      # let the webfonts land
-            out = shots / f"dashboard-{theme}.png"
+            out = shots / f"{args.name}-{theme}.png"
             page.screenshot(path=str(out), full_page=True)
             print(f"{theme:>5}  {out}")
             page.close()
