@@ -13,7 +13,9 @@ first.
 """
 
 import argparse
+import glob
 import json
+import pathlib
 from collections import defaultdict
 
 import airports
@@ -21,6 +23,19 @@ import itineraries
 import sky
 import theme
 from common import HERE
+
+
+def discover() -> list[str]:
+    """Every run file on disk, newest search last.
+
+    Listing them by hand meant a new date was priced and then silently left
+    out of the page, which is a worse failure than a missing file: the page
+    looks complete and is not.
+    """
+    named = ["results.json", "countries.json", "roundtrip.json"]
+    extra = sorted(pathlib.Path(p).name
+                   for p in glob.glob(str(HERE / "run-*.json")))
+    return [n for n in named if (HERE / n).exists()] + extra
 
 CITY = {"LHR": "Heathrow", "LGW": "Gatwick", "STN": "Stansted",
         "LTN": "Luton", "LCY": "London City", "JFK": "New York JFK",
@@ -51,6 +66,20 @@ form.finder {
   font-family:inherit; padding:3px 0 0; width:100%;
 }
 .cell input:focus, .cell select:focus { outline:none; }
+/* Native select chrome is a different widget on every platform and none of
+   them match this page, so the arrow is ours and drawn in the ink colour. */
+select {
+  appearance:none; -webkit-appearance:none; cursor:pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-size:5px 5px, 5px 5px;
+  background-position:calc(100% - 10px) center, calc(100% - 5px) center;
+  background-repeat:no-repeat;
+  padding-right:22px !important;
+}
+select::-ms-expand { display:none; }
+select option { background:var(--panel); color:var(--ink); }
 .cell:focus-within { background:var(--raise); }
 .go {
   border:0; cursor:pointer; background:var(--ink); color:var(--ground);
@@ -127,6 +156,18 @@ form.finder {
 .pill:focus-visible, .save:focus-visible { outline:2px solid var(--accent);
                                            outline-offset:2px; }
 .tally { margin-left:auto; font-size:13px; color:var(--ink-3); }
+.controls.refine { margin-top:-4px; gap:10px 12px; }
+.sel { display:inline-flex; flex-direction:column; gap:3px;
+       background:var(--panel); border:1px solid var(--rule);
+       border-radius:8px; padding:6px 12px 7px; }
+.sel span { font-family:"IBM Plex Mono", monospace; font-size:9.5px;
+            letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+.sel select { border:0; background-color:transparent; color:var(--ink);
+              font:inherit; font-size:13.5px; padding:0 22px 0 0; }
+.sel:focus-within { border-color:var(--accent); }
+.plus { font-family:"IBM Plex Mono", monospace; font-size:10px;
+        color:var(--warn); vertical-align:super; margin-left:2px;
+        letter-spacing:.04em; }
 
 .flights { display:flex; flex-direction:column; gap:10px; }
 .flight { display:grid; grid-template-columns:1fr auto; gap:8px 22px;
@@ -272,17 +313,50 @@ TEMPLATE = """__HEAD__
   <div class="controls">
     <div class="group"><span class="k">Stops</span>
       <button class="pill" data-filter="stops" data-value="any" aria-pressed="true">Any</button>
+      <button class="pill" data-filter="stops" data-value="1" aria-pressed="false">1 or fewer</button>
       <button class="pill" data-filter="stops" data-value="0" aria-pressed="false">Nonstop</button>
     </div>
     <div class="group"><span class="k">Land at</span><span id="airports"></span></div>
-    <div class="group"><span class="k">Sort</span>
-      <button class="pill" data-filter="sort" data-value="price" aria-pressed="true">Cheapest</button>
-      <button class="pill" data-filter="sort" data-value="minutes" aria-pressed="false">Fastest</button>
-      <button class="pill" data-filter="sort" data-value="depart_at" aria-pressed="false">Earliest</button>
-    </div>
     <button class="pill" data-filter="saved" data-value="1" aria-pressed="false"
       id="savedonly">Saved only</button>
     <span class="tally" id="tally"></span>
+  </div>
+
+  <div class="controls refine">
+    <label class="sel"><span>Take off</span>
+      <select id="f-depart">
+        <option value="any">Any time</option>
+        <option value="0-6">Red-eye, before 6am</option>
+        <option value="6-12">Morning, 6am to noon</option>
+        <option value="12-18">Afternoon, noon to 6pm</option>
+        <option value="18-24">Evening, after 6pm</option>
+      </select></label>
+    <label class="sel"><span>Land</span>
+      <select id="f-arrive">
+        <option value="any">Any time</option>
+        <option value="0-6">Before 6am</option>
+        <option value="6-12">Morning</option>
+        <option value="12-18">Afternoon</option>
+        <option value="18-24">Evening</option>
+      </select></label>
+    <label class="sel"><span>Airline</span>
+      <select id="f-airline"><option value="any">Any airline</option></select></label>
+    <label class="sel"><span>Journey under</span>
+      <select id="f-max">
+        <option value="any">Any length</option>
+        <option value="480">8 hours</option>
+        <option value="720">12 hours</option>
+        <option value="1080">18 hours</option>
+        <option value="1440">24 hours</option>
+      </select></label>
+    <label class="sel"><span>Sort by</span>
+      <select id="f-sort">
+        <option value="price">Cheapest</option>
+        <option value="minutes">Shortest</option>
+        <option value="depart_at">Earliest take-off</option>
+        <option value="arrive_at">Earliest landing</option>
+      </select></label>
+    <button class="pill" id="reset">Clear</button>
   </div>
 
   <div class="flights" id="flights"></div>
@@ -327,7 +401,17 @@ let saved = loadSaved();
 
 const PAGE = 20;
 const state = {trip: null, stops: "any", airport: "all", sort: "price",
-               saved: false, shown: PAGE};
+               saved: false, shown: PAGE,
+               depart: "any", arrive: "any", airline: "any", max: "any"};
+const REFINE = {depart: "f-depart", arrive: "f-arrive", airline: "f-airline",
+                max: "f-max", sort: "f-sort"};
+const within = (mins, window) => {
+  if (window === "any") return true;
+  if (mins === null || mins === undefined) return false;
+  const [from, to] = window.split("-").map(Number);
+  const hour = mins / 60;
+  return hour >= from && hour < to;
+};
 const idOf = f => `${f.destination}|${f.airline}|${f.depart_at}|${f.minutes}`;
 
 /* ---------- landing ---------- */
@@ -400,11 +484,37 @@ document.getElementById("back").addEventListener("click", () => {
   location.hash = "";
 });
 
+for (const [key, id] of Object.entries(REFINE)) {
+  document.getElementById(id).addEventListener("change", e => {
+    state[key] = e.target.value;
+    state.shown = PAGE;
+    renderFlights();
+  });
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  Object.assign(state, {depart: "any", arrive: "any", airline: "any",
+                        max: "any", sort: "price", stops: "any",
+                        airport: "all", saved: false, shown: PAGE});
+  for (const [key, id] of Object.entries(REFINE)) {
+    document.getElementById(id).value = state[key];
+  }
+  document.querySelectorAll(".pill[data-filter]").forEach(p =>
+    p.setAttribute("aria-pressed",
+      (p.dataset.filter === "stops" && p.dataset.value === "any") ||
+      (p.dataset.filter === "airport" && p.dataset.value === "all")));
+  renderFlights();
+});
+
 /* ---------- results ---------- */
 function visible() {
   return state.trip.flights.filter(f =>
-    (state.stops === "any" || f.stops === 0) &&
+    (state.stops === "any" || (f.stops !== null && f.stops <= +state.stops)) &&
     (state.airport === "all" || f.destination === state.airport) &&
+    (state.airline === "any" || f.airline === state.airline) &&
+    (state.max === "any" || (f.minutes || 0) <= +state.max) &&
+    within(f.depart_at, state.depart) &&
+    within(f.arrive_at, state.arrive) &&
     (!state.saved || saved.has(idOf(f)))
   ).sort((a, b) => (a[state.sort] ?? 1e9) - (b[state.sort] ?? 1e9));
 }
@@ -461,6 +571,11 @@ function renderTrip() {
     <span><b>${t.airports}</b> airports around the destination</span>
     <span><b>${t.searches}</b> searches in <b>${t.seconds}s</b></span>`;
 
+  const airlines = [...new Set(t.flights.map(f => f.airline).filter(Boolean))].sort();
+  document.getElementById("f-airline").innerHTML =
+    `<option value="any">Any airline</option>` + airlines.map(a =>
+      `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+
   const codes = [...new Set(t.flights.map(f => f.destination))].sort();
   document.getElementById("airports").innerHTML =
     [["all", "Any"], ...codes.map(c => [c, c])].map(([v, label]) =>
@@ -476,10 +591,12 @@ function legRow(f, back) {
   const dur = back ? f.back_duration : f.duration;
   const stp = back ? f.back_stops : f.stops;
   const where = back ? f.origin : f.destination;
+  const over = back ? f.back_arrive_next_day : f.arrive_next_day;
   return `<div class="legrow${back ? " back" : ""}">
     ${f.back_depart ? `<span class="way">${back ? "Back" : "Out"}</span>` : ""}
     <span class="times">${esc(dep)}${arr ?
-      `<span class="arrow">&rarr;</span>${esc(arr)}` : ""}</span>
+      `<span class="arrow">&rarr;</span>${esc(arr)}${over ?
+        `<span class="plus" title="lands the next day">+${over}</span>` : ""}` : ""}</span>
     <span class="leg">${esc(air || "")}${dur ?
       `<span class="dot">&middot;</span>${esc(dur)}` : ""}
       ${stp === null || stp === undefined ? "" :
@@ -541,6 +658,12 @@ function route() {
     state.stops = params.get("stops") === "0" ? "0" : "any";
     state.airport = "all"; state.sort = "price";
     state.saved = false; state.shown = PAGE;
+    state.depart = "any"; state.arrive = "any";
+    state.airline = "any"; state.max = "any";
+    for (const [key, id] of Object.entries(REFINE)) {
+      const el = document.getElementById(id);
+      if (el) el.value = state[key];
+    }
     document.querySelectorAll(".pill[data-filter]").forEach(p =>
       p.setAttribute("aria-pressed",
         (p.dataset.filter === "stops" && p.dataset.value === state.stops) ||
@@ -570,14 +693,14 @@ def label_for(code: str) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--runs", nargs="+",
-                    default=["results.json", "countries.json",
-                             "roundtrip.json"])
+    ap.add_argument("--runs", nargs="+", default=None,
+                    help="run files to read; defaults to every one on disk")
     ap.add_argument("--out", default="trip.html")
     ap.add_argument("--board-url", default="",
                     help="link to the operator's board, if it is published")
     ap.add_argument("--standalone", action="store_true")
     args = ap.parse_args()
+    args.runs = args.runs or discover()
 
     runs = []
     for name in args.runs:
@@ -647,7 +770,10 @@ def main() -> None:
     data = {
         "trips": trips,
         "places": places,
-        "dates": [{"iso": t["date"], "label": t["date_label"]} for t in trips],
+        # One entry per date, not per trip: a date priced both one way and
+        # return would otherwise appear twice in the same dropdown.
+        "dates": [{"iso": iso, "label": label} for iso, label in
+                  sorted({(t["date"], t["date_label"]) for t in trips})],
         "airport_names": CITY,
     }
 

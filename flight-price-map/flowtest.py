@@ -12,7 +12,9 @@ telling the truth when the underlying run changes.
 """
 
 import argparse
+import glob
 import json
+import pathlib
 import sys
 
 from patchright.sync_api import sync_playwright
@@ -21,12 +23,25 @@ import itineraries
 from common import HERE
 
 
+def discover() -> list[str]:
+    """Every run file on disk, newest search last.
+
+    Listing them by hand meant a new date was priced and then silently left
+    out of the page, which is a worse failure than a missing file: the page
+    looks complete and is not.
+    """
+    named = ["results.json", "countries.json", "roundtrip.json"]
+    extra = sorted(pathlib.Path(p).name
+                   for p in glob.glob(str(HERE / "run-*.json")))
+    return [n for n in named if (HERE / n).exists()] + extra
+
+
 def expected(runs: list[str]) -> dict:
     loaded = [json.loads((HERE / r).read_text(encoding="utf-8"))
               for r in runs if (HERE / r).exists()]
     flights = itineraries.collect(loaded)
-    oneway = [f for f in flights if not f["ret"]]
-    ret = [f for f in flights if f["ret"]]
+    oneway = [f for f in flights if not f["ret"] and f["date"] == DATE]
+    ret = [f for f in flights if f["ret"] and f["date"] == DATE]
     return {
         "total": len(oneway),
         "nonstop": sum(1 for f in oneway if f["stops"] == 0),
@@ -39,6 +54,7 @@ def expected(runs: list[str]) -> dict:
 
 # The trip id spells out the trip type, so a one-way link can never open a
 # return search by accident.
+DATE = "2026-10-15"
 ONEWAY = "#/jfk-lon-2026-10-15-ow"
 RETURN = "#/jfk-lon-2026-10-15-rt"
 
@@ -46,10 +62,10 @@ RETURN = "#/jfk-lon-2026-10-15-rt"
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--page", default="preview.html")
-    ap.add_argument("--runs", nargs="+",
-                    default=["results.json", "countries.json",
-                             "roundtrip.json"])
+    ap.add_argument("--runs", nargs="+", default=None,
+                    help="run files to read; defaults to every one on disk")
     args = ap.parse_args()
+    args.runs = args.runs or discover()
 
     want = expected(args.runs)
     url = (HERE / args.page).resolve().as_uri()
@@ -79,6 +95,7 @@ def main() -> int:
                         ("New York", "Stansted")]:
             page.goto(url); page.wait_for_timeout(350)
             page.fill("#from", frm); page.fill("#to", to)
+            page.select_option("#when", DATE)
             page.click(".go"); page.wait_for_timeout(450)
             check(f"{frm!r} -> {to!r}",
                   page.eval_on_selector("#results", "e=>!e.hidden"), True)
@@ -86,6 +103,7 @@ def main() -> int:
         print("\n-- the answer --")
         page.goto(url); page.wait_for_timeout(350)
         page.fill("#from", "New York JFK"); page.fill("#to", "London")
+        page.select_option("#when", DATE)
         page.click(".go"); page.wait_for_timeout(600)
         check("url carries the search", page.evaluate("location.hash"),
               ONEWAY)
@@ -118,11 +136,31 @@ def main() -> int:
             ".flight .tag:last-child",
             "els=>[...new Set(els.map(e=>e.textContent))].join()"), "LHR")
         page.click('.pill[data-value="all"]'); page.wait_for_timeout(200)
-        page.click('.pill[data-value="price"]'); page.wait_for_timeout(250)
+        page.select_option("#f-sort", "price"); page.wait_for_timeout(250)
         prices = page.eval_on_selector_all(
             ".flight .amount",
             "els=>els.map(e=>+e.textContent.replace(/[^0-9]/g,''))")
         check("cheapest first", prices == sorted(prices), True)
+
+        print("\n-- refining --")
+        page.select_option("#f-depart", "18-24"); page.wait_for_timeout(250)
+        evening = page.eval_on_selector("#tally", "e=>e.textContent")
+        check("evening departures narrow the list",
+              evening != f"{want['total']} of {want['total']} flights", True)
+        check("and every remaining flight leaves in the evening",
+              page.eval_on_selector_all(
+                  ".flight .legrow:first-child .times",
+                  "els=>els.every(e=>/^(6|7|8|9|10|11):\\d\\d PM/.test(e.textContent.trim()))"),
+              True)
+        page.select_option("#f-max", "480"); page.wait_for_timeout(250)
+        check("journey length narrows it further",
+              page.eval_on_selector("#tally", "e=>e.textContent") != evening, True)
+        airlines = page.eval_on_selector_all("#f-airline option", "e=>e.length")
+        check("airline list is built from the trip", airlines > 3, True)
+        page.click("#reset"); page.wait_for_timeout(300)
+        check("Clear puts everything back",
+              page.eval_on_selector("#tally", "e=>e.textContent"),
+              f"{want['total']} of {want['total']} flights")
 
         print("\n-- saving --")
         page.click(".flight .save"); page.wait_for_timeout(200)
@@ -138,6 +176,7 @@ def main() -> int:
         print("\n-- choosing nonstop before searching --")
         page.goto(url); page.wait_for_timeout(350)
         page.fill("#from", "New York JFK"); page.fill("#to", "London")
+        page.select_option("#when", DATE)
         page.select_option("#stops", "0")
         page.click(".go"); page.wait_for_timeout(600)
         check("pre-filtered to nonstop",
@@ -163,6 +202,7 @@ def main() -> int:
         print("\n-- a return trip --")
         page.goto(url); page.wait_for_timeout(350)
         page.fill("#from", "New York JFK"); page.fill("#to", "London")
+        page.select_option("#when", DATE)
         page.select_option("#trip", "return")
         page.click(".go"); page.wait_for_timeout(700)
         check("opens the return search", page.evaluate("location.hash"),

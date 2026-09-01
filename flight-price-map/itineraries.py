@@ -9,7 +9,7 @@ key and the status code.
 import re
 
 # "8:45 AM", "10:40 pm", "8:45am"
-CLOCK = re.compile(r"^(\d{1,2}):(\d{2})\s*([ap])m$", re.I)
+CLOCK = re.compile(r"^(\d{1,2}):(\d{2})\s*([ap])m(?:\s*\+(\d))?$", re.I)
 # "6 hr 55 min", "7h 00m", "6 hours 55 minutes", "7 hr"
 SPAN = re.compile(r"(\d+)\s*h(?:r|ours?)?(?:\s*(\d+)\s*m(?:in|inutes?)?)?", re.I)
 
@@ -53,6 +53,12 @@ def clock(value: str | None) -> int | None:
     if match.group(3).lower() == "p":
         hour += 12
     return hour * 60 + int(match.group(2))
+
+
+def day_offset(value: str | None) -> int:
+    """How many days later the flight lands, from a trailing '+1'."""
+    match = CLOCK.match((value or "").strip())
+    return int(match.group(4)) if match and match.group(4) else 0
 
 
 def show_time(mins: int | None, fallback: str | None) -> str | None:
@@ -136,6 +142,9 @@ def collect(runs: list[dict]) -> list[dict]:
                         "depart": dep,
                         "depart_at": clock(dep),
                         "arrive": fare.get("arrive"),
+                        "arrive_at": clock(fare.get("arrive")),
+                        "arrive_next_day": day_offset(fare.get("arrive")),
+                        "back_arrive_next_day": day_offset(fare.get("back_arrive")),
                         "duration": fare.get("duration"),
                         "minutes": dur,
                         "stops": stops,

@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass, asdict
 
 PRICE = re.compile(r"^([$£€₹¥₩])\s?([\d,]+)$")
-TIME_RANGE = re.compile(r"^\d{1,2}:\d{2}\s?(AM|PM)$", re.I)
+TIME_RANGE = re.compile(r"^\d{1,2}:\d{2}\s?(AM|PM)(\+\d)?$", re.I)
 DURATION = re.compile(r"^\d+\s*hr(\s*\d+\s*min)?$", re.I)
 ROUTE = re.compile(r"^[A-Z]{3}[–-][A-Z]{3}$")
 

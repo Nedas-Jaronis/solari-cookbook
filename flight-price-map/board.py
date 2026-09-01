@@ -416,20 +416,21 @@ def main() -> None:
 
     comp, ctry, teas = (payload(args.compare), payload(args.countries),
                         payload(args.teasers))
-    base = comp or ctry or teas
+    rt = payload(args.roundtrip)
+    base = comp or ctry or teas or rt
     if not base:
         raise SystemExit("No run data found. Run compare.py first.")
 
     names = {}
-    for src in (comp, ctry, teas):
+    for src in (comp, ctry, teas, rt):
         names.update(src.get("site_names", {}))
 
     data = {
         "asked": f"{base.get('origin')}-{base.get('destination')}",
         "site_names": names,
-        "seconds": round(sum(s.get("seconds", 0) for s in (comp, ctry, teas)
+        "seconds": round(sum(s.get("seconds", 0) for s in (comp, ctry, teas, rt)
                              if s)),
-        "compare": comp.get("results", []),
+        "compare": comp.get("results", []) + rt.get("results", []),
         "countries": ctry.get("results", []),
         "teasers": teas.get("checked", []),
     }
@@ -437,6 +438,7 @@ def main() -> None:
     when = " · ".join(filter(None, [
         f"fares read {comp['generated_at'][:16]}" if comp else "",
         f"countries {ctry['generated_at'][:16]}" if ctry else "",
+        f"return {rt['generated_at'][:16]}" if rt else "",
         f"teasers {teas['generated_at'][:16]}" if teas else "",
     ]))
     route = (f"{base.get('origin')} &rarr; {base.get('destination')} &middot; "

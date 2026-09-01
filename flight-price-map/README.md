@@ -91,6 +91,26 @@ python verify.py --from JFK --to LHR --date 2026-10-15
 python teaserboard.py         # -> teasers.html
 ```
 
+## Holes closed on the way
+
+An audit turned up four things nothing was watching:
+
+- **`+1` was being thrown away.** Kayak marks a next-day arrival on 41 of 50
+  fares and we stored none of them, so a flight landing 6:20 AM *tomorrow*
+  read as landing this morning. Kept now, and shown on the card.
+- **`board.py --roundtrip` was a dead argument** -- declared, never read, so
+  the board silently left round trips out while looking complete.
+- **Nothing tested the readers.** Every parser fault here has been silent, and
+  `flowtest.py` only covers the UI. `parsertest.py` now holds them to committed
+  fixtures, one check per bug that actually shipped.
+- **Run files were listed by hand**, so a newly priced date was silently
+  omitted from the page -- which looks complete and is not. They are discovered
+  from disk now.
+
+Still open and worth knowing: nothing guards against a run coming back in a
+currency other than USD once non-US egress is in play. `compare.py` warns, the
+pages do not.
+
 ## Round trips
 
 Round trips were not merely untested; they were **silently wrong**. The Kayak
@@ -334,6 +354,7 @@ parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot a page in both themes
 flowtest.py    dev tool: drive the traveller flow end to end
+parsertest.py  dev tool: hold the readers to fixtures in fixtures/
 proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```

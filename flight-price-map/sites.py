@@ -113,6 +113,9 @@ def read_google(text: str) -> list[Fare]:
         for f in parse.summarise(text)["flights"]])
 
 
+# The trailing "+1" is not decoration: it is the difference between landing
+# tomorrow morning and landing this morning, and dropping it silently tells a
+# traveller the wrong day.
 KAYAK_TIMES = re.compile(
     r"^(\d{1,2}:\d{2}\s?[ap]m)\s*[–-]\s*(\d{1,2}:\d{2}\s?[ap]m)(\+\d)?$", re.I)
 
@@ -162,7 +165,8 @@ def read_kayak(text: str) -> list[Fare]:
             times = KAYAK_TIMES.match(segment[0])
             legs.append({
                 "airline": segment[1] if len(segment) > 1 else None,
-                "depart": times.group(1), "arrive": times.group(2),
+                "depart": times.group(1),
+                "arrive": times.group(2) + (times.group(3) or ""),
                 "duration": next((w for w in segment if DURATION.match(w)), None),
                 "stops": next((w for w in segment if STOPS.match(w)), None),
             })
