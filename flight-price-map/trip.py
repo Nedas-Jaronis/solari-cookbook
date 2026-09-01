@@ -481,7 +481,7 @@ function stillWidening(detail) {
 }
 
 const codeOf = value => {
-  const inParens = String(value).match(/[(]([A-Za-z]{3})[)]\s*$/);
+  const inParens = String(value).match(/[(]([A-Za-z]{3})[)]\\s*$/);
   if (inParens) return inParens[1].toUpperCase();
   const bare = String(value).trim().toUpperCase();
   if (/^[A-Z]{3}$/.test(bare)) return bare;
