@@ -53,6 +53,21 @@ body {
   font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
   font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
 }
+/* The window's own scrollbar is a grey slab from somebody else's design system
+   and it stands against the page the whole time you are reading. Thin, in the
+   page's own ink, and clipped to the content box so the one rule works over
+   any surface -- the window, a wide table, a menu. */
+html { scrollbar-width:thin; scrollbar-color:var(--rule) transparent; }
+::-webkit-scrollbar { width:11px; height:11px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background:transparent; }
+::-webkit-scrollbar-thumb {
+  background:var(--rule); border-radius:999px;
+  border:3px solid transparent; background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background:var(--ink-3); background-clip:content-box;
+}
+
 .wrap { max-width:1020px; margin:0 auto; padding:32px 20px 72px; }
 .mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
 .num { font-variant-numeric:tabular-nums; text-align:right; }

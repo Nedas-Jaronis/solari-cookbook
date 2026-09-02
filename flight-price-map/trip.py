@@ -141,15 +141,23 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
 .options .none { color:var(--ink-3); padding:10px 11px; cursor:default; }
 
 /* A default scrollbar is a grey slab from another design system. */
-.options, .cal-grid { scrollbar-width:thin;
-                      scrollbar-color:var(--rule) transparent; }
-.options::-webkit-scrollbar { width:9px; }
-.options::-webkit-scrollbar-track { background:transparent; }
-.options::-webkit-scrollbar-thumb {
-  background:var(--rule); border-radius:9px;
-  border:3px solid var(--panel);       /* inset, so it reads as a slim bar */
+.options, .menu, .cal-grid { scrollbar-width:thin;
+                             scrollbar-color:var(--rule) transparent; }
+.options::-webkit-scrollbar, .menu::-webkit-scrollbar { width:9px; }
+.options::-webkit-scrollbar-track,
+.menu::-webkit-scrollbar-track { background:transparent; }
+.options::-webkit-scrollbar-thumb,
+.menu::-webkit-scrollbar-thumb {
+  background:var(--rule); border-radius:999px;
+  /* Inset, so it reads as a slim bar. Clipped to the content box against a
+     transparent border rather than painted with the panel colour, so the same
+     rule works on any surface. */
+  border:3px solid transparent; background-clip:content-box;
 }
-.options::-webkit-scrollbar-thumb:hover { background:var(--ink-3); }
+.options::-webkit-scrollbar-thumb:hover,
+.menu::-webkit-scrollbar-thumb:hover {
+  background:var(--ink-3); background-clip:content-box;
+}
 
 /* ---- our own calendar ----
    The browser's picker panel is chrome: no stylesheet reaches it, so on a
@@ -1177,6 +1185,23 @@ document.getElementById("scrollcue").addEventListener("click", () => {
    only takes over the picking, and sets the value back through the element so
    every existing listener fires as it always did. If the script never runs,
    the native menu is still there and still works. */
+/* Only ever one of them open. Two menus hanging over each other reads as a
+   bug, and the second one you reached for is always the one you meant. Held as
+   the closer for whichever is open rather than as the element, so nothing has
+   to go hunting through the document to put it away. */
+let shutOpen = null;
+const shutAnyMenu = () => { if (shutOpen) shutOpen(); };
+/* Clicking a select cancels the mousedown so the operating system does not
+   open its own list, which also means the select never takes focus and never
+   blurs. So the click that lands anywhere else is what closes it. */
+document.addEventListener("mousedown", e => {
+  if (!e.target.closest(".sel, .cell.chooser")) shutAnyMenu();
+});
+/* Escape closes the open one wherever the keyboard happens to be pointing. */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && shutOpen) shutAnyMenu();
+});
+
 function ownMenu(sel) {
   const host = sel.closest(".sel, .cell");
   if (!host) return;
@@ -1195,8 +1220,22 @@ function ownMenu(sel) {
     const row = menu.querySelector('[aria-selected="true"]');
     if (row) row.scrollIntoView({block: "nearest"});
   };
-  const open = () => { at = sel.selectedIndex; menu.hidden = false; draw(); };
-  const shut = () => { menu.hidden = true; };
+  const open = () => {
+    shutAnyMenu();                      // whatever was open is not any more
+    at = sel.selectedIndex;
+    menu.hidden = false;
+    draw();
+    shutOpen = shut;
+    // Cancelling the mousedown stops the native list, and stops the select
+    // taking focus with it, so the keys never reach it -- Escape did nothing.
+    // preventScroll because focusing the control is not a reason to move the
+    // page under someone who has just opened a menu on it.
+    sel.focus({preventScroll: true});
+  };
+  const shut = () => {
+    menu.hidden = true;
+    if (shutOpen === shut) shutOpen = null;
+  };
   const take = i => {
     if (i < 0 || i >= sel.options.length) return;
     sel.selectedIndex = i;
