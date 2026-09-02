@@ -35,6 +35,7 @@ import asyncio
 import json
 import mimetypes
 import os
+import pathlib
 import sqlite3
 import threading
 import time
@@ -49,9 +50,18 @@ import sites as siteslib
 import trips as tripslib
 from common import HERE, Query, load_env
 
-DB = HERE / "cache.db"
+DB = pathlib.Path(os.environ.get("FARE_DB", HERE / "cache.db"))
 QUICK_SITES = ["google", "kayak", "momondo", "expedia"]
-CACHE_TTL = 45 * 60          # fares barely move inside this; re-asking is waste
+CACHE_TTL = int(os.environ.get("FARE_CACHE_TTL", 45 * 60))
+
+# On a public URL the limit is not the code, it is other people. One search is
+# four to thirty browsers against sites that push back; left open, a handful of
+# visitors would spend a month's credit in an afternoon and get us blocked
+# besides. These are deliberately generous for one person planning one trip and
+# mean for anyone else.
+PER_IP_HOUR = int(os.environ.get("FARE_PER_IP_HOUR", 10))
+FRESH_PER_IP_HOUR = int(os.environ.get("FARE_FRESH_PER_IP_HOUR", 3))
+GLOBAL_PER_DAY = int(os.environ.get("FARE_GLOBAL_PER_DAY", 200))
 
 
 # --------------------------------------------------------------------------
@@ -89,6 +99,44 @@ def recall(db, key: str) -> tuple[dict | None, float]:
 LOCK = threading.Lock()
 JOBS: dict[str, dict] = {}
 JOBS_LOCK = threading.Lock()
+
+SEEN: dict[str, list[float]] = {}
+SPENT: dict[str, object] = {}
+BUDGET_LOCK = threading.Lock()
+
+
+def budget(who: str, fresh: bool) -> str | None:
+    """Book one search against the limits. Returns why not, or None to go.
+
+    A cached answer never reaches here, so these counters measure the only
+    thing that actually costs anything: browsers launched.
+    """
+    now = time.time()
+    today = time.strftime("%Y-%m-%d")
+    with BUDGET_LOCK:
+        if SPENT.get("day") != today:
+            SPENT.clear()
+            SPENT["day"] = today
+            SPENT["count"] = 0
+        if SPENT["count"] >= GLOBAL_PER_DAY:
+            return ("This has used its searches for today. Anything already "
+                    "looked up is still here; new routes come back tomorrow.")
+
+        recent = [t for t in SEEN.get(who, []) if now - t < 3600]
+        if len(recent) >= PER_IP_HOUR:
+            return (f"That is {PER_IP_HOUR} searches in an hour from here, "
+                    f"which is the limit. Try again shortly.")
+
+        again = [t for t in SEEN.get(who + " fresh", []) if now - t < 3600]
+        if fresh and len(again) >= FRESH_PER_IP_HOUR:
+            return ("Re-checking is limited to a few an hour. The prices on "
+                    "screen are still the ones we read.")
+
+        SEEN[who] = recent + [now]
+        if fresh:
+            SEEN[who + " fresh"] = again + [now]
+        SPENT["count"] = SPENT["count"] + 1
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -194,8 +242,11 @@ class Handler(BaseHTTPRequestHandler):
             with JOBS_LOCK:
                 running = sum(1 for j in JOBS.values()
                               if j["phase"] not in ("done", "failed"))
-            return self.send_json(200, {"ok": True, "running": running,
-                                        "jobs": len(JOBS)})
+            with BUDGET_LOCK:
+                spent = SPENT.get("count", 0)
+            return self.send_json(200, {
+                "ok": True, "running": running, "jobs": len(JOBS),
+                "searches_today": spent, "daily_limit": GLOBAL_PER_DAY})
         return self.serve_file(path)
 
     def serve_file(self, path: str) -> None:
@@ -210,6 +261,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(blob)))
         self.end_headers()
         self.wfile.write(blob)
+
+    def caller(self) -> str:
+        """Who is asking, through whatever proxy sits in front of us."""
+        forwarded = self.headers.get("X-Forwarded-For", "")
+        return (forwarded.split(",")[0].strip()
+                or self.client_address[0] or "unknown")
 
     def do_POST(self) -> None:
         if urlparse(self.path).path != "/api/search":
@@ -256,6 +313,11 @@ class Handler(BaseHTTPRequestHandler):
                 JOBS[job_id] = base
             return self.send_json(200, {**base, "from_cache": True})
 
+        refused = budget(self.caller(), fresh)
+        if refused:
+            return self.send_json(429, {**base, "phase": "failed",
+                                        "error": refused, "from_cache": False})
+
         with JOBS_LOCK:
             JOBS[job_id] = base
         asyncio.run_coroutine_threadsafe(
@@ -271,7 +333,10 @@ def spin(loop: asyncio.AbstractEventLoop) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--port", type=int,
+                    default=int(os.environ.get("PORT", 8080)))
+    ap.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"),
+                    help="0.0.0.0 to accept connections from outside")
     ap.add_argument("--browsers", type=int, default=16,
                     help="most browsers at once; keep under the plan's limit")
     args = ap.parse_args()
@@ -289,10 +354,12 @@ def main() -> None:
     SOLARI = Solari(api_key=os.environ["SOLARI_API_KEY"])
     GATE = asyncio.Semaphore(args.browsers)
 
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    server = ThreadingHTTPServer((args.host, args.port), Handler)
     print(f"Fare Board on http://localhost:{args.port}")
     print(f"  {len(QUICK_SITES)} sites a search, {args.browsers} browsers at "
           f"once, {CACHE_TTL // 60} minute cache")
+    print(f"  limits: {PER_IP_HOUR} searches an hour per visitor, "
+          f"{FRESH_PER_IP_HOUR} of them re-checks, {GLOBAL_PER_DAY} a day")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

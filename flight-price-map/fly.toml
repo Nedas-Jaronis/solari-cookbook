@@ -1,0 +1,58 @@
+# Fly, because a search takes twenty seconds to two minutes and serverless
+# platforms cut functions off long before that. This is a small always-on
+# machine with a disk for the cache.
+#
+#   flyctl launch --no-deploy --copy-config     # once, to claim the app name
+#   flyctl volumes create fare_data --size 1
+#   flyctl secrets set SOLARI_API_KEY=slr_live_...
+#   flyctl deploy
+
+app = "fare-board"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  FARE_DB = "/data/cache.db"
+  # Public defaults: one person planning a trip never notices these.
+  FARE_PER_IP_HOUR = "10"
+  FARE_FRESH_PER_IP_HOUR = "3"
+  FARE_GLOBAL_PER_DAY = "200"
+  # Longer than the local default: on a shared URL, a stored answer serves
+  # more people, and fares do not move enough in three hours to matter.
+  FARE_CACHE_TTL = "10800"
+
+[[mounts]]
+  source = "fare_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Never scale to zero: a cold start would land in the middle of somebody's
+  # twenty-second search, and the in-memory job would go with it.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    # Searches are long and mostly waiting, so a single machine can hold a lot
+    # of them; the browser limit is what actually paces the work.
+    soft_limit = 40
+    hard_limit = 60
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[checks.up]
+  type = "http"
+  port = 8080
+  path = "/api/health"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "20s"

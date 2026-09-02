@@ -542,6 +542,8 @@ select option { background:var(--panel); color:var(--ink); }
             letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); }
 .field .v { font-size:16px; font-weight:500; margin-top:3px; }
 .snapshot { font-size:12.5px; color:var(--ink-3); margin:8px 2px 0; }
+.snapnote { margin:14px 2px 0; font-size:13px; color:var(--stage-ink-2);
+            max-width:52ch; }
 
 .pick { margin-top:24px; background:var(--panel); border:1px solid var(--rule);
         border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
@@ -688,6 +690,10 @@ select option { background:var(--panel); color:var(--ink); }
         <button class="go" type="submit">Find the fare</button>
       </form>
       <div id="nope"></div>
+      <p class="snapnote" id="snapnote" hidden>This page is a snapshot of
+        routes already priced. The live version searches any route on any
+        date &mdash; it needs a Solari key and a running service, so there is
+        a recording of it in the README.</p>
     </div>
     <button class="scrollcue" id="scrollcue" type="button">
       <i></i>How it works</button>
@@ -1230,6 +1236,10 @@ function combo(inputId, listId) {
 combo("from", "from-list");
 combo("to", "to-list");
 
+// Say plainly what this build can answer, rather than letting someone find
+// out by being refused.
+if (!D.live) document.getElementById("snapnote").hidden = false;
+
 /* ---------- the calendar ----------
    Bound to the real date input, so its value stays a plain YYYY-MM-DD and
    everything that reads or fills the field keeps working; only the panel is
@@ -1449,18 +1459,29 @@ async function liveSearch(from, to, date, ret, fresh) {
   working("Checking every site at once",
           `${from} to ${to}, ${date}. Four sites in parallel, about twenty seconds.`);
   progress.scrollIntoView({block: "center", behavior: "smooth"});
-  let job;
+  let job, res;
   try {
-    const res = await fetch("/api/search", {
+    res = await fetch("/api/search", {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body)});
     job = await res.json();
-    if (!res.ok) throw new Error(job.error || "the search was refused");
   } catch (err) {
     stopWorking();
+    document.getElementById("landing").hidden = false;
+    document.getElementById("results").hidden = true;
     document.getElementById("nope").innerHTML =
-      `<div class="nope">Could not reach the search service. Is
-       <code>python server.py</code> running? <b>${esc(err.message)}</b></div>`;
+      `<div class="nope">Could not reach the search service. If you are
+       running this yourself, is <code>python server.py</code> up?</div>`;
+    return;
+  }
+  // A refusal is not a failure to connect, and saying so would send someone
+  // to check the wrong thing. The service explains itself; pass that on.
+  if (!res.ok) {
+    stopWorking();
+    document.getElementById("landing").hidden = false;
+    document.getElementById("results").hidden = true;
+    document.getElementById("nope").innerHTML =
+      `<div class="nope">${esc(job.error || "That search was refused.")}</div>`;
     return;
   }
 
