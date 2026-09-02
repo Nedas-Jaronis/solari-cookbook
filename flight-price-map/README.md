@@ -176,9 +176,9 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)
+[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
 
-**[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)**
+**[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)**
 
 A screen recording of the live page against the live service: MCO to DEN and
 back, 1 to 7 January 2027, round trip, stops unrestricted. It ends on $368 on
