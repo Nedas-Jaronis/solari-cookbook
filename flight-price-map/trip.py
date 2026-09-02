@@ -107,6 +107,29 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
 .options li[aria-selected="true"] {
   background:var(--accent); color:var(--panel);
 }
+
+/* The menu a dropdown drops. Same panel, same corner, same highlight as the
+   airport list above -- the point of drawing it ourselves is that it can look
+   like the rest of the page, which the operating system's version never will.
+   Anchored to the control, and allowed to be wider than it: "Red-eye, before
+   6am" does not fit inside a filter capsule. */
+.menu {
+  position:absolute; left:0; top:calc(100% + 6px); z-index:60;
+  min-width:100%; width:max-content; max-width:min(320px, 78vw);
+  margin:0; padding:5px; list-style:none; max-height:264px; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--seam); border-radius:16px;
+  box-shadow:0 14px 34px rgba(8,14,26,.35);
+}
+/* Right-hand controls would otherwise hang their menu off the edge of the
+   page rather than off the end of the row. */
+.controls.refine > .sel:nth-last-child(-n+2) .menu,
+.finder > .cell:nth-last-child(-n+2) .menu { left:auto; right:0; }
+.menu li {
+  padding:8px 12px; border-radius:11px; cursor:pointer; font-size:14px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.menu li.on { font-weight:600; }
+.menu li[aria-selected="true"] { background:var(--accent); color:var(--panel); }
 .options li[aria-selected="true"] .code { color:var(--panel); opacity:.75; }
 .options li[aria-selected="true"] mark { color:var(--panel);
                                          text-decoration:underline; }
@@ -1143,13 +1166,89 @@ document.getElementById("scrollcue").addEventListener("click", () => {
   if (how) how.scrollIntoView({behavior: "smooth", block: "start"});
 });
 
+/* The one part of this page the stylesheet cannot reach is the list a <select>
+   drops down: it is drawn by the operating system, square and cramped and in
+   whatever colours Windows feels like, next to controls that are neither. The
+   page already draws its own airport suggestions and its own calendar, so it
+   draws its own menus too.
+
+   The <select> stays exactly where it is and keeps being the state -- it is
+   what the filters read, what reset writes to, and what the tests drive. This
+   only takes over the picking, and sets the value back through the element so
+   every existing listener fires as it always did. If the script never runs,
+   the native menu is still there and still works. */
+function ownMenu(sel) {
+  const host = sel.closest(".sel, .cell");
+  if (!host) return;
+  const menu = document.createElement("ul");
+  menu.className = "menu";
+  menu.hidden = true;
+  menu.setAttribute("role", "listbox");
+  host.appendChild(menu);
+  let at = -1;
+
+  const draw = () => {
+    menu.innerHTML = [...sel.options].map((o, i) =>
+      `<li role="option" data-i="${i}" aria-selected="${i === at}"
+           ${i === sel.selectedIndex ? 'class="on"' : ""}>${esc(o.textContent)}</li>`
+    ).join("");
+    const row = menu.querySelector('[aria-selected="true"]');
+    if (row) row.scrollIntoView({block: "nearest"});
+  };
+  const open = () => { at = sel.selectedIndex; menu.hidden = false; draw(); };
+  const shut = () => { menu.hidden = true; };
+  const take = i => {
+    if (i < 0 || i >= sel.options.length) return;
+    sel.selectedIndex = i;
+    sel.dispatchEvent(new Event("change", {bubbles: true}));
+    shut();
+    sel.focus();
+  };
+
+  // Opening ours means not opening theirs, and mousedown is the last moment
+  // that choice can still be made.
+  sel.addEventListener("mousedown", e => {
+    e.preventDefault();
+    menu.hidden ? open() : shut();
+  });
+  sel.addEventListener("keydown", e => {
+    if (menu.hidden) {
+      if (["Enter", " ", "ArrowDown", "ArrowUp"].includes(e.key)) {
+        e.preventDefault(); open();
+      }
+      return;
+    }
+    if (e.key === "Escape") { e.preventDefault(); shut(); return; }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); take(at); return; }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      at = Math.max(0, Math.min(sel.options.length - 1,
+                                at + (e.key === "ArrowDown" ? 1 : -1)));
+      draw();
+    }
+  });
+  sel.addEventListener("blur", () => setTimeout(shut, 120));
+  menu.addEventListener("mousedown", e => e.preventDefault());  // keep focus
+  menu.addEventListener("click", e => {
+    const row = e.target.closest("li");
+    if (row) take(Number(row.dataset.i));
+  });
+  menu.addEventListener("mousemove", e => {
+    const row = e.target.closest("li");
+    if (row && Number(row.dataset.i) !== at) { at = Number(row.dataset.i); draw(); }
+  });
+}
+
 for (const [key, id] of Object.entries(REFINE)) {
-  document.getElementById(id).addEventListener("change", e => {
+  const el = document.getElementById(id);
+  ownMenu(el);
+  el.addEventListener("change", e => {
     state[key] = e.target.value;
     state.shown = PAGE;
     renderFlights();
   });
 }
+for (const el of document.querySelectorAll(".cell.chooser select")) ownMenu(el);
 
 document.getElementById("reset").addEventListener("click", () => {
   Object.assign(state, {depart: "any", arrive: "any", airline: "any",
