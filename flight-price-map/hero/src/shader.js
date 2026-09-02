@@ -57,7 +57,7 @@ fn fbm(p: vec2f) -> f32 {
   var v = 0.0;
   var amp = 0.5;
   var q = p;
-  for (var i = 0; i < 3; i++) {
+  for (var i = 0; i < 4; i++) {
     v += amp * vnoise(q);
     q = q * 2.02 + vec2f(11.3, 7.7);
     amp *= 0.5;
@@ -80,39 +80,6 @@ fn heading(u: f32) -> vec2f {
   return normalize(ahead - path(u));
 }
 
-/* One slow aileron roll, begun once the aircraft is clear of the search form
-   and finished before it leaves the frame. Eased at both ends, because a roll
-   that starts at full rate looks like a dropped frame rather than a manoeuvre.
-   0.60 to 0.80 of the climb puts it in the upper third of the hero, above the
-   copy and above the form. */
-const ROLL_A: f32 = 0.58;
-const ROLL_B: f32 = 0.84;
-
-fn roll_phase(u: f32) -> f32 {
-  return clamp((u - ROLL_A) / (ROLL_B - ROLL_A), 0.0, 1.0);
-}
-
-fn roll_of(u: f32) -> f32 {
-  let t = roll_phase(u);
-  /* Eased in, flown at a constant rate, eased out. This is the integral of a
-     trapezoidal rate, written out in full because getting it wrong is silent:
-     an expression that merely looks right here overshoots the full turn and
-     leaves the aircraft sitting at an angle it never rolled to. At t = 1 this
-     is exactly 1 - e, which is why it is divided by 1 - e. */
-  let e = 0.14;
-  var f = t - e * 0.5;                       // the constant-rate middle
-  if (t < e) { f = t * t / (2.0 * e); }      // easing in
-  if (t > 1.0 - e) { f = (1.0 - e) - (1.0 - t) * (1.0 - t) / (2.0 * e); }
-  return (f / (1.0 - e)) * 6.2831853;
-}
-
-
-/* The roll is flown on the line. Pushing the aircraft round a helix as well
-   was a barrel roll on paper and looked staged on screen: at this size the
-   displacement reads as the aeroplane being shoved sideways rather than as a
-   manoeuvre. What sells a roll is the airframe turning over cleanly, so that
-   is all it does. */
-
 /* Fade in at the bottom, out at the top, so neither end of the climb pops. */
 fn seam(u: f32) -> f32 {
   return clamp(min(u / 0.12, (1.0 - u) / 0.14), 0.0, 1.0);
@@ -128,7 +95,6 @@ struct Plane {
   d: f32,          // distance to the silhouette, negative inside
   mat: f32,        // 0 fuselage, 1 wing, 2 engine, 3 tail surfaces
   round: f32,      // 1 on the spine of a rounded body, 0 at its edge
-  lie: f32,        // +1 this face is the aircraft's back, -1 its belly
 }
 
 fn seg(p: vec2f, a: vec2f, b: vec2f) -> f32 {
@@ -159,18 +125,53 @@ fn body_radius(h: f32) -> f32 {
   return 0.0122 * smoothstep(0.0, 0.18, h) * (1.0 - 0.60 * smoothstep(0.76, 1.0, h));
 }
 
-/* cs is the cosine of the roll: how much of the span still faces us, signed,
-   so it goes negative once the aircraft is past knife-edge and showing its
-   belly. The lifting surfaces are flat, so they foreshorten by it; the
-   fuselage and the nacelles are tubes and look the same however far round they
-   are, which is why they keep the unsquashed coordinate. */
+fn aircraft(q: vec2f) -> Plane {
+  let tail = vec2f(-0.078, 0.0);
+  let nose = vec2f(0.092, 0.0);
+  let ba = nose - tail;
+  let h = clamp(dot(q - tail, ba) / dot(ba, ba), 0.0, 1.0);
+  let r = body_radius(h);
+  let across = abs(q.y);
+  let fuse = seg(q, tail, nose) - r;
+
+  //                 root x  root chord  tip chord  sweep  span
+  let wing  = panel(q,  0.006,     0.056,     0.013,  0.44, 0.086);
+  let hstab = panel(q - vec2f(-0.064, 0.0), 0.0, 0.026, 0.008, 0.48, 0.030);
+  // In plan view a fin is a sliver on the centreline, so it is the same panel
+  // with the span squeezed almost to nothing.
+  let fin   = panel(q - vec2f(-0.058, 0.0), 0.0, 0.038, 0.014, 0.55, 0.007);
+
+  // Podded engines hang ahead of and below the leading edge, on the fuselage
+  // axis -- not across it, which is what made them look like barrels.
+  let nac = vec2f(q.x - 0.024, across - 0.033);
+  let engine = seg(nac, vec2f(-0.017, 0.0), vec2f(0.017, 0.0)) - 0.0068;
+
+  var d = fuse;
+  var mat = 0.0;
+  var round = 1.0 - clamp(across / max(r, 0.0001), 0.0, 1.0);
+
+  if (wing < d) {
+    d = wing; mat = 1.0;
+    // A wing is not flat to the eye: it is brightest inboard and falls away.
+    round = 0.75 - 0.45 * clamp(across / 0.086, 0.0, 1.0);
+  }
+  if (hstab < d) { d = hstab; mat = 3.0; round = 0.62; }
+  if (fin < d) { d = fin; mat = 3.0; round = 0.92; }
+  if (engine < 0.0 || engine < d) {
+    d = min(d, engine);
+    mat = 2.0;
+    round = 1.0 - clamp(abs(nac.y) / 0.0068, 0.0, 1.0);
+  }
+  return Plane(d, mat, round);
+}
+
 /* How much trail sits at p, for the aircraft currently at u. Walking the curve
    backwards is what a sprite trail cannot do: each sample knows its own age,
    so the plume widens and thins behind the aircraft instead of being a row of
    equally-sized stamps. */
 fn trail_at(p: vec2f, u: f32) -> f32 {
   var acc = 0.0;
-  let steps = 52;
+  let steps = 40;
   for (var i = 0; i < steps; i++) {
     let t = f32(i) / f32(steps - 1);
     // Started clear of the aircraft: sampling from u puts the freshest smoke
@@ -185,170 +186,84 @@ fn trail_at(p: vec2f, u: f32) -> f32 {
     let n = fbm(c * 9.0 + vec2f(params.time * 0.05, -params.time * 0.08));
     let drift = (n - 0.5) * (0.006 + age * 0.055);
     let d = length(p - c - vec2f(drift * 0.6, drift));
-    let width = 0.0078 + age * 0.082;
+    let width = 0.0055 + age * 0.085;
     let fall = pow(1.0 - age, 2.4);
     acc += fall * exp(-(d * d) / (width * width)) * 0.23;
   }
   return acc;
 }
 
-/* The aircraft as a solid object being turned over.
- *
- * Every part of it lives somewhere in the airframe's own frame -- x along the
- * fuselage, y across the span, z up -- and rolling by phi turns that frame
- * about x. Seen from above, a point at (y, z) lands at
- *
- *     screen y = y * cos(phi) - z * sin(phi)
- *
- * so flat surfaces foreshorten by the cosine, anything standing up swings out
- * on the sine, and skin at angle a around the fuselage tube arrives at
- * r * sin(a - phi) and faces us while cos(a - phi) is positive.
- *
- * Doing it that way is what stops the windows blinking. They are not switched
- * off when the aircraft passes inverted; they are at a fixed place on the hull
- * and they travel round the far side and back like everything else.
- */
-
-const WING_SPAN: f32 = 0.086;
-const FIN_H: f32 = 0.027;      // how far the fin stands above the spine
-const POD_Y: f32 = 0.033;      // engines out along the span
-const POD_Z: f32 = 0.017;      // and slung under it
-const WIN_A: f32 = 0.95;       // window rows, radians up from the waist
-
-fn aircraft(q: vec2f, phi: f32) -> Plane {
-  let cf = cos(phi);
-  let sf = sin(phi);
-  // Flat surfaces vanish edge-on, so they are never given exactly zero width.
-  let cs = select(min(cf, -0.075), max(cf, 0.075), cf >= 0.0);
-  let fs = select(min(sf, -0.075), max(sf, 0.075), sf >= 0.0);
-
-  let tail = vec2f(-0.078, 0.0);
-  let nose = vec2f(0.092, 0.0);
-  let ba = nose - tail;
-  let h = clamp(dot(q - tail, ba) / dot(ba, ba), 0.0, 1.0);
-  let r = body_radius(h);
-  let fuse = seg(q, tail, nose) - r;
-
-  // Wings and tailplane are one flat plate at z = 0.
-  let qw = vec2f(q.x, q.y / cs);
-  let wing  = panel(qw, 0.006, 0.056, 0.013, 0.44, WING_SPAN);
-  let hstab = panel(qw - vec2f(-0.064, 0.0), 0.0, 0.026, 0.008, 0.48, 0.030);
-
-  // The fin stands on the spine, so it sweeps to -sin and its area is the
-  // sine: broadside exactly when the wings are edge-on.
-  let qf = vec2f(q.x, (q.y + FIN_H * 0.5 * sf) / fs);
-  let fin = panel(qf - vec2f(-0.056, 0.0), 0.0, 0.046, 0.011, 0.95, FIN_H * 0.5);
-
-  // Pods hang below the wing, so they orbit rather than staying symmetric:
-  // both slide with the sine while their separation closes with the cosine.
-  let podMid = q.y + POD_Z * sf;
-  let nac = vec2f(q.x - 0.024, abs(podMid) - POD_Y * abs(cf));
-  let engine = seg(nac, vec2f(-0.017, 0.0), vec2f(0.017, 0.0)) - 0.0068;
-
-  var d = fuse;
-  var mat = 0.0;
-  // Which piece of skin is facing us, measured round the hull from the top.
-  var lie = 0.0;
-  var round = 1.0 - clamp(abs(q.y) / max(r, 0.0001), 0.0, 1.0);
-  if (d < 0.004) {
-    let beta = asin(clamp(q.y / max(r, 0.0001), -1.0, 1.0));
-    lie = cos(beta + phi);          // +1 looking at its back, -1 at its belly
-  }
-
-  let sc = max(abs(cs), 0.001);
-  let sfc = max(abs(fs), 0.001);
-  if (wing * sc < d) {
-    d = wing * sc; mat = 1.0;
-    round = 0.75 - 0.45 * clamp(abs(qw.y) / WING_SPAN, 0.0, 1.0);
-    lie = cf;                        // the plate's own upward face
-  }
-  if (hstab * sc < d) { d = hstab * sc; mat = 3.0; round = 0.62; lie = cf; }
-  if (fin * sfc < d) { d = fin * sfc; mat = 3.0; round = 0.92; lie = abs(sf); }
-  if (engine < 0.0 || engine < d) {
-    d = min(d, engine);
-    mat = 2.0;
-    round = 1.0 - clamp(abs(nac.y) / 0.0068, 0.0, 1.0);
-    lie = 0.45;
-  }
-  return Plane(d, mat, round, lie);
-}
-
-/* Draw the aircraft at u. */
+/* Draw the aircraft at u, returning premultiplied colour and coverage.
+   Shaded rather than stamped: the fuselage and nacelles are lit as tubes, the
+   wings catch a highlight along the leading edge, and the whole thing sits on
+   a soft shadow so it reads as an object in air rather than a decal. */
 fn aircraft_at(p: vec2f, u: f32) -> vec4f {
   var c = path(u);
   c.x *= params.aspect;
   let hd = heading(u);
-  let hv = normalize(vec2f(hd.x * params.aspect, hd.y));
+  let h = normalize(vec2f(hd.x * params.aspect, hd.y));
   let rel = p - c;
-  let q = vec2f(dot(rel, hv), dot(rel, vec2f(-hv.y, hv.x)));
+  let q = vec2f(dot(rel, h), dot(rel, vec2f(-h.y, h.x)));
 
-  let phi = roll_of(u);
-  let a = aircraft(q, phi);
+  let a = aircraft(q);
+  // Antialias against the pixel, not against a fixed number, so the aircraft
+  // stays crisp on a phone and on a 4K display alike.
   let px = fwidth(q.x) * 1.1 + 0.00002;
   let cover = 1.0 - smoothstep(-px, px, a.d);
   if (cover <= 0.001) {
+    // Still worth a breath of glow, which is what keeps it from looking cut out.
     let glow = exp(-max(a.d, 0.0) * 240.0) * 0.13;
     return vec4f(params.edge * glow, glow * 0.55);
   }
 
-  // Livery: pale on top, darker underneath, and the change between them is the
-  // cosine of where that skin is -- so the aircraft turns over rather than
-  // switching costume.
-  let top = smoothstep(-0.55, 0.55, a.lie);
-  let lift = pow(clamp(a.round, 0.0, 1.0), 0.65);
-  var shade = 0.42 + 0.58 * lift;
-  shade *= mix(0.62, 1.0, top);
+  // Sunlight from over the left shoulder, in aircraft space.
+  let sun = normalize(vec2f(-0.35, -0.94));
+  let lift = pow(clamp(a.round, 0.0, 1.0), 0.65);          // tube shading
+  let side = clamp(0.5 + 0.5 * dot(normalize(vec2f(0.0001, q.y)), sun), 0.0, 1.0);
+  var shade = 0.42 + 0.58 * lift * mix(0.55, 1.0, side);
 
   var col = params.body;
   if (a.mat < 0.5) {
-    col = mix(params.body, params.core, 0.30 * lift * top);
-    // Two window rows, at fixed places on the hull. A row is on screen at
-    // r*sin(a - phi) and faces us while cos(a - phi) > 0, so it slides across
-    // the fuselage, goes round the back and comes again -- no switch anywhere.
-    let beta = asin(clamp(q.y / max(body_radius(
-      clamp((q.x + 0.078) / 0.170, 0.0, 1.0)), 0.0001), -1.0, 1.0));
-    let ang = beta + phi;
-    let row = min(abs(ang - WIN_A), abs(ang + WIN_A));
-    let onRow = 1.0 - smoothstep(0.13, 0.30, row);
-    let dashes = step(0.55, fract(q.x * 118.0));
-    let cabin = step(-0.038, q.x) * step(q.x, 0.060);
-    col = mix(col, params.core, onRow * dashes * cabin * 0.9);
+    // Fuselage: a lighter crown, and a cabin window line down the side.
+    col = mix(params.body, params.core, 0.30 * lift);
+    let along = q.x;
+    let win = step(0.55, fract(along * 118.0)) *
+              step(abs(abs(q.y) - 0.0052), 0.0022) *
+              step(-0.038, along) * step(along, 0.060);
+    col = mix(col, params.core, win * 0.85);
   } else if (a.mat < 1.5) {
+    // Wing: darker than the body, with the leading edge picked out.
     col = mix(params.body, params.edge, 0.35);
-    col = mix(col * 0.68, col, top);     // underside of the wing
     let ledge = 1.0 - smoothstep(0.0, 0.010, abs(a.d));
-    col = mix(col, params.core, ledge * 0.18 * top);
+    col = mix(col, params.core, ledge * 0.18);
+    shade *= 0.94;
   } else if (a.mat < 2.5) {
-    col = mix(params.body, params.edge, 0.55) * 0.90;
+    // Engine: darker than the wing it hangs under, or it reads as a pipe
+    // lying on top of one. A bright fan face at the intake, and a shadow
+    // where the pod meets the surface behind it.
+    col = mix(params.body, params.edge, 0.55) * 0.72;
     let intake = 1.0 - smoothstep(0.0, 0.006, q.x - 0.036);
     col = mix(col, params.core * 0.55, intake * 0.55);
     let lip = 1.0 - smoothstep(0.0, 0.0035, abs(q.x - 0.040));
     col = mix(col, params.core, lip * 0.30);
   } else {
     col = mix(params.body, params.edge, 0.5);
-    col = mix(col * 0.75, col, top);
   }
 
   col *= shade;
+  // Rim light along the silhouette, which is what separates it from the sky.
   let rim = 1.0 - smoothstep(0.0, 0.0055, abs(a.d));
   col = mix(col, params.core, rim * 0.22);
 
-  // Tip lights ride the wings, so they foreshorten with them and never leave
-  // the aircraft. Red to port, green to starboard; both are lenses that show
-  // from above and below, so they do not fade with the roll.
-  let tipY = WING_SPAN * cos(phi);
-  let tipL = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, -tipY)));
-  let tipR = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, tipY)));
-  col += vec3f(1.0, 0.22, 0.22) * tipL * 0.9;
-  col += vec3f(0.25, 1.0, 0.45) * tipR * 0.9;
-
-  // The anti-collision beacon is on the spine, so it is hidden while the
-  // aircraft is on its back -- which is a cleaner way to read the roll than
-  // anything switching off.
+  // Navigation lights: red to port, green to starboard, and a strobe that
+  // fires twice a second the way a real anti-collision beacon does.
+  let tipL = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, -0.084)));
+  let tipR = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, 0.084)));
   let beat = fract(params.time * 1.1);
   let strobe = smoothstep(0.06, 0.0, beat) + smoothstep(0.14, 0.09, beat) * 0.7;
-  let beacon = 1.0 - smoothstep(0.0, 0.010, length(q - vec2f(-0.020, -0.5 * FIN_H * sin(phi))));
-  col += vec3f(1.0) * beacon * strobe * 0.8 * clamp(cos(phi), 0.0, 1.0);
+  col += vec3f(1.0, 0.22, 0.22) * tipL * 0.9;
+  col += vec3f(0.25, 1.0, 0.45) * tipR * 0.9;
+  col += vec3f(1.0) * (tipL + tipR) * strobe * 0.55;
 
   return vec4f(col, cover);
 }
