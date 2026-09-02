@@ -46,15 +46,15 @@ __STAGE_CSS__
 
 form.finder {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:30px;
-  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  background:var(--seam); border:0; border-radius:18px;
   box-shadow:var(--shadow);
 }
 /* No overflow:hidden -- the suggestion list has to escape the row. The corners
    are rounded on the end pieces instead. */
-.finder > :first-child { border-radius:9px 0 0 9px; }
-.finder > .go { border-radius:0 9px 9px 0; }
+.finder > :first-child { border-radius:17px 0 0 17px; }
+.finder > .go { border-radius:0 17px 17px 0; }
 @media (max-width:1023px) {
-  .finder > :first-child, .finder > .go { border-radius:9px; }
+  .finder > :first-child, .finder > .go { border-radius:17px; }
 }
 .cell { background:var(--panel); padding:11px 16px; flex:1 1 132px;
         min-width:0;
@@ -97,12 +97,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
   position:absolute; left:-1px; top:calc(100% + 5px); z-index:60;
   width:max-content; min-width:calc(100% + 2px); max-width:340px;
   margin:0; padding:5px; list-style:none; max-height:270px; overflow-y:auto;
-  background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+  background:var(--panel); border:1px solid var(--seam); border-radius:16px;
   box-shadow:0 14px 34px rgba(8,14,26,.35);
 }
 .options li {
   display:flex; align-items:baseline; gap:9px; padding:8px 11px;
-  border-radius:7px; cursor:pointer; font-size:14px; white-space:nowrap;
+  border-radius:11px; cursor:pointer; font-size:14px; white-space:nowrap;
 }
 .options li[aria-selected="true"] {
   background:var(--accent); color:var(--panel);
@@ -136,14 +136,14 @@ input[type="date"] { position:relative; }
 .cal {
   position:absolute; left:-1px; top:calc(100% + 5px); z-index:60;
   width:272px; padding:12px; background:var(--panel);
-  border:1px solid var(--rule); border-radius:12px;
+  border:1px solid var(--seam); border-radius:18px;
   box-shadow:0 16px 38px rgba(8,14,26,.35);
 }
 .cal-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .cal-month { flex:1; text-align:center; font-weight:600; font-size:14px; }
 .cal-nav {
   width:28px; height:28px; flex:0 0 auto; cursor:pointer; font-size:15px;
-  line-height:1; border:1px solid var(--rule); border-radius:7px;
+  line-height:1; border:1px solid var(--seam); border-radius:10px;
   background:var(--panel); color:var(--ink-2);
 }
 .cal-nav:hover:not(:disabled) { border-color:var(--ink-3); color:var(--ink); }
@@ -155,7 +155,7 @@ input[type="date"] { position:relative; }
                 padding-bottom:6px; text-transform:uppercase; }
 .cal-day {
   aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-  border:0; border-radius:8px; cursor:pointer; font:inherit; font-size:13px;
+  border:0; border-radius:10px; cursor:pointer; font:inherit; font-size:13px;
   font-variant-numeric:tabular-nums; background:none; color:var(--ink);
 }
 .cal-day:hover:not(:disabled) { background:var(--raise); }
@@ -224,14 +224,14 @@ select option { background:var(--panel); color:var(--ink); }
          text-transform:uppercase; letter-spacing:.05em; font-size:15px; }
 .how span { font-size:13.5px; color:var(--ink-2); }
 .proof { margin-top:38px; background:var(--panel); border:1px solid var(--rule);
-         border-radius:10px; padding:20px 24px; box-shadow:var(--shadow); }
+         border-radius:16px; padding:20px 24px; box-shadow:var(--shadow); }
 .proof .line { font-family:"IBM Plex Mono", monospace; font-size:14px;
                font-variant-numeric:tabular-nums; }
 .proof .line b { color:var(--accent); font-size:19px; }
 .proof p { margin:8px 0 0; color:var(--ink-2); font-size:14px; }
 
 .progress { margin-top:16px; background:var(--panel); border:1px solid var(--rule);
-            border-radius:10px; padding:16px 20px; box-shadow:var(--shadow);
+            border-radius:16px; padding:16px 20px; box-shadow:var(--shadow);
             display:flex; align-items:center; gap:14px; }
 .progress .spin { width:16px; height:16px; border-radius:50%; flex:0 0 auto;
                   border:2px solid var(--rule); border-top-color:var(--accent);
@@ -240,7 +240,7 @@ select option { background:var(--panel); color:var(--ink); }
 @media (prefers-reduced-motion: reduce) { .progress .spin { animation:none; } }
 .widening { display:flex; align-items:center; gap:10px; margin-top:12px;
             background:var(--raise); border:1px solid var(--rule);
-            border-radius:8px; padding:9px 14px; font-size:13px;
+            border-radius:999px; padding:9px 16px; font-size:13px;
             color:var(--ink-2); }
 .widening .spin { width:13px; height:13px; border-radius:50%; flex:0 0 auto;
                   border:2px solid var(--rule); border-top-color:var(--accent);
@@ -250,12 +250,12 @@ select option { background:var(--panel); color:var(--ink); }
 .progress small { display:block; color:var(--ink-3); font-size:12.5px;
                   margin-top:2px; }
 .nope { background:var(--panel); border:1px solid var(--warn);
-        border-radius:10px; padding:18px 22px; margin-top:18px;
+        border-radius:16px; padding:18px 22px; margin-top:18px;
         font-size:14.5px; color:var(--ink-2); }
 .nope b { color:var(--ink); }
 .offers { display:flex; flex-direction:column; align-items:flex-start;
           gap:6px; margin-top:12px; }
-.linkish { background:none; border:1px solid var(--rule); border-radius:6px;
+.linkish { background:none; border:1px solid var(--seam); border-radius:999px;
            padding:5px 11px; cursor:pointer; color:var(--accent);
            font:inherit; font-size:13.5px; text-align:left; }
 .linkish:hover { border-color:var(--accent); }
@@ -275,7 +275,7 @@ select option { background:var(--panel); color:var(--ink); }
 .recheck.spinning::before { animation:turn .8s linear infinite; }
 .search {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px; margin-top:20px;
-  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  background:var(--seam); border:0; border-radius:18px;
   overflow:hidden;
 }
 .field { background:var(--panel); padding:12px 18px; flex:1 1 150px; }
@@ -286,8 +286,8 @@ select option { background:var(--panel); color:var(--ink); }
 .snapnote { margin:14px 2px 0; font-size:13px; color:var(--stage-ink-2);
             max-width:52ch; }
 
-.pick { margin-top:24px; background:var(--panel); border:1px solid var(--rule);
-        border-radius:10px; box-shadow:var(--shadow); overflow:hidden; }
+.pick { margin-top:24px; background:var(--panel); border:1px solid var(--seam);
+        border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
 .pick-top { display:flex; flex-wrap:wrap; gap:26px; align-items:center;
             padding:24px 26px; }
 .pick-price { font-family:"IBM Plex Mono", monospace; font-weight:600;
@@ -309,7 +309,7 @@ select option { background:var(--panel); color:var(--ink); }
 .group .k { font-family:"IBM Plex Mono", monospace; font-size:10px;
             letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
 .pill { font-size:13px; padding:5px 13px; border-radius:999px; cursor:pointer;
-        border:1px solid var(--rule); background:var(--panel);
+        border:1px solid var(--seam); background:var(--panel);
         color:var(--ink-2); }
 .pill:hover { border-color:var(--ink-3); color:var(--ink); }
 .pill[aria-pressed="true"] { background:var(--ink); color:var(--ground);
@@ -324,14 +324,14 @@ select option { background:var(--panel); color:var(--ink); }
 .controls.refine {
   display:flex; flex-wrap:wrap; align-items:stretch; gap:1px;
   margin:14px 0 18px;
-  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  background:var(--seam); border:0; border-radius:18px;
   box-shadow:var(--shadow);
 }
-.controls.refine > :first-child { border-radius:9px 0 0 9px; }
-.controls.refine > :last-child { border-radius:0 9px 9px 0; }
+.controls.refine > :first-child { border-radius:17px 0 0 17px; }
+.controls.refine > :last-child { border-radius:0 17px 17px 0; }
 @media (max-width:1023px) {
   .controls.refine > :first-child,
-  .controls.refine > :last-child { border-radius:9px; }
+  .controls.refine > :last-child { border-radius:17px; }
 }
 /* Caption over field, stacked, exactly as .cell does it -- so the row sizes
    itself from its contents and lines up with the form above without anyone
@@ -368,8 +368,8 @@ select option { background:var(--panel); color:var(--ink); }
 
 .flights { display:flex; flex-direction:column; gap:10px; }
 .flight { display:grid; grid-template-columns:1fr auto; gap:8px 22px;
-          background:var(--panel); border:1px solid var(--rule);
-          border-radius:8px; padding:16px 20px; align-items:center; }
+          background:var(--panel); border:1px solid var(--seam);
+          border-radius:16px; padding:16px 20px; align-items:center; }
 .flight:hover { border-color:var(--ink-3); }
 .flight.best { border-color:var(--accent); }
 .legrow { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
@@ -386,7 +386,7 @@ select option { background:var(--panel); color:var(--ink); }
 .leg .dot { color:var(--ink-3); margin:0 7px; }
 .tag { font-family:"IBM Plex Mono", monospace; font-size:10.5px;
        letter-spacing:.08em; text-transform:uppercase; padding:2px 7px;
-       border-radius:4px; background:var(--raise); border:1px solid var(--rule);
+       border-radius:999px; background:var(--raise); border:1px solid var(--seam);
        color:var(--ink-2); }
 .tag.nonstop { background:var(--ok-bg); color:var(--ok);
                border-color:transparent; }
@@ -401,12 +401,12 @@ select option { background:var(--panel); color:var(--ink); }
              color:var(--ink-3); }
 .elsewhere .o { font-family:"IBM Plex Mono", monospace; }
 .elsewhere .over { color:var(--warn); }
-.save { background:none; border:1px solid var(--rule); border-radius:6px;
+.save { background:none; border:1px solid var(--seam); border-radius:999px;
         cursor:pointer; font-size:12px; padding:4px 10px; color:var(--ink-3); }
 .save:hover { color:var(--ink); border-color:var(--ink-3); }
 .save[aria-pressed="true"] { color:var(--accent); border-color:var(--accent); }
 .none { background:var(--panel); border:1px dashed var(--rule);
-        border-radius:8px; padding:30px; text-align:center; color:var(--ink-3); }
+        border-radius:16px; padding:30px; text-align:center; color:var(--ink-3); }
 
 @media (max-width:560px) {
   .flight { grid-template-columns:1fr; }

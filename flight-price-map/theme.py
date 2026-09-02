@@ -18,7 +18,7 @@ DARK = """
   color-scheme: dark;
   --ground:#0f1216; --panel:#171c22; --raise:#1d232a;
   --ink:#f1ede4; --ink-2:#a7b1bc; --ink-3:#7c8794;
-  --rule:#29313a; --rule-soft:#212831;
+  --rule:#29313a; --rule-soft:#212831; --seam:#0e1217;
   --accent:#f0a63c;
   --bar:#d98f2c; --bar-best:#f6d9a8;
   --ok:#5fcf95; --ok-bg:#12301f;
@@ -32,7 +32,7 @@ CSS = """
   color-scheme: light;
   --ground:#e9ecf0; --panel:#ffffff; --raise:#f6f7f9;
   --ink:#0e141b; --ink-2:#4d5966; --ink-3:#7b8794;
-  --rule:#d3d9e0; --rule-soft:#e4e8ed;
+  --rule:#d3d9e0; --rule-soft:#e4e8ed; --seam:#e7ebef;
   --accent:#b45c07;
   --bar:#c2670a; --bar-best:#0e141b;
   --ok:#0f7a4d; --ok-bg:#dff0e6;
