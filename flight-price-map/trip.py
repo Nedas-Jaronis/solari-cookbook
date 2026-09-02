@@ -957,25 +957,34 @@ if (D.live) {
 
 const progress = document.getElementById("progress");
 
+/* These are called on every poll, and rewriting innerHTML replaces the spinner
+   with a brand new element each time -- a CSS animation starts from zero on a
+   node that has just been created, so a spinner rebuilt every 1.5s never gets
+   anywhere. Build the furniture once, then only ever set the words in it. */
+function fill(host, markup) {
+  if (!host.firstElementChild) host.innerHTML = markup;
+  return host;
+}
 function working(headline, detail) {
   document.getElementById("finder").classList.add("busy");
   progress.hidden = false;
-  progress.innerHTML = `<span class="spin"></span><div><b>${esc(headline)}</b>
-    <small>${esc(detail || "")}</small></div>`;
+  fill(progress, `<span class="spin"></span><div><b></b><small></small></div>`);
+  progress.querySelector("b").textContent = headline;
+  progress.querySelector("small").textContent = detail || "";
 }
 function stopWorking() {
+  // Hidden, not emptied: emptying throws the spinner away, and the next search
+  // would build a fresh one and start its animation over again.
   progress.hidden = true;
-  progress.innerHTML = "";
   document.getElementById("finder").classList.remove("busy");
-  const strip = document.getElementById("widening");
-  strip.hidden = true;
-  strip.innerHTML = "";
+  document.getElementById("widening").hidden = true;
 }
 
 function stillWidening(detail) {
   const strip = document.getElementById("widening");
   strip.hidden = false;
-  strip.innerHTML = `<span class="spin"></span><span>${esc(detail)}</span>`;
+  fill(strip, `<span class="spin"></span><span></span>`);
+  strip.lastElementChild.textContent = detail;
 }
 
 const codeOf = value => {
@@ -1056,6 +1065,7 @@ async function liveSearch(from, to, date, ret, fresh) {
   }
 
   const started = Date.now();
+  let lastCount = -1;                 // how many sites had answered last render
   const timer = setInterval(async () => {
     let now;
     try { now = await (await fetch("/api/search/" + job.id)).json(); }
@@ -1069,7 +1079,13 @@ async function liveSearch(from, to, date, ret, fresh) {
       return;
     }
     const onResults = !document.getElementById("results").hidden;
-    if (now.trip) showJob(now);
+    // The service publishes after every site answers, so this fires while the
+    // rest are still out. Re-render only when the count has actually moved --
+    // otherwise the list is rebuilt every 1.5s under whoever is reading it.
+    if (now.trip && now.answered !== lastCount) {
+      lastCount = now.answered;
+      showJob(now);
+    }
     if (now.phase === "widening") {
       const also = (now.widening_to || []).join(", ");
       if (onResults || now.trip) {
@@ -1079,8 +1095,14 @@ async function liveSearch(from, to, date, ret, fresh) {
                 `Found ${now.answered} so far. Adding ${also}.`);
       }
     } else if (now.phase !== "done") {
-      working("Checking every site at once",
-              `${Math.round((Date.now() - started) / 1000)}s so far. Nothing to show until the first site answers.`);
+      const secs = Math.round((Date.now() - started) / 1000);
+      // `searched` counts what has landed, not what was asked, so it cannot be
+      // the denominator here -- it would climb alongside the numerator.
+      const said = now.answered
+        ? `${secs}s — ${now.answered} site${now.answered === 1 ? "" : "s"} in, the rest still out.`
+        : `${secs}s so far. Fares appear as each site answers.`;
+      if (onResults || now.trip) stillWidening(said);
+      else working("Checking every site at once", said);
     }
     if (now.phase === "done") {
       clearInterval(timer);

@@ -180,6 +180,23 @@ def publish(job_id: str, q: Query, results: list[dict], seconds: float,
     return run
 
 
+async def stream(job_id: str, q: Query, started: float, results: list[dict],
+                 coros: list, phase: str) -> None:
+    """Wait on all of them, but publish after each one lands.
+
+    Gathering the whole batch and publishing once meant the page saw nothing
+    until the *slowest* site finished -- four sites in parallel, and a wait as
+    long as the worst of them, staring at a spinner with fares already sitting
+    in memory. Widening was worse: twenty searches, one publish at the end.
+
+    `as_completed` yields them in the order they answer, so the first site to
+    come back puts fares on the screen and every one after it adds to them.
+    """
+    for landed in asyncio.as_completed(coros):
+        results.append(await landed)
+        publish(job_id, q, results, time.time() - started, phase)
+
+
 async def hunt(job_id: str, q: Query, nearby: bool, gate: asyncio.Semaphore,
                db) -> None:
     """Quick answer first, then widen to the nearby airports."""
@@ -189,12 +206,15 @@ async def hunt(job_id: str, q: Query, nearby: bool, gate: asyncio.Semaphore,
     def task(site, dest):
         return compare.Task(site, q.origin, dest, "us")
 
+    def go(t):
+        return compare.run(SOLARI, gate, site_gates[t.site], t, q.date, q.ret,
+                           False)
+
     try:
+        results: list[dict] = []
         quick = [task(s, q.destination) for s in QUICK_SITES]
-        results = list(await asyncio.gather(*(
-            compare.run(SOLARI, gate, site_gates[t.site], t, q.date, q.ret,
-                        False) for t in quick)))
-        publish(job_id, q, results, time.time() - started, "quick")
+        await stream(job_id, q, started, results, [go(t) for t in quick],
+                     "quick")
 
         others = [a for a in airports.expand(q.destination)
                   if a != q.destination]
@@ -203,9 +223,8 @@ async def hunt(job_id: str, q: Query, nearby: bool, gate: asyncio.Semaphore,
                 JOBS[job_id]["phase"] = "widening"
                 JOBS[job_id]["widening_to"] = others
             wide = [task(s, d) for d in others for s in QUICK_SITES]
-            results += list(await asyncio.gather(*(
-                compare.run(SOLARI, gate, site_gates[t.site], t, q.date, q.ret,
-                            False) for t in wide)))
+            await stream(job_id, q, started, results, [go(t) for t in wide],
+                         "widening")
 
         run = publish(job_id, q, results, time.time() - started, "done")
         remember(db, cache_key(q, nearby), run)
