@@ -441,7 +441,6 @@ __WHEN_CELLS__
   </div>
 
   <div id="progress" class="progress" hidden></div>
-  <div id="nope"></div>
 
   <div class="how">
     <div><b>Every site at once</b><span>Google Flights, Kayak, Momondo,

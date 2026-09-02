@@ -258,12 +258,15 @@ The honest list of where this stops, and what would move it:
   but six launch configurations got through none of the time, on both US and GB
   egress, hours after the last attempt. Not a rate limit and not the IP country.
   This one needs an answer from Solari rather than more tuning from us.
-- **Geolocation at proper scale.** Non-US egress works but is measurably less
-  reliable: four of twenty-four searches in the country sweep died with
-  `ERR_TUNNEL_CONNECTION_FAILED` against none from `us`. The finding that
-  country barely moves fares rests on one route on one day; testing it properly
-  means many countries across many routes, which is more egress and more
-  budget.
+- **Geolocation at proper scale.** Non-US egress connects fine — thirteen of
+  thirteen country and tier combinations came up in two to four seconds — but
+  it did worse when used. The sweep was 24 searches, three from each of eight
+  countries: all three US searches returned, four of the twenty-one non-US ones
+  did not (`ERR_TUNNEL_CONNECTION_FAILED` from `de` and `jp`, plus two that
+  loaded with no fares). Three searches per country proves nothing on its own,
+  which is exactly the problem — the finding that country barely moves fares
+  rests on one route on one day, and testing it properly means many countries
+  across many routes. More egress, more budget.
 - **Thin routes at volume.** The single most valuable finding — $141 of spread
   on Tampa–Barcelona against $23 on JFK–London — came from one search. Whether
   that holds is a question about hundreds of routes, and hundreds of routes is
@@ -474,9 +477,12 @@ identically, so it was not an API-shape mistake either. The lesson is only that
 a proxy outage and a missing entitlement are indistinguishable from the client
 side, and `python proxycheck.py` re-tests both in under a minute.
 
-Non-US egress is a little less reliable than US even when working: 4 of 24
-searches in the country sweep died with `ERR_TUNNEL_CONNECTION_FAILED` or an
-unfinished page, against none from `us`.
+Non-US egress is a little less reliable than US even when working. The sweep
+was 24 searches, three from each of eight countries: all three US searches
+returned, and **four of the twenty-one non-US ones did not** — two
+`ERR_TUNNEL_CONNECTION_FAILED` (`de`, `jp`) and two pages that loaded with no
+fares on them. Three per country is too thin to call a rate; it is enough to
+say the direction is the wrong one.
 
 ## What gets past an anti-bot wall
 

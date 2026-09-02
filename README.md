@@ -55,35 +55,85 @@ BOS -> LHR   24s   quick answer, Heathrow only
 the same search again    0.03s, from cache
 ```
 
+The live search runs locally, on your own key. It is deliberately not on a
+public URL: a search is about 1.2 browser-minutes, and a search button open to
+the internet spends a metered credit on strangers' behalf — which the recording
+above demonstrates for nothing. `Dockerfile` and `fly.toml` are in the repo for
+anyone who wants to host it anyway, with limits sized for that.
+
 There are also committed boards you can open straight from a clone, no key
 needed: [`trip.html`](flight-price-map/trip.html) for a traveller,
 [`board.html`](flight-price-map/board.html) for whoever ran it,
 [`teasers.html`](flight-price-map/teasers.html) for the advertised-price check.
 
-## Why cloud browsers
+## Where Solari is used
 
-Each of these was tested rather than assumed:
+Every price on the screen was read by a real Chromium in Solari's cloud. There
+is no scraping library here and no HTTP client pretending to be a browser —
+five of these six sites publish no API at all, so a browser is not a shortcut,
+it is the only door.
 
-- **No API exists.** Google Flights, Kayak and Momondo publish nothing. A
-  browser is not a shortcut here, it is the only door.
-- **The sites fight automation.** Skyscanner walls us; Expedia walls us
-  intermittently. Stealth and residential egress are load-bearing, not
-  decoration.
-- **Asking everything at once is the product.** Thirty searches in 113 seconds
-  against about eight minutes one after another.
+| Where | The call | Why it has to be a cloud browser |
+|---|---|---|
+| **Every fare read** | `launch(stealth=True, proxy=...)`, then ordinary Playwright | No API exists. Without stealth there is no project — Expedia and Skyscanner wall us even with it. |
+| **Reading as a local** | `proxy=ProxyRequest(country=…, tier="residential")` | The only way to ask whether a fare is different in Tokyo than in Ohio. |
+| **Proving where we stood** | `browser.proxy` → country, tier, timezone | Turns *"we searched from Japan"* from a claim into a fact the board can print. |
+| **Thirty searches at once** | many `launch()` calls in parallel | 113 seconds instead of eight minutes. This one is the product, not an optimisation. |
+| **Getting through walls** | `captcha`, `web_bot_auth`, `proxy="smart"`, all three tiers | Tested side by side in `bypass.py`, and reported even where the answer was no. |
+
+Deliberately **not** used: sandboxes, desktops, session recording, profiles.
+This is a read-the-page problem, not a run-code or drive-a-GUI one, and reaching
+for them to touch more of the SDK would be padding.
 
 The honest ceiling is blocking rather than engineering. Four sweeps by one
 person was enough to lose Skyscanner for a day, which is why the service caches
 hard and throttles per site.
 
-The live search runs locally, on your own key: the page above is a snapshot,
-and the recording shows a real search. It is deliberately not on a public URL —
-a search is about 1.2 browser-minutes, and a search button open to the internet
-spends a metered credit on strangers' behalf. `Dockerfile` and `fly.toml` are
-in the repo for anyone who wants to host it anyway, with limits sized for that.
+## Why it browses from the US only
 
-Where this still stops, and what would move it — Skyscanner's PerimeterX,
-geolocation at a scale worth trusting, thin routes in volume — is set out in
+To be clear about what is limited: Fare Board happily prices international
+*routes* — the recording above is Tampa to Barcelona. What is US-only is where
+it stands while it looks. Every search egresses from a US residential IP, so
+every price is the price a person in the US is shown.
+
+That is a real limit, because the same seat is not always the same price to a
+buyer in São Paulo. We ship it that way not because the rest of the world fails
+to connect — all thirteen country and tier combinations we tried came up in two
+to four seconds — but because of what happened when they were actually used.
+The country sweep ran 24 searches, three from each of eight countries. All
+three US searches came back. **Four of the twenty-one non-US ones did not:**
+two died with `ERR_TUNNEL_CONNECTION_FAILED` from Germany and Japan, and two
+loaded a page with no fares on it.
+
+Twenty-four searches is not a reliability study, and we are not claiming it is
+one — that is rather the point of item 2 below. But the direction is the wrong
+way, and this particular tool is unusually sensitive to it: a price comparison
+that quietly loses some of its searches does not report the cheapest fare, it
+reports the cheapest fare *it managed to read*, and it never tells you which
+one it missed. Better to say "US only" than to be confidently wrong in a
+direction nobody can see.
+
+So the international version is waiting on Solari, in three specific ways:
+
+1. **Non-US egress as steady as US under parallel load.** This is the whole
+   blocker. Twenty browsers going at once is the normal case here, not a stress
+   test.
+2. **Egress budget across many countries and many routes.** Our finding that
+   *where you browse barely moves the price* is real but thin: one route, one
+   day, seven countries. Confirming or killing it means hundreds of routes,
+   which is thousands of browsers.
+3. **Skyscanner.** It runs PerimeterX, and six launch configurations got
+   through none of the time on both US and GB egress. Outside the US it is one
+   of the sites people actually book on, so an international build without it
+   is missing a wall, not a nice-to-have.
+
+Currency is ours to fix, not Solari's: prices are forced to USD today so that a
+comparison is a comparison, and a real international build would show local
+currency with the conversion made explicit.
+
+
+The rest of the list — Priceline's missing itinerary detail, Kiwi's place
+slugs, thin routes at volume — is in
 [the write-up](flight-price-map/README.md#what-we-would-still-want-from-solari).
 
 ## What is in here

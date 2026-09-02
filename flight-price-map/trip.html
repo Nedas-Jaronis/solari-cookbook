@@ -258,16 +258,28 @@ body { overflow-x: clip; }
 }
 .stage canvas { position:absolute; inset:0; width:100%; height:100%;
                 display:block; }
-.stage .inner { position:relative; z-index:1; max-width:1020px; margin:0 auto;
+/* The form's popovers -- suggestion lists, the calendar -- live in here, so
+   this has to outrank everything else the hero draws. It used to tie with the
+   scroll cue at 1, and a tie is settled by document order, which put a
+   decorative button on top of the controls people are trying to click. */
+.stage .inner { position:relative; z-index:3; max-width:1020px; margin:0 auto;
                 padding:0 20px; width:100%; }
 .stage .copy { max-width:36rem; }
 .scrollcue { position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
-             z-index:1; display:flex; flex-direction:column-reverse;
+             z-index:0; display:flex; flex-direction:column-reverse;
              align-items:center; gap:8px; color:var(--stage-ink-2);
              font-family:"IBM Plex Mono", monospace; font-size:10px;
              letter-spacing:.18em; text-transform:uppercase; background:none;
              border:0; cursor:pointer; padding:6px 10px; }
 .scrollcue:hover { color:var(--stage-ink); }
+/* And while a list or the calendar is open it gets out of the way entirely,
+   so there is nothing behind the panel to read through it or reach for. */
+.stage:has(.options:not([hidden])) .scrollcue,
+.stage:has(.cal:not([hidden])) .scrollcue {
+  opacity:0; pointer-events:none;
+}
+.scrollcue { transition:opacity .16s ease; }
+@media (prefers-reduced-motion: reduce) { .scrollcue { transition:none; } }
 .scrollcue:focus-visible { outline:2px solid var(--stage-em);
                            outline-offset:3px; border-radius:6px; }
 .scrollcue i { width:1px; height:26px; background:currentColor; opacity:.5;
@@ -700,7 +712,6 @@ select option { background:var(--panel); color:var(--ink); }
   </div>
 
   <div id="progress" class="progress" hidden></div>
-  <div id="nope"></div>
 
   <div class="how">
     <div><b>Every site at once</b><span>Google Flights, Kayak, Momondo,
