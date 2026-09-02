@@ -193,6 +193,17 @@ JS = """
             y: k * k * ay + 2 * k * u * by + u * u * cy};
   };
 
+  // The silhouette is drawn centred on path(u), so a puff laid down at path(u)
+  // comes out of the middle of the fuselage. Lay it at the tail instead: back
+  // along the heading by half the silhouette's length.
+  const TAIL = CX * DOT;
+  const exhaust = u => {
+    const p = path(u), a = path(Math.min(u + 0.012, 1));
+    const dx = a.x - p.x, dy = a.y - p.y;
+    const d = Math.hypot(dx, dy) || 1;
+    return {x: p.x - dx / d * TAIL, y: p.y - dy / d * TAIL};
+  };
+
   const layer = (w, h) => {
     const c = document.createElement("canvas");
     c.width = Math.max(1, Math.round(w));
@@ -281,7 +292,7 @@ JS = """
       const age = (u - puff.u) / Math.max(u, 0.001);
       const alpha = puff.a * pal.smokeMax * Math.pow(1 - age, TRAIL_FADE) * seam;
       if (alpha < FAINT) break;
-      const at = path(puff.u);
+      const at = exhaust(puff.u);
       const r = puff.size * (1 + age * TRAIL_GROW);
       ctx.globalAlpha = alpha;
       ctx.drawImage(puffSprite,
