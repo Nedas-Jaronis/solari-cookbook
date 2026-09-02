@@ -15,8 +15,10 @@ means almost nobody knows what that check is actually worth. This measures it.
 
 ![Pricing Orlando to Denver across every site at once](flight-price-map/demo/demo.gif)
 
-Orlando to Denver and back, over New Year: **$368 on a Frontier nonstop, found
-on Expedia — three sites, eighteen flights, twenty-three seconds.**
+Orlando to Denver and back, MCO–DEN, 1 to 7 January 2027, any number of stops:
+**$368 on Frontier, found on Expedia — three sites, eighteen flights,
+twenty-three seconds.** The outbound is a 4h 23m nonstop; the cheapest fare
+happened to be one, which is not the same as having asked for one.
 
 Nothing in it is staged. Fares appear as each site answers rather than when the
 slowest one finishes, which is why the list fills in while you watch. Worth

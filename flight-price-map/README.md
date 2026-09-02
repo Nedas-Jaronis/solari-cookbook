@@ -178,9 +178,11 @@ Worth a look before it goes in a post.
 
 ![Pricing Orlando to Denver across every site at once](demo/demo.gif)
 
-A screen recording of the live page against the live service: Orlando to Denver
-and back over New Year, ending on a $368 Frontier nonstop found on Expedia --
-three sites, eighteen flights, twenty-three seconds.
+A screen recording of the live page against the live service: MCO to DEN and
+back, 1 to 7 January 2027, round trip, stops unrestricted. It ends on $368 on
+Frontier, found on Expedia -- three sites, eighteen flights, twenty-three
+seconds. The winning outbound is a 4h 23m nonstop, which the search did not ask
+for; it was simply the cheapest thing any site had.
 
 Nothing is staged, and the parts that did not go well are in it. The first
 search got one site back out of the four it asked and the page said so, before
