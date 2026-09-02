@@ -164,6 +164,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity:1; }
    page like this it always arrives looking like somebody else's. */
 input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
 input[type="date"] { position:relative; }
+/* Clicking the field lights one segment blue -- the browser offering to type
+   over the day. The calendar below is the editor here, so that offer is a lie,
+   and it lands the instant you press the field. Leave the segments looking
+   like the rest of the value.
+   The :focus goes on the input, not on the segment: the segment carries no
+   focus of its own, and hanging it there is why the obvious version of this
+   rule does nothing. */
+input[type="date"]:focus::-webkit-datetime-edit-day-field,
+input[type="date"]:focus::-webkit-datetime-edit-month-field,
+input[type="date"]:focus::-webkit-datetime-edit-year-field {
+  background-color:transparent; color:inherit; outline:none;
+}
+/* And a control is not prose. Pressing a caption, a day or a menu row should
+   press it, not start selecting words. The fares and flight times are left
+   alone, because those are worth copying. */
+.cell label, .sel span, .cal, .menu li, .options li,
+.pill, .clear, .cal-nav, .scrollcue {
+  -webkit-user-select:none; user-select:none;
+}
 .cal {
   position:absolute; left:-1px; top:calc(100% + 5px); z-index:60;
   width:272px; padding:12px; background:var(--panel);
