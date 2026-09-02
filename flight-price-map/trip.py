@@ -196,17 +196,17 @@ select option { background:var(--panel); color:var(--ink); }
 .cell.chooser:hover::after, .cell.chooser:focus-within::after {
   border-right-color:var(--accent); border-bottom-color:var(--accent);
 }
-.sel { position:relative; padding-right:28px; }
+/* Same chevron as the form's, at the same size and inset -- it is the same
+   control, so it gets the same arrow. */
 .sel::after {
-  content:""; position:absolute; right:12px; top:50%; width:6px; height:6px;
-  margin-top:-5px; pointer-events:none; transform:rotate(45deg);
+  content:""; position:absolute; right:15px; top:50%; width:7px; height:7px;
+  margin-top:-6px; pointer-events:none; transform:rotate(45deg);
   border-right:1.7px solid var(--ink-3); border-bottom:1.7px solid var(--ink-3);
   border-radius:0 0 2px 0; transition:border-color .15s;
 }
 .sel:hover::after, .sel:focus-within::after {
   border-right-color:var(--accent); border-bottom-color:var(--accent);
 }
-.sel select { padding-right:0; }
 .cell:focus-within { background:var(--raise); box-shadow:inset 0 -2px 0 var(--accent); }
 .go {
   border:0; cursor:pointer; background:var(--ink); color:var(--ground);
@@ -317,15 +317,51 @@ select option { background:var(--panel); color:var(--ink); }
 .pill:focus-visible, .save:focus-visible { outline:2px solid var(--accent);
                                            outline-offset:2px; }
 .tally { margin-left:auto; font-size:13px; color:var(--ink-3); }
-.controls.refine { margin-top:-4px; gap:10px 12px; }
-.sel { display:inline-flex; flex-direction:column; gap:3px;
-       background:var(--panel); border:1px solid var(--rule);
-       border-radius:8px; padding:6px 12px 7px; }
-.sel span { font-family:"IBM Plex Mono", monospace; font-size:9.5px;
-            letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
-.sel select { border:0; background-color:transparent; color:var(--ink);
-              font:inherit; font-size:13.5px; padding:0 22px 0 0; }
-.sel:focus-within { border-color:var(--accent); }
+/* The refine row is the search form again, one screen later, so it is built
+   the same way: one bar, hairline dividers made of the gap, a single outline
+   and a single shadow. It used to be five separate rounded boxes at a smaller
+   type scale, which read as a different control from a different page. */
+.controls.refine {
+  display:flex; flex-wrap:wrap; align-items:stretch; gap:1px;
+  margin:14px 0 18px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:10px;
+  box-shadow:var(--shadow);
+}
+.controls.refine > :first-child { border-radius:9px 0 0 9px; }
+.controls.refine > :last-child { border-radius:0 9px 9px 0; }
+@media (max-width:1023px) {
+  .controls.refine > :first-child,
+  .controls.refine > :last-child { border-radius:9px; }
+}
+/* Caption over field, stacked, exactly as .cell does it -- so the row sizes
+   itself from its contents and lines up with the form above without anyone
+   having to write a height down. */
+.sel { position:relative; flex:1 1 168px; min-width:0;
+       display:flex; flex-direction:column; justify-content:center;
+       background:var(--panel); border:0; border-radius:0;
+       padding:11px 34px 11px 16px; }
+/* "Journey under" is a long caption in a narrow box: one line and an ellipsis
+   rather than a wrap that pushes this row taller than the form. */
+.sel span { display:block; font-family:"IBM Plex Mono", monospace;
+            font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+            color:var(--ink-3);
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sel select {
+  flex:1; border:0; background:none; color:var(--ink); font-family:inherit;
+  font-size:16px; font-weight:500; line-height:1.35;
+  padding:3px 0 0; margin:0; width:100%; min-width:0;
+}
+.sel select:focus { outline:none; }
+.sel:focus-within { background:var(--raise);
+                    box-shadow:inset 0 -2px 0 var(--accent); }
+/* The end cap. Not the dark submit button the hero ends on -- this one throws
+   work away rather than starting it, so it stays quiet until you reach it. */
+.clear { border:0; border-radius:0; cursor:pointer; background:var(--panel);
+         color:var(--ink-3); font-family:"IBM Plex Mono", monospace;
+         font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+         padding:0 20px; flex:0 0 auto; transition:color .15s, background .15s; }
+.clear:hover { background:var(--raise); color:var(--ink); }
+.clear:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
 .plus { font-family:"IBM Plex Mono", monospace; font-size:10px;
         color:var(--warn); vertical-align:super; margin-left:2px;
         letter-spacing:.04em; }
@@ -523,7 +559,7 @@ __WHEN_CELLS__
         <option value="depart_at">Earliest take-off</option>
         <option value="arrive_at">Earliest landing</option>
       </select></label>
-    <button class="pill" id="reset">Clear</button>
+    <button class="clear" id="reset">Clear</button>
   </div>
 
   <div class="flights" id="flights"></div>

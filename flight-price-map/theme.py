@@ -215,8 +215,18 @@ footer code { font-family:"IBM Plex Mono", monospace; font-size:12.5px;
 
 
 def head(title: str) -> str:
-    """The opening of every page: name it, load the faces, paint the tokens."""
-    return f"<title>{title}</title>\n" \
+    """The opening of every page: name it, load the faces, paint the tokens.
+
+    The charset goes first and is not optional. These pages are written as
+    UTF-8 and the copy is full of em dashes, but nothing here declared an
+    encoding, so a browser was left to guess from the Content-Type header. The
+    local service sends none on a GET, which means Chrome fell back to
+    windows-1252 and every dash on the results page rendered as `a EUR "`.
+    Declaring it in the document fixes it everywhere at once -- served by
+    anything, or opened straight off disk with no server at all.
+    """
+    return '<meta charset="utf-8">\n' \
+           f"<title>{title}</title>\n" \
            f'<link rel="stylesheet" href="{FONTS}">\n' \
            f"<style>{CSS}</style>\n"
 

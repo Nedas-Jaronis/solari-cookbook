@@ -262,8 +262,14 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(404, {"error": "not found"})
         blob = target.read_bytes()
         self.send_response(200)
-        self.send_header("Content-Type",
-                         mimetypes.guess_type(str(target))[0] or "text/plain")
+        # Everything this serves is written as UTF-8, and guess_type says only
+        # "text/html". A browser handed text with no encoding guesses, and
+        # Chrome guesses windows-1252, which turned every em dash on the
+        # results page into mojibake. Say it rather than let it guess.
+        kind = mimetypes.guess_type(str(target))[0] or "text/plain"
+        if kind.startswith("text/") or kind == "application/javascript":
+            kind += "; charset=utf-8"
+        self.send_header("Content-Type", kind)
         self.send_header("Content-Length", str(len(blob)))
         self.end_headers()
         self.wfile.write(blob)
