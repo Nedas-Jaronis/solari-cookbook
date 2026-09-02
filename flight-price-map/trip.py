@@ -56,17 +56,21 @@ form.finder {
 @media (max-width:1023px) {
   .finder > :first-child, .finder > .go { border-radius:9px; }
 }
-.cell { background:var(--panel); padding:11px 16px; flex:1 1 140px;
+.cell { background:var(--panel); padding:11px 16px; flex:1 1 132px;
+        min-width:0;
         display:flex; flex-direction:column; justify-content:center; }
-.cell.narrow { flex:0 1 118px; }
-.cell.wide { flex:1.2 1 168px; }
+.cell.narrow { flex:0 1 112px; }
+.cell.date { flex:0 1 128px; }
+.cell.trip { flex:0 1 142px; }
+.cell.wide { flex:1.2 1 156px; }
 .cell label { font-family:"IBM Plex Mono", monospace; font-size:10px;
               letter-spacing:.16em; text-transform:uppercase;
               color:var(--ink-3); }
 .cell { position:relative; }
 .cell input, .cell select {
   border:0; background:none; color:var(--ink); font-size:16px; font-weight:500;
-  font-family:inherit; padding:3px 0 0; width:100%; line-height:1.35;
+  font-family:inherit; padding:3px 0 0; width:100%; min-width:0;
+  line-height:1.35;
 }
 .cell input:focus, .cell select:focus { outline:none; }
 /* The browser draws the calendar button as a dark glyph, which vanishes on a
@@ -174,8 +178,15 @@ select option { background:var(--panel); color:var(--ink); }
 /* A drawn chevron on the cell, rather than two gradient triangles on the
    select: the select cannot carry a pseudo-element, and stacked gradients go
    chunky at the sizes this row uses. */
-.cell.chooser { padding-right:34px; }
-.cell.chooser select { padding-right:0 !important; }
+/* The select covers the whole cell, so the entire box opens it rather than
+   only the few pixels the word sits on. The caption rides above it and lets
+   clicks through. */
+.cell.chooser { padding-right:34px; justify-content:flex-start; }
+.cell.chooser > label { position:relative; z-index:1; pointer-events:none; }
+.cell.chooser select {
+  position:absolute; inset:0; width:100%; height:100%;
+  padding:26px 34px 0 16px !important; margin:0; line-height:1.2;
+}
 .cell.chooser::after {
   content:""; position:absolute; right:15px; top:50%; width:7px; height:7px;
   margin-top:-6px; pointer-events:none; transform:rotate(45deg);
@@ -185,19 +196,22 @@ select option { background:var(--panel); color:var(--ink); }
 .cell.chooser:hover::after, .cell.chooser:focus-within::after {
   border-right-color:var(--accent); border-bottom-color:var(--accent);
 }
-.sel select {
-  background-image:
-    linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-size:4px 4px, 4px 4px;
-  background-position:calc(100% - 8px) center, calc(100% - 4px) center;
-  background-repeat:no-repeat;
+.sel { position:relative; padding-right:28px; }
+.sel::after {
+  content:""; position:absolute; right:12px; top:50%; width:6px; height:6px;
+  margin-top:-5px; pointer-events:none; transform:rotate(45deg);
+  border-right:1.7px solid var(--ink-3); border-bottom:1.7px solid var(--ink-3);
+  border-radius:0 0 2px 0; transition:border-color .15s;
 }
-.cell:focus-within { background:var(--raise); }
+.sel:hover::after, .sel:focus-within::after {
+  border-right-color:var(--accent); border-bottom-color:var(--accent);
+}
+.sel select { padding-right:0; }
+.cell:focus-within { background:var(--raise); box-shadow:inset 0 -2px 0 var(--accent); }
 .go {
   border:0; cursor:pointer; background:var(--ink); color:var(--ground);
   font-family:"Saira Condensed", sans-serif; text-transform:uppercase;
-  letter-spacing:.07em; font-weight:700; font-size:16px; padding:0 30px;
+  letter-spacing:.07em; font-weight:700; font-size:16px; padding:0 24px;
   flex:0 0 auto;
 }
 .go:hover { background:var(--accent); }
@@ -398,7 +412,7 @@ TEMPLATE = """__HEAD__
           <ul class="options" id="to-list" role="listbox" hidden></ul>
         </div>
 __WHEN_CELLS__
-        <div class="cell narrow chooser">
+        <div class="cell trip chooser">
           <label for="trip">Trip</label>
           <select id="trip" name="trip">
             <option value="oneway">One way</option>
@@ -624,6 +638,10 @@ function fit(panel, anchor) {
   }
 }
 
+// "London Heathrow (LHR)" -> "London Heathrow". The code stays visible in the
+// suggestion list, where it costs nothing, rather than in a field it overflows.
+const plainName = label => String(label).replace(/[ ]*[(][A-Za-z]{3}[)][ ]*$/, "");
+
 function combo(inputId, listId) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
@@ -656,7 +674,7 @@ function combo(inputId, listId) {
   };
   const take = i => {
     if (!items[i]) return;
-    input.value = items[i].label;
+    input.value = plainName(items[i].label);
     close();
   };
 
@@ -1302,11 +1320,11 @@ WHEN_STORED = """        <div class="cell chooser">
           <select id="when" name="when"></select>
         </div>"""
 
-WHEN_LIVE = """        <div class="cell">
+WHEN_LIVE = """        <div class="cell date">
           <label for="when">Depart</label>
           <input type="date" id="when" name="when" required>
         </div>
-        <div class="cell narrow chooser" id="retcell" hidden>
+        <div class="cell date" id="retcell" hidden>
           <label for="retdate">Returning</label>
           <input type="date" id="retdate" name="retdate">
         </div>"""
@@ -1399,9 +1417,11 @@ def main() -> None:
             .replace("__AGE__", theme.AGE)
             .replace("__WHEN_CELLS__", WHEN_LIVE if args.live else WHEN_STORED)
             .replace("__DEF_FROM__",
-                     tripslib.place_label("JFK") if args.live else lead["from_full"])
+                     tripslib.place_label("JFK").rsplit(" (", 1)[0] if args.live
+                     else lead["from_full"])
             .replace("__DEF_TO__",
-                     tripslib.place_label("BCN") if args.live else lead["to_label"])
+                     tripslib.place_label("BCN").rsplit(" (", 1)[0] if args.live
+                     else lead["to_label"])
             .replace("__PROOF_PRICE__", money_str(best["price"]))
             .replace("__PROOF_TEXT__", proof_text)
             .replace("__PROOF_SUB__", proof_sub)
