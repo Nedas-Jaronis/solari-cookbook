@@ -176,31 +176,33 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-![Searching a route it has never seen](demo/demo.gif)
+![Pricing Orlando to Denver across every site at once](demo/demo.gif)
 
-`demo.py` drives the live page against the live service and records what
-happens. Nothing is staged: it drops the route from the cache first so the
-recording shows a real search, and whatever the sites do during the take is
-what ends up in the file.
+A screen recording of the live page against the live service: Orlando to Denver
+and back over New Year, ending on a $368 Frontier nonstop found on Expedia --
+three sites, eighteen flights, twenty-three seconds.
+
+Nothing is staged, and the parts that did not go well are in it. The first
+search got one site back out of the four it asked and the page said so, before
+a re-check got three. Fares appear as each site answers rather than when the
+slowest finishes, which is why the list fills in while you watch.
+
+| | |
+|---|---|
+| `demo.mp4` | the whole recording, from typing the route to the re-check |
+| `demo.gif` | sixteen seconds of it, for the README |
+
+The gif is a slice of the mp4 and nothing else -- same frames, same speed, no
+cuts inside it. It is short because a gif of a full minute is too large to put
+at the top of a page, not because anything in the rest is worth hiding.
+
+`demo.py` is still here and still records a run end to end if you want one of
+your own:
 
 ```bash
 python server.py                     # in one terminal
 python demo.py --from TPA --to BCN --date 2026-12-08
 ```
-
-It writes three files, all of the same run:
-
-| | |
-|---|---|
-| `demo.webm` | the session exactly as it happened, straight off the browser |
-| `demo.mp4` | the same frames as H.264 — webm is the one format the places people post video will not take, and `yuv420p` + `+faststart` are what decide whether a phone plays it inline or shows a black rectangle |
-| `demo.gif` | the same run with the pacing changed |
-
-Only the gif is edited, and only in one way: the wait is filmed as a fixed
-handful of moments however long it takes, so twenty seconds of spinner plays
-back in two. A viewer needs to know the wait exists, not to sit through it --
-and a gif of a hundred spinner frames is too large to post anyway. The mp4 and
-the webm are the full length, spinner included.
 
 ## Live: any route, on request
 

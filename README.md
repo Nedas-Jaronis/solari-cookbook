@@ -13,17 +13,19 @@ and none of them tell you the airport an hour up the road is cheaper. Checking
 properly is a dozen tabs and twenty minutes, so almost nobody does it — which
 means almost nobody knows what that check is actually worth. This measures it.
 
-![Searching a route it has never seen](flight-price-map/demo/demo.gif)
+![Pricing Orlando to Denver across every site at once](flight-price-map/demo/demo.gif)
 
-Tampa to Barcelona, a route it had never priced: **10 seconds, $376**.
+Orlando to Denver and back, over New Year: **$368 on a Frontier nonstop, found
+on Expedia — three sites, eighteen flights, twenty-three seconds.**
 
-Nothing in that recording is staged — `demo.py` clears the route from the cache
-first, so what you are watching is a real search happening, and whatever the
-sites did during the take is what ended up in the file. What they did that take
-is worth saying plainly: it asked four sites and three of them failed to connect
-through the proxy, so every fare you see came from Google Flights alone. The
-page used to call that "4 booking sites checked"; it now says how many
-answered. The full-length version with the wait left in is
+Nothing in it is staged. Fares appear as each site answers rather than when the
+slowest one finishes, which is why the list fills in while you watch. Worth
+saying plainly: the first search in the full recording got one site back out of
+the four it asked, and the page said so — "1 booking site checked" — before a
+re-check got three. Sites refuse, and a price comparison that hides that is
+telling you the cheapest fare *it managed to read*, not the cheapest fare.
+
+The whole thing, from typing the route to the re-check, is
 [`demo.mp4`](flight-price-map/demo/demo.mp4).
 
 ## What it found
@@ -104,8 +106,9 @@ hard and throttles per site.
 ## Why it browses from the US only
 
 To be clear about what is limited: Fare Board happily prices international
-*routes* — the recording above is Tampa to Barcelona. What is US-only is where
-it stands while it looks. Every search egresses from a US residential IP, so
+*routes* — most of the findings on this page are Tampa to Barcelona and New
+York to London, and the live sweep prices eight routes across six continents.
+What is US-only is where it stands while it looks. Every search egresses from a US residential IP, so
 every price is the price a person in the US is shown.
 
 That is a real limit, because the same seat is not always the same price to a
