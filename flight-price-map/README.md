@@ -176,7 +176,7 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-[![Fare Board — click to watch it price MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
+[![Fare Board — click to watch it price MCO to DEN across every site at once](demo/thumbnail.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
 
 **[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)**
 
@@ -192,7 +192,7 @@ a re-check got three. Fares appear as each site answers rather than when the
 slowest finishes, which is why the list fills in while you watch.
 
 `demo.mp4` is the whole recording, from typing the route to the re-check, and
-`poster.png` is a frame from it. The poster is there because GitHub will not
+`thumbnail.png` is its opening frame. The poster is there because GitHub will not
 play a video that lives in a repository: a `<video>` tag is stripped out of a
 README by the sanitiser and `![](demo.mp4)` renders as a broken image, so the
 still is a link and you click it.
