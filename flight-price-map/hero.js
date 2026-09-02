@@ -79,6 +79,16 @@ fn heading(u: f32) -> vec2f {
   return normalize(ahead - path(u));
 }
 
+/* One slow aileron roll, begun once the aircraft is clear of the search form
+   and finished before it leaves the frame. Eased at both ends, because a roll
+   that starts at full rate looks like a dropped frame rather than a manoeuvre.
+   0.60 to 0.80 of the climb puts it in the upper third of the hero, above the
+   copy and above the form. */
+fn roll_of(u: f32) -> f32 {
+  let t = clamp((u - 0.60) / 0.20, 0.0, 1.0);
+  return smoothstep(0.0, 1.0, t) * 6.2831853;
+}
+
 /* Fade in at the bottom, out at the top, so neither end of the climb pops. */
 fn seam(u: f32) -> f32 {
   return clamp(min(u / 0.12, (1.0 - u) / 0.14), 0.0, 1.0);
@@ -124,7 +134,13 @@ fn body_radius(h: f32) -> f32 {
   return 0.0122 * smoothstep(0.0, 0.18, h) * (1.0 - 0.60 * smoothstep(0.76, 1.0, h));
 }
 
-fn aircraft(q: vec2f) -> Plane {
+/* cs is the cosine of the roll: how much of the span still faces us, signed,
+   so it goes negative once the aircraft is past knife-edge and showing its
+   belly. The lifting surfaces are flat, so they foreshorten by it; the
+   fuselage and the nacelles are tubes and look the same however far round they
+   are, which is why they keep the unsquashed coordinate. */
+fn aircraft(q: vec2f, cs: f32, sn: f32) -> Plane {
+  let qw = vec2f(q.x, q.y / cs);
   let tail = vec2f(-0.078, 0.0);
   let nose = vec2f(0.092, 0.0);
   let ba = nose - tail;
@@ -134,28 +150,32 @@ fn aircraft(q: vec2f) -> Plane {
   let fuse = seg(q, tail, nose) - r;
 
   //                 root x  root chord  tip chord  sweep  span
-  let wing  = panel(q,  0.006,     0.056,     0.013,  0.44, 0.086);
-  let hstab = panel(q - vec2f(-0.064, 0.0), 0.0, 0.026, 0.008, 0.48, 0.030);
+  let wing  = panel(qw, 0.006,     0.056,     0.013,  0.44, 0.086);
+  let hstab = panel(qw - vec2f(-0.064, 0.0), 0.0, 0.026, 0.008, 0.48, 0.030);
   // In plan view a fin is a sliver on the centreline, so it is the same panel
   // with the span squeezed almost to nothing.
-  let fin   = panel(q - vec2f(-0.058, 0.0), 0.0, 0.038, 0.014, 0.55, 0.007);
+  let fs = select(min(sn, -0.085), max(sn, 0.085), sn >= 0.0);
+  let qf = vec2f(q.x, (q.y - 0.017 * sn) / fs);
+  let fin   = panel(qf - vec2f(-0.058, 0.0), 0.0, 0.038, 0.016, 0.55, 0.017);
 
   // Podded engines hang ahead of and below the leading edge, on the fuselage
   // axis -- not across it, which is what made them look like barrels.
-  let nac = vec2f(q.x - 0.024, across - 0.033);
+  let nac = vec2f(q.x - 0.024, abs(q.y) - 0.033 * abs(cs));
   let engine = seg(nac, vec2f(-0.017, 0.0), vec2f(0.017, 0.0)) - 0.0068;
 
   var d = fuse;
   var mat = 0.0;
   var round = 1.0 - clamp(across / max(r, 0.0001), 0.0, 1.0);
 
-  if (wing < d) {
-    d = wing; mat = 1.0;
+  let span_scale = max(abs(cs), 0.001);
+  if (wing * span_scale < d) {
+    d = wing * span_scale; mat = 1.0;
     // A wing is not flat to the eye: it is brightest inboard and falls away.
-    round = 0.75 - 0.45 * clamp(across / 0.086, 0.0, 1.0);
+    round = 0.75 - 0.45 * clamp(abs(qw.y) / 0.086, 0.0, 1.0);
   }
-  if (hstab < d) { d = hstab; mat = 3.0; round = 0.62; }
-  if (fin < d) { d = fin; mat = 3.0; round = 0.92; }
+  if (hstab * span_scale < d) { d = hstab * span_scale; mat = 3.0; round = 0.62; }
+  let fin_scale = max(abs(fs), 0.001);
+  if (fin * fin_scale < d) { d = fin * fin_scale; mat = 3.0; round = 0.92; }
   if (engine < 0.0 || engine < d) {
     d = min(d, engine);
     mat = 2.0;
@@ -204,7 +224,13 @@ fn aircraft_at(p: vec2f, u: f32) -> vec4f {
   let rel = p - c;
   let q = vec2f(dot(rel, h), dot(rel, vec2f(-h.y, h.x)));
 
-  let a = aircraft(q);
+  let roll = roll_of(u);
+  let facing = cos(roll);      // how much of the span still faces us
+  // Never exactly zero: at knife-edge the aircraft is a sliver, not a
+  // division by nothing.
+  let cs = select(min(facing, -0.085), max(facing, 0.085), facing >= 0.0);
+  let a = aircraft(q, cs, sin(roll));
+  let belly = facing < 0.0;
   // Antialias against the pixel, not against a fixed number, so the aircraft
   // stays crisp on a phone and on a 4K display alike.
   let px = fwidth(q.x) * 1.1 + 0.00002;
@@ -226,13 +252,17 @@ fn aircraft_at(p: vec2f, u: f32) -> vec4f {
     // Fuselage: a lighter crown, and a cabin window line down the side.
     col = mix(params.body, params.core, 0.30 * lift);
     let along = q.x;
+    // No windows on the underside, and the belly is the shadowed side.
     let win = step(0.55, fract(along * 118.0)) *
               step(abs(abs(q.y) - 0.0052), 0.0022) *
-              step(-0.038, along) * step(along, 0.060);
+              step(-0.038, along) * step(along, 0.060) *
+              select(1.0, 0.0, belly);
     col = mix(col, params.core, win * 0.85);
+    if (belly) { col *= 0.72; }
   } else if (a.mat < 1.5) {
     // Wing: darker than the body, with the leading edge picked out.
     col = mix(params.body, params.edge, 0.35);
+    if (belly) { col *= 0.70; }
     let ledge = 1.0 - smoothstep(0.0, 0.010, abs(a.d));
     col = mix(col, params.core, ledge * 0.18);
     shade *= 0.94;
