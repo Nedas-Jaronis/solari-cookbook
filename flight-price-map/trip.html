@@ -1062,6 +1062,12 @@ select option { background:var(--panel); color:var(--ink); }
 
   function start() {
     if (raf) { cancelAnimationFrame(raf); raf = null; }
+    // The results view hides the whole landing section, so while a price page
+    // is up this canvas has no box at all. Sizing a bitmap against zero throws
+    // the scene away and leaves the stage's flat background showing, which is
+    // what you get on the way back. Stop instead, and let the observer below
+    // start us again when the hero is on screen and has a size to draw into.
+    if (!canvas.clientWidth || !canvas.clientHeight) return;
     pal = isDark() ? NIGHT : DAY;
     size();
     if (still.matches) { scene(0.58); return; }   // one composed frame
@@ -1069,7 +1075,16 @@ select option { background:var(--panel); color:var(--ink); }
     raf = requestAnimationFrame(frame);
   }
 
-  addEventListener("resize", start);
+  // Watching the canvas rather than the window catches the case the window
+  // cannot see: coming back from a price page is not a resize, it is an
+  // element going from no box to a full one.
+  let seen = "";
+  new ResizeObserver(() => {
+    const now = canvas.clientWidth + "x" + canvas.clientHeight;
+    if (now === seen) return;                 // same box, keep the climb going
+    seen = now;
+    start();
+  }).observe(canvas);
   still.addEventListener("change", start);
   darkOS.addEventListener("change", start);
   new MutationObserver(start).observe(document.documentElement,
