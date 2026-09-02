@@ -10,11 +10,15 @@ Built on [Solari](https://getsolari.com) cloud browsers, on a fork of their
 
 ![Searching a route it has never seen](flight-price-map/demo/demo.gif)
 
-Tampa to Barcelona, a route it had never priced: **11 seconds, four sites,
-$376**. Nothing in that recording is staged — `demo.py` clears the route from
-the cache first, so what you are watching is a real search happening, and
-whatever the sites did during the take is what ended up in the file. The
-full-length version with the wait left in is
+Tampa to Barcelona, a route it had never priced: **10 seconds, $376**.
+
+Nothing in that recording is staged — `demo.py` clears the route from the cache
+first, so what you are watching is a real search happening, and whatever the
+sites did during the take is what ended up in the file. What they did that take
+is worth saying plainly: it asked four sites and three of them failed to connect
+through the proxy, so every fare you see came from Google Flights alone. The
+page used to call that "4 booking sites checked"; it now says how many
+answered. The full-length version with the wait left in is
 [`demo.mp4`](flight-price-map/demo/demo.mp4).
 
 ## What it found

@@ -1207,7 +1207,9 @@ function renderTrip() {
     ${bits.length ? `<p class="pick-why">${bits.join(" ")}</p>` : ""}`;
 
   document.getElementById("trust").innerHTML = `
-    <span><b>${t.sites}</b> booking site${t.sites === 1 ? "" : "s"} checked</span>
+    <span>${t.sites_asked && t.sites_asked > t.sites
+      ? `<b>${t.sites}</b> of <b>${t.sites_asked}</b> booking sites answered`
+      : `<b>${t.sites}</b> booking site${t.sites === 1 ? "" : "s"} checked`}</span>
     <span><b>${t.airports}</b> airport${t.airports === 1 ? "" : "s"} around
       the destination</span>
     <span><b>${t.searches}</b> search${t.searches === 1 ? "" : "es"} in

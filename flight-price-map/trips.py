@@ -140,7 +140,14 @@ def build(runs: list[dict]) -> list[dict]:
             "asked_airport": CITY.get(asked, asked),
             "airport_saving": max(min(at_asked) - group[0]["price"], 0)
                               if at_asked else 0,
-            "sites": len({r["site"] for r in every}),
+            # Sites that came back with fares, and sites we asked. They are not
+            # the same number often enough to matter: the Tampa-Barcelona demo
+            # asked four and three failed to connect, and the page still said
+            # "4 booking sites checked" over six results that all came from
+            # Google. Counting the ones that answered is the honest number, and
+            # keeping both lets the page say so when they differ.
+            "sites": len({r["site"] for r in every if r.get("ok")}),
+            "sites_asked": len({r["site"] for r in every}),
             "airports": len({r["destination"] for r in every}),
             "searches": len(every),
             "seconds": round(sum(run.get("seconds", 0) for run in runs
