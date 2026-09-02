@@ -574,8 +574,17 @@ probe.py       first-contact script: does stealth + proxy work at all
 ### The hero, on the GPU
 
 `sky.py` draws the hero on a 2D canvas, and `hero/` draws the same sky in one
-WGSL fragment shader through [vgpu](https://vgpu.sh). The difference is the
-contrail. On the canvas it is 110 sprites, which is why it reads as a row of
+WGSL fragment shader through [vgpu](https://vgpu.sh). Two things change.
+
+The aircraft becomes an aircraft. The canvas draws a twelve-row bitmap
+silhouette stamped into a grid of dots, because that is what a 2D context can
+afford at that size. The shader builds it from signed distance fields -- tapered
+fuselage, swept and tapered wings, podded engines, tailplane, fin -- with a
+cabin window line, lit surfaces, a fan face in each intake, and red and green
+lights on the wingtips. Distance fields have no resolution, so it is as sharp
+on a phone as on a 4K display.
+
+The other is the contrail. On the canvas it is 110 sprites, which is why it reads as a row of
 blurred stamps; in the shader every pixel asks the flight path how far behind
 the aircraft it sits and how long ago it was passed, so the plume is a field --
 it billows on noise, spreads with age, and costs the same whether the aircraft

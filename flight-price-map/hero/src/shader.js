@@ -7,10 +7,13 @@
  * spreads with age, and it costs the same whether the aircraft has just taken
  * off or is leaving the top of the frame.
  *
- * The aircraft keeps its identity. It is still a silhouette punched into a
- * grid of dots -- that is the departure-board idiom the rest of the page is
- * built on -- but the silhouette is an SDF now, so it stays sharp at any size
- * and the dots can glow rather than just being drawn brighter.
+ * The aircraft is an actual aircraft. The canvas draws a twelve-row bitmap
+ * silhouette stamped into a grid of dots, which is all a 2D context can afford
+ * at this size; here it is built from signed distance fields -- a tapered
+ * fuselage, swept and tapered wings, podded engines, tailplane and fin -- so it
+ * has a cabin window line, lit surfaces, a bright fan face in each intake and
+ * red and green lights on the tips. Distance fields have no resolution, so it
+ * is exactly as sharp on a phone as on a 4K display.
  */
 export const SHADER = /* wgsl */ `
 struct Params {
@@ -82,22 +85,84 @@ fn seam(u: f32) -> f32 {
   return clamp(min(u / 0.12, (1.0 - u) / 0.14), 0.0, 1.0);
 }
 
-/* Distance from p to the aircraft silhouette, in local aircraft space:
-   a fuselage, a swept wing, and a tailplane. Negative inside. */
-fn ellipse(p: vec2f, r: vec2f) -> f32 {
-  let k = length(p / r);
-  return (k - 1.0) * min(r.x, r.y);
+/* ---- the aircraft ------------------------------------------------------
+   A plan view of an airliner, built from signed distance fields so it stays
+   sharp at any size and every part can be shaded and coloured separately:
+   fuselage, swept wings, engines, tailplane and fin. Local space has the nose
+   at +x and the span along y, both in aspect-corrected uv. */
+
+struct Plane {
+  d: f32,          // distance to the silhouette, negative inside
+  mat: f32,        // 0 fuselage, 1 wing, 2 engine, 3 tail surfaces
+  round: f32,      // 1 on the spine of a rounded body, 0 at its edge
 }
 
-fn plane_sdf(q: vec2f) -> f32 {
-  let fuse = ellipse(q, vec2f(0.064, 0.0104));
-  // Wings sweep back, so they are an ellipse pushed behind the mid-point and
-  // sheared -- cheaper than a polygon and it reads the same at this size.
-  let w = vec2f(q.x + abs(q.y) * 0.85 + 0.014, q.y);
-  let wing = ellipse(w, vec2f(0.022, 0.047));
-  let t = vec2f(q.x + abs(q.y) * 0.9 + 0.052, q.y);
-  let tail = ellipse(t, vec2f(0.011, 0.022));
-  return min(fuse, min(wing, tail));
+fn seg(p: vec2f, a: vec2f, b: vec2f) -> f32 {
+  let pa = p - a;
+  let ba = b - a;
+  let h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+/* A lifting surface: swept, and tapered from root to tip. The taper is what
+   was missing when this first read as a plank -- an airliner loses most of its
+   chord by the time it reaches the tip, and a constant-chord panel looks like
+   a door no matter how far you sweep it. */
+fn panel(q: vec2f, xRoot: f32, chordRoot: f32, chordTip: f32,
+         sweep: f32, span: f32) -> f32 {
+  let a = abs(q.y);
+  let t = clamp(a / span, 0.0, 1.0);
+  let chord = mix(chordRoot, chordTip, t * t * 0.55 + t * 0.45);
+  let le = xRoot + chordRoot * 0.5 - sweep * a;
+  let mid = le - chord * 0.5;
+  let dx = abs(q.x - mid) - chord * 0.5;
+  let dy = a - span;
+  return min(max(dx, dy), 0.0) + length(max(vec2f(dx, dy), vec2f(0.0)));
+}
+
+fn body_radius(h: f32) -> f32 {
+  // Cone at the tail, parallel through the cabin, tapering to the nose.
+  return 0.0122 * smoothstep(0.0, 0.18, h) * (1.0 - 0.60 * smoothstep(0.76, 1.0, h));
+}
+
+fn aircraft(q: vec2f) -> Plane {
+  let tail = vec2f(-0.078, 0.0);
+  let nose = vec2f(0.092, 0.0);
+  let ba = nose - tail;
+  let h = clamp(dot(q - tail, ba) / dot(ba, ba), 0.0, 1.0);
+  let r = body_radius(h);
+  let across = abs(q.y);
+  let fuse = seg(q, tail, nose) - r;
+
+  //                 root x  root chord  tip chord  sweep  span
+  let wing  = panel(q,  0.006,     0.056,     0.013,  0.44, 0.086);
+  let hstab = panel(q - vec2f(-0.064, 0.0), 0.0, 0.026, 0.008, 0.48, 0.030);
+  // In plan view a fin is a sliver on the centreline, so it is the same panel
+  // with the span squeezed almost to nothing.
+  let fin   = panel(q - vec2f(-0.058, 0.0), 0.0, 0.038, 0.014, 0.55, 0.007);
+
+  // Podded engines hang ahead of and below the leading edge, on the fuselage
+  // axis -- not across it, which is what made them look like barrels.
+  let nac = vec2f(q.x - 0.024, across - 0.033);
+  let engine = seg(nac, vec2f(-0.017, 0.0), vec2f(0.017, 0.0)) - 0.0068;
+
+  var d = fuse;
+  var mat = 0.0;
+  var round = 1.0 - clamp(across / max(r, 0.0001), 0.0, 1.0);
+
+  if (wing < d) {
+    d = wing; mat = 1.0;
+    // A wing is not flat to the eye: it is brightest inboard and falls away.
+    round = 0.75 - 0.45 * clamp(across / 0.086, 0.0, 1.0);
+  }
+  if (hstab < d) { d = hstab; mat = 3.0; round = 0.62; }
+  if (fin < d) { d = fin; mat = 3.0; round = 0.92; }
+  if (engine < 0.0 || engine < d) {
+    d = min(d, engine);
+    mat = 2.0;
+    round = 1.0 - clamp(abs(nac.y) / 0.0068, 0.0, 1.0);
+  }
+  return Plane(d, mat, round);
 }
 
 /* How much trail sits at p, for the aircraft currently at u. Walking the curve
@@ -128,26 +193,79 @@ fn trail_at(p: vec2f, u: f32) -> f32 {
   return acc;
 }
 
-fn aircraft_at(p: vec2f, u: f32) -> vec2f {
+/* Draw the aircraft at u, returning premultiplied colour and coverage.
+   Shaded rather than stamped: the fuselage and nacelles are lit as tubes, the
+   wings catch a highlight along the leading edge, and the whole thing sits on
+   a soft shadow so it reads as an object in air rather than a decal. */
+fn aircraft_at(p: vec2f, u: f32) -> vec4f {
   var c = path(u);
   c.x *= params.aspect;
-  let h = normalize(vec2f(heading(u).x * params.aspect, heading(u).y));
+  let hd = heading(u);
+  let h = normalize(vec2f(hd.x * params.aspect, hd.y));
   let rel = p - c;
-  // Into aircraft space: x along the heading, y across it.
   let q = vec2f(dot(rel, h), dot(rel, vec2f(-h.y, h.x)));
-  let d = plane_sdf(q);
 
-  // The silhouette, punched into a grid of dots so it still reads as a board.
-  let cell = fract(p / DOT) - 0.5;
-  let dot_mask = 1.0 - smoothstep(0.16, 0.40, length(cell));
-  let solid = 1.0 - smoothstep(0.0, 0.0022, d);
-  let rim = 1.0 - smoothstep(0.0, 0.0055, abs(d + 0.0016));
-  // A dot that lands on the outline burns brighter, and every dot breathes.
-  let twinkle = 0.66 + 0.34 * sin(params.time * 3.4 + hash21(floor(p / DOT)) * 28.0);
+  let a = aircraft(q);
+  // Antialias against the pixel, not against a fixed number, so the aircraft
+  // stays crisp on a phone and on a 4K display alike.
+  let px = fwidth(q.x) * 1.1 + 0.00002;
+  let cover = 1.0 - smoothstep(-px, px, a.d);
+  if (cover <= 0.001) {
+    // Still worth a breath of glow, which is what keeps it from looking cut out.
+    let glow = exp(-max(a.d, 0.0) * 240.0) * 0.13;
+    return vec4f(params.edge * glow, glow * 0.55);
+  }
 
-  let lit = solid * dot_mask * twinkle;
-  let glow = exp(-max(d, 0.0) * 210.0) * 0.5;
-  return vec2f(lit, rim * dot_mask * twinkle + glow * 0.35);
+  // Sunlight from over the left shoulder, in aircraft space.
+  let sun = normalize(vec2f(-0.35, -0.94));
+  let lift = pow(clamp(a.round, 0.0, 1.0), 0.65);          // tube shading
+  let side = clamp(0.5 + 0.5 * dot(normalize(vec2f(0.0001, q.y)), sun), 0.0, 1.0);
+  var shade = 0.42 + 0.58 * lift * mix(0.55, 1.0, side);
+
+  var col = params.body;
+  if (a.mat < 0.5) {
+    // Fuselage: a lighter crown, and a cabin window line down the side.
+    col = mix(params.body, params.core, 0.30 * lift);
+    let along = q.x;
+    let win = step(0.55, fract(along * 118.0)) *
+              step(abs(abs(q.y) - 0.0052), 0.0022) *
+              step(-0.038, along) * step(along, 0.060);
+    col = mix(col, params.core, win * 0.85);
+  } else if (a.mat < 1.5) {
+    // Wing: darker than the body, with the leading edge picked out.
+    col = mix(params.body, params.edge, 0.35);
+    let ledge = 1.0 - smoothstep(0.0, 0.010, abs(a.d));
+    col = mix(col, params.core, ledge * 0.18);
+    shade *= 0.94;
+  } else if (a.mat < 2.5) {
+    // Engine: darker than the wing it hangs under, or it reads as a pipe
+    // lying on top of one. A bright fan face at the intake, and a shadow
+    // where the pod meets the surface behind it.
+    col = mix(params.body, params.edge, 0.55) * 0.72;
+    let intake = 1.0 - smoothstep(0.0, 0.006, q.x - 0.036);
+    col = mix(col, params.core * 0.55, intake * 0.55);
+    let lip = 1.0 - smoothstep(0.0, 0.0035, abs(q.x - 0.040));
+    col = mix(col, params.core, lip * 0.30);
+  } else {
+    col = mix(params.body, params.edge, 0.5);
+  }
+
+  col *= shade;
+  // Rim light along the silhouette, which is what separates it from the sky.
+  let rim = 1.0 - smoothstep(0.0, 0.0055, abs(a.d));
+  col = mix(col, params.core, rim * 0.22);
+
+  // Navigation lights: red to port, green to starboard, and a strobe that
+  // fires twice a second the way a real anti-collision beacon does.
+  let tipL = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, -0.084)));
+  let tipR = 1.0 - smoothstep(0.0, 0.007, length(q - vec2f(-0.008, 0.084)));
+  let beat = fract(params.time * 1.1);
+  let strobe = smoothstep(0.06, 0.0, beat) + smoothstep(0.14, 0.09, beat) * 0.7;
+  col += vec3f(1.0, 0.22, 0.22) * tipL * 0.9;
+  col += vec3f(0.25, 1.0, 0.45) * tipR * 0.9;
+  col += vec3f(1.0) * (tipL + tipR) * strobe * 0.55;
+
+  return vec4f(col, cover);
 }
 
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
@@ -172,24 +290,21 @@ fn aircraft_at(p: vec2f, u: f32) -> vec2f {
 
   let base = params.time / CYCLE;
   var smoke = 0.0;
-  var lit = 0.0;
-  var rim = 0.0;
+  var plane = vec4f(0.0);
   // Two climbs, half a cycle apart, so the sky is never empty between them.
   for (var k = 0; k < 2; k++) {
     let u = fract(base + f32(k) * 0.5);
     let s = seam(u);
     if (s < 0.02) { continue; }
     smoke += trail_at(p, u) * s;
-    let a = aircraft_at(p, u);
-    lit = max(lit, a.x * s);
-    rim = max(rim, a.y * s);
+    let a = aircraft_at(p, u) * s;
+    // Whichever is nearer the viewer wins; they never overlap in practice.
+    plane = select(plane, a, a.w > plane.w);
   }
 
   let smokeMax = select(0.95, 0.40, params.night > 0.5);
   col = mix(col, params.smoke, clamp(smoke, 0.0, 1.0) * smokeMax);
-  col = mix(col, params.body, clamp(lit, 0.0, 1.0));
-  col = mix(col, params.edge, clamp(rim, 0.0, 1.0) * 0.9);
-  col += params.core * clamp(lit, 0.0, 1.0) * 0.28;
+  col = mix(col, plane.rgb / max(plane.w, 0.0001), clamp(plane.w, 0.0, 1.0));
 
   return vec4f(col, 1.0);
 }
