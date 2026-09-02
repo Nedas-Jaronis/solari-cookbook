@@ -176,7 +176,7 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
+[![Fare Board — click to watch it price MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
 
 **[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)**
 

@@ -13,7 +13,7 @@ and none of them tell you the airport an hour up the road is cheaper. Checking
 properly is a dozen tabs and twenty minutes, so almost nobody does it — which
 means almost nobody knows what that check is actually worth. This measures it.
 
-[![Fare Board pricing MCO to DEN across every site at once](flight-price-map/demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
+[![Fare Board — click to watch it price MCO to DEN across every site at once](flight-price-map/demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)
 
 **[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/watch.html)** — Orlando to
 Denver and back, MCO–DEN, 1 to 7 January 2027, round trip, stops unrestricted.
