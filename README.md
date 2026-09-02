@@ -13,9 +13,9 @@ and none of them tell you the airport an hour up the road is cheaper. Checking
 properly is a dozen tabs and twenty minutes, so almost nobody does it — which
 means almost nobody knows what that check is actually worth. This measures it.
 
-[![Fare Board pricing MCO to DEN across every site at once](flight-price-map/demo/poster.png)](flight-price-map/demo/demo.mp4)
+[![Fare Board pricing MCO to DEN across every site at once](flight-price-map/demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)
 
-**[▶ Watch the run (1 min)](flight-price-map/demo/demo.mp4)** — Orlando to
+**[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)** — Orlando to
 Denver and back, MCO–DEN, 1 to 7 January 2027, round trip, stops unrestricted.
 
 It ends on **$368 on Frontier, booked through Expedia**: three booking sites,
@@ -37,7 +37,7 @@ it never tells you which one it missed.
 The tool exists to answer questions that are tedious by hand, so what matters
 is what it measured — including the times it disproved what we expected.
 
-| | |
+| What we found | The number, and what it cost us to believe it |
 |---|---|
 | **The site you book on is worth $141 on a thin route** | 39% on Tampa–Barcelona. On JFK–London it is $23. The tool is nearly worthless on the corridors everyone benchmarks and worth a lot on the routes nobody checks. |
 | **A nearby airport saved $80** | Gatwick under Heathrow. But Google and Kayak *both suggest that swap themselves* — against the best hint any single site gave, cross-site search won by **$12**. That is the honest number. |

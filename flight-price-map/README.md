@@ -176,9 +176,9 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](demo/demo.mp4)
+[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)
 
-**[▶ Watch the run (1 min)](demo/demo.mp4)**
+**[▶ Watch the run (1 min)](https://nedas-jaronis.github.io/solari-cookbook/flight-price-map/demo/)**
 
 A screen recording of the live page against the live service: MCO to DEN and
 back, 1 to 7 January 2027, round trip, stops unrestricted. It ends on $368 on
@@ -316,7 +316,7 @@ below are generous because you are the only one asking. `Dockerfile` and
 `fly.toml` are here for anyone who wants it on a URL, and they carry a much
 tighter set, because a search costs real money and strangers spend it:
 
-| | |
+| Limit | Applies to |
 |---|---|
 | 6 searches an hour | per visitor |
 | 3 of those | may be re-checks, which skip the cache on purpose |
