@@ -3,9 +3,11 @@
     python server.py                     # in one terminal
     python demo.py --from TPA --to BCN --date 2026-12-08
 
-Produces two files in demo/:
+Produces three files in demo/:
 
     demo.webm   the session exactly as it happened, unedited
+    demo.mp4    the same frames as H.264, because that is what the places
+                people post video actually accept -- webm is not one of them
     demo.gif    the same run, paced for somebody scrolling past
 
 Nothing here is staged. It drives the live page against the live service, so
@@ -18,6 +20,7 @@ through it.
 import argparse
 import io
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -60,6 +63,25 @@ class Reel:
         images[0].save(path, save_all=True, append_images=images[1:],
                        duration=[d for _, d in self.frames], loop=0,
                        optimize=True, disposal=2)
+
+
+def encode(webm: Path, mp4: Path) -> Path | None:
+    """Re-container the recording as H.264, same frames, no edit.
+
+    Playwright records webm, which is the one format neither X nor LinkedIn
+    will take. yuv420p and +faststart are the two flags that decide whether a
+    phone plays it inline or shows a black rectangle.
+    """
+    if not shutil.which("ffmpeg"):
+        print("no ffmpeg on PATH -- skipping the mp4 (webm and gif still written)")
+        return None
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(webm),
+         "-c:v", "libx264", "-preset", "slow", "-crf", "20",
+         "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+         "-r", "30", "-an", str(mp4)],
+        check=True)
+    return mp4
 
 
 def main() -> None:
@@ -183,6 +205,7 @@ def main() -> None:
     video = next(OUT.glob("*.webm"), None)
     if video:
         video.rename(OUT / "demo.webm")
+        mp4 = encode(OUT / "demo.webm", OUT / "demo.mp4")
     reel.save(OUT / "demo.gif", colors=args.colors)
 
     gif = (OUT / "demo.gif").stat().st_size / 1e6
@@ -191,6 +214,8 @@ def main() -> None:
     if best:
         print(f"  best {best}   {tally}")
     print(f"  demo/demo.webm   the run, unedited")
+    if video and mp4:
+        print(f"  demo/demo.mp4    {mp4.stat().st_size / 1e6:.1f} MB, postable")
     print(f"  demo/demo.gif    {len(reel.frames)} frames, {gif:.1f} MB")
 
 

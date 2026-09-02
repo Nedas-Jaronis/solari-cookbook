@@ -165,11 +165,19 @@ python server.py                     # in one terminal
 python demo.py --from TPA --to BCN --date 2026-12-08
 ```
 
-It writes two files. `demo.webm` is the session exactly as it happened. The gif
-is the same run with the pacing changed: the wait is filmed as a fixed handful
-of moments however long it takes, so twenty seconds of spinner plays back in
-two. A viewer needs to know the wait exists, not to sit through it -- and a gif
-of a hundred spinner frames is too large to post anyway.
+It writes three files, all of the same run:
+
+| | |
+|---|---|
+| `demo.webm` | the session exactly as it happened, straight off the browser |
+| `demo.mp4` | the same frames as H.264 — webm is the one format the places people post video will not take, and `yuv420p` + `+faststart` are what decide whether a phone plays it inline or shows a black rectangle |
+| `demo.gif` | the same run with the pacing changed |
+
+Only the gif is edited, and only in one way: the wait is filmed as a fixed
+handful of moments however long it takes, so twenty seconds of spinner plays
+back in two. A viewer needs to know the wait exists, not to sit through it --
+and a gif of a hundred spinner frames is too large to post anyway. The mp4 and
+the webm are the full length, spinner included.
 
 ## Live: any route, on request
 
