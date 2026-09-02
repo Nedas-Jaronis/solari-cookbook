@@ -176,7 +176,9 @@ Worth a look before it goes in a post.
 
 ## A demo of it working
 
-![Pricing Orlando to Denver across every site at once](demo/demo.gif)
+[![Fare Board pricing MCO to DEN across every site at once](demo/poster.png)](demo/demo.mp4)
+
+**[▶ Watch the run (1 min)](demo/demo.mp4)**
 
 A screen recording of the live page against the live service: MCO to DEN and
 back, 1 to 7 January 2027, round trip, stops unrestricted. It ends on $368 on
@@ -189,14 +191,11 @@ search got one site back out of the four it asked and the page said so, before
 a re-check got three. Fares appear as each site answers rather than when the
 slowest finishes, which is why the list fills in while you watch.
 
-| | |
-|---|---|
-| `demo.mp4` | the whole recording, from typing the route to the re-check |
-| `demo.gif` | sixteen seconds of it, for the README |
-
-The gif is a slice of the mp4 and nothing else -- same frames, same speed, no
-cuts inside it. It is short because a gif of a full minute is too large to put
-at the top of a page, not because anything in the rest is worth hiding.
+`demo.mp4` is the whole recording, from typing the route to the re-check, and
+`poster.png` is a frame from it. The poster is there because GitHub will not
+play a video that lives in a repository: a `<video>` tag is stripped out of a
+README by the sanitiser and `![](demo.mp4)` renders as a broken image, so the
+still is a link and you click it.
 
 `demo.py` is still here and still records a run end to end if you want one of
 your own:

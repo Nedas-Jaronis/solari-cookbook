@@ -13,22 +13,24 @@ and none of them tell you the airport an hour up the road is cheaper. Checking
 properly is a dozen tabs and twenty minutes, so almost nobody does it — which
 means almost nobody knows what that check is actually worth. This measures it.
 
-![Pricing Orlando to Denver across every site at once](flight-price-map/demo/demo.gif)
+[![Fare Board pricing MCO to DEN across every site at once](flight-price-map/demo/poster.png)](flight-price-map/demo/demo.mp4)
 
-Orlando to Denver and back, MCO–DEN, 1 to 7 January 2027, any number of stops:
-**$368 on Frontier, found on Expedia — three sites, eighteen flights,
-twenty-three seconds.** The outbound is a 4h 23m nonstop; the cheapest fare
-happened to be one, which is not the same as having asked for one.
+**[▶ Watch the run (1 min)](flight-price-map/demo/demo.mp4)** — Orlando to
+Denver and back, MCO–DEN, 1 to 7 January 2027, round trip, stops unrestricted.
 
-Nothing in it is staged. Fares appear as each site answers rather than when the
-slowest one finishes, which is why the list fills in while you watch. Worth
-saying plainly: the first search in the full recording got one site back out of
-the four it asked, and the page said so — "1 booking site checked" — before a
-re-check got three. Sites refuse, and a price comparison that hides that is
-telling you the cheapest fare *it managed to read*, not the cheapest fare.
+It ends on **$368 on Frontier, booked through Expedia**: three booking sites,
+one airport, eighteen flights, twenty-three seconds. The outbound is a 4h 23m
+nonstop — the search never asked for a nonstop, that was simply the cheapest
+thing any site had.
 
-The whole thing, from typing the route to the re-check, is
-[`demo.mp4`](flight-price-map/demo/demo.mp4).
+Nothing in the recording is staged, and the parts that went badly are still in
+it. Fares appear as each site answers rather than when the slowest one
+finishes, which is why the list fills in while you watch. The first search got
+**one** site back out of the four it asked, and the page said so — "1 booking
+site checked" — before a re-check got three. That matters more than it looks:
+a price comparison that quietly drops a site that refused it is not reporting
+the cheapest fare, it is reporting the cheapest fare *it managed to read*, and
+it never tells you which one it missed.
 
 ## What it found
 
@@ -89,6 +91,13 @@ is no scraping library here and no HTTP client pretending to be a browser —
 five of these six sites publish no API at all, so a browser is not a shortcut,
 it is the only door.
 
+In the recording above, "3 searches in 23s" is three cloud browsers launched at
+once, one per booking site, each loading that site's own results page and
+having its fares read off it. That is the whole engine. A search that also
+widens to the airports around your destination is the same thing multiplied:
+six sites times five airports is thirty browsers, which is a hundred and
+thirteen seconds instead of the eight minutes it would take one at a time.
+
 | Where | The call | Why it has to be a cloud browser |
 |---|---|---|
 | **Every fare read** | `launch(stealth=True, proxy=...)`, then ordinary Playwright | No API exists. Without stealth there is no project — Expedia and Skyscanner wall us even with it. |
@@ -148,15 +157,33 @@ Currency is ours to fix, not Solari's: prices are forced to USD today so that a
 comparison is a comparison, and a real international build would show local
 currency with the conversion made explicit.
 
-**What it unlocks.** Booking sites quote by where you appear to be, and Solari's
-proxies are the only practical way to test that — the same flight, in the same
-second, priced from twenty countries at once. Our one sweep says the gap is
-small, but it is one route with three searches per country and a fifth of the
-non-US ones lost, so it settles nothing. The interesting version of this tool is
-the one that runs that sweep across hundreds of routes and can say which routes
-have a gap, how big, and in which direction. That needs non-US egress to hold up
-under parallel load, and the Solari team is moving on it quickly — it is the one
-piece between this and pricing a route the way a local sees it.
+### What geolocation unlocks
+
+This is the part we most want to build, and the part Solari is uniquely able to
+make possible.
+
+Booking sites quote by where you appear to be. Nobody can check that by hand —
+you cannot be in São Paulo and Frankfurt in the same second, and a VPN gives you
+one country at a time with a data-centre IP the sites already distrust. A
+residential exit per browser, thirty at once, is the only practical way to ask
+the question properly: **the same flight, on the same date, priced from twenty
+countries in the same moment.**
+
+We built the machinery and pointed it at one route. The answer was that it
+barely mattered — $14 was the widest spread on any site, currencies forced to
+USD so it is pricing and not exchange rates. That is a real finding and we have
+published it as one, but it is one route, one day, three searches per country,
+with four of the twenty-one non-US searches lost. It settles nothing.
+
+The version worth building runs that sweep across hundreds of routes and can
+say *which* routes carry a gap, how large, in which direction, and whether it
+tracks the buyer's currency, the airline's home market, or nothing at all. That
+is a genuinely unanswered question about how airline pricing works, and it is
+answerable with about a thousand browsers and nothing else.
+
+What stands between here and there is non-US egress holding up under parallel
+load. The Solari team is moving on it quickly, and it is the only piece missing
+— everything else, the fan-out, the dedupe, the reading, already works.
 
 
 The rest of the list — Priceline's missing itinerary detail, Kiwi's place
