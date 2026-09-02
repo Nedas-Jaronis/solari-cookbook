@@ -39,7 +39,13 @@
 
 <h1>Orlando&nbsp;→&nbsp;Denver, priced on every site at once</h1>
 
-<video controls playsinline preload="metadata" poster="thumbnail.png" src="demo.mp4">
+<!-- #t=0.1 pins the frame the browser decodes and shows before you press
+     play. Without it the poster is the only thing holding that position,
+     and a stale or missing poster leaves whatever frame the browser
+     happens to have -- which is how a cached still from the end of the
+     run ends up greeting people who came to watch the start of it. -->
+<video controls playsinline preload="metadata" poster="thumbnail.png"
+       src="demo.mp4#t=0.1">
   Your browser will not play this file.
   <a href="demo.mp4">Download the recording</a> instead.
 </video>
