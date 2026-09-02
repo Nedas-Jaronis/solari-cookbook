@@ -8,6 +8,8 @@ key and the status code.
 
 import re
 
+import airlines
+
 # "8:45 AM", "10:40 pm", "8:45am"
 CLOCK = re.compile(r"^(\d{1,2}):(\d{2})\s*([ap])m(?:\s*\+(\d))?$", re.I)
 # "6 hr 55 min", "7h 00m", "6 hours 55 minutes", "7 hr"
@@ -24,6 +26,14 @@ def carrier(name: str | None) -> str | None:
     """
     if not name:
         return None
+    # Ask the airline list first. Splitting on the case boundary alone cannot
+    # tell "JetBlue, Delta" from "British AirwaysAmerican, Iberia": both are a
+    # lowercase-to-uppercase run followed by a comma, and the guard below turned
+    # the first into "Jet" for as long as it was the only rule. The list knows
+    # where JetBlue ends.
+    known = airlines.leading(name)
+    if known:
+        return known
     name = re.split(r"\s*Operated by\s*", name, flags=re.I)[0]
     for match in re.finditer(r"(?<=[a-z])(?=[A-Z])", name):
         head, tail = name[:match.start()], name[match.start():]

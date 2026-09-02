@@ -17,7 +17,8 @@ import sys
 
 import itineraries
 import sites
-from common import HERE, Fare, ground, plausible
+from airlines import is_airline
+from common import HERE, Fare, plausible
 from sites import CARD
 
 FIXTURES = HERE / "fixtures"
@@ -113,17 +114,41 @@ def main() -> int:
     check("the coach is dropped", [f.airline for f in read],
           ["JetBlue", "Delta"])
     check("and the flights are not", [f.price for f in read], [117, 119])
-    check("brand variants too",
-          [ground(n) for n in ("Flix", "FlixBus", "Flixtrain", "Greyhound",
-                               "Amtrak", "ALSA", "peter pan", "OuiGo")],
-          [True] * 8)
+    check("nothing off the list counts",
+          [is_airline(n) for n in ("Flix", "FlixBus", "Greyhound", "Amtrak",
+                                   "ALSA", "OuiGo", "iryo", "Italo", "ITALO")],
+          [False] * 9)
     check("airlines pass through",
-          [ground(n) for n in ("JetBlue", "Delta", "Air France", "Iberia",
-                               "Aer Lingus", "Alaska", "Spirit", "Vueling",
-                               "ITA Airways", "Norse Atlantic", "Play", None)],
-          [False] * 12)
+          [is_airline(n) for n in ("JetBlue", "Delta", "Air France", "Iberia",
+                                   "Aer Lingus", "Alaska", "Spirit", "Vueling",
+                                   "ITA Airways", "Norse Atlantic", "Play")],
+          [True] * 11)
+    # The three shapes a real carrier string arrives in, all of which have to
+    # survive a list that matches on the front of the name.
+    check("partners running onto the name",
+          [is_airline(n) for n in ("Virgin AtlanticAir France, Delta, KLM",
+                                   "SWISSUnitedOperated by Helvetic",
+                                   "VuelingIberia", "Multiple airlines")],
+          [True] * 4)
+    # Priceline's reader captures no carrier at all. Unnamed is unjudged --
+    # judging it would delete the site.
+    check("an unnamed carrier is not rejected",
+          len(plausible([Fare(price=210, airline=None)])), 1)
     check("a coach return leg disqualifies the trip too",
           plausible([Fare(price=88, airline="Delta", back_airline="Flix")]), [])
+
+    # BCN-MAD, live: a Spanish high-speed train priced under every flight,
+    # with no operator anyone would have blocklisted and no mode tag either.
+    # Nothing marks it as rail -- it is caught by not being an airline.
+    train = "\n".join([
+        CARD, "5:45 am - 9:02 am", "iryo", "3h 17m", "$45", "Kayak",
+        CARD, "7:10 am - 8:30 am", "Vueling", "1h 20m", "Nonstop", "$53",
+        "Kayak",
+    ])
+    read = sites.read_kayak(train)
+    check("an unbranded train is dropped too", [f.airline for f in read],
+          ["Vueling"])
+    check("on the list, not on a tag", [f.price for f in read], [53])
 
     print(f"\nfailures: {failures or 'none'}")
     return 1 if failures else 0

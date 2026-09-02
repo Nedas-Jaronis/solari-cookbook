@@ -106,15 +106,29 @@ An audit, and one search that answered oddly, turned up five things nothing was 
 - **Run files were listed by hand**, so a newly priced date was silently
   omitted from the page -- which looks complete and is not. They are discovered
   from disk now.
-- **A bus was winning.** Kayak and Momondo run one engine and it mixes ground
-  transport into flight results on short routes, so a Boston search answered
-  with a $44, seven-hour-fifty Flix coach out of Manchester sitting above every
-  flight. No price range excludes it -- it is a real price for a real journey
-  -- so it has to go by operator. A cached search had stored the carrier as
-  `"FlixBus, Bus"`, and that mode tag turned out to be the better filter than
-  any list of brands, because it catches operators the list has never heard of.
-  The cheapest number on the page is the one answer this whole thing exists to
-  get right, so a coach taking that spot is the worst shape this bug could have.
+- **A bus was winning, and then a train.** Kayak and Momondo run one engine and
+  it mixes ground transport into flight results on short routes, so a Boston
+  search answered with a $44, seven-hour-fifty Flix coach out of Manchester
+  sitting above every flight. No price range excludes it -- it is a real price
+  for a real journey -- so it has to go by operator.
+
+  Blocking Flix by name only taught us about Flix. The very next sweep, a
+  Barcelona-Madrid search came back with `iryo` at $45: a Spanish high-speed
+  train, cheaper than every flight, carrying no operator anyone would have
+  thought to block and no tag marking it as rail. A blocklist only ever knows
+  the modes of transport that have already embarrassed us.
+
+  So it is an allowlist now, in `airlines.py`: a fare counts when its operator
+  is a known airline, and not otherwise. The failure mode inverts with it --
+  an unknown airline gets left out instead of an unknown train slipping in --
+  which is the better way to be wrong, but it is still wrong, so rejected names
+  are recorded rather than dropped in silence. Two details earned their keep:
+  a name is matched at the front and at a word boundary, because sites write
+  `"Virgin AtlanticAir France, Delta, KLM"` with no separator and because
+  otherwise `ITA` would also admit `Italo`; and a fare with *no* carrier is
+  left alone, because Priceline's reader captures none and judging those would
+  delete the site. Checked against all 1,045 fares this project has ever
+  stored: everything real kept, the train dropped.
 
 Still open and worth knowing: nothing guards against a run coming back in a
 currency other than USD once non-US egress is in play. `compare.py` warns, the
@@ -536,6 +550,7 @@ claims.py      finds the prices a page advertises for searches you did not run
 sites.py       per-site URL builders and result parsers
 airports.py    metro-area airport groups (LON -> LHR LGW STN LTN LCY)
 common.py      shared types, money parsing, block and empty-page detection
+airlines.py    who counts as an airline; a bus or a train does not
 server.py      the live service: any route, on request
 trips.py       runs -> the trips a traveller chooses between
 board.py       every run -> board.html, the operator's dashboard
@@ -550,6 +565,7 @@ capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot a page in both themes
 flowtest.py    dev tool: drive the traveller flow end to end
 parsertest.py  dev tool: hold the readers to fixtures in fixtures/
+worldtest.py   dev tool: price real routes on six continents, live
 proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```

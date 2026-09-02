@@ -24,6 +24,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from itertools import product
 
+import airlines
 import airports
 import sites as siteslib
 from common import HERE, Query, blocked, load_env, no_results
@@ -222,6 +223,17 @@ def report(results: list[dict], elapsed: float, asked: str) -> None:
         print(f"\nWARNING: mixed currencies {sorted(monies)} -- these prices "
               f"are not comparable. Force USD in the site URLs before reading "
               f"across countries.")
+
+    # A fare is only counted when its operator is a known airline, which is how
+    # a coach and a high-speed train stopped winning the headline. The cost of
+    # that rule is an airline nobody added to the list, and the only thing worse
+    # than dropping it is dropping it quietly.
+    if airlines.unknown:
+        print(f"\nnot counted, operator not on the airline list "
+              f"({len(airlines.unknown)} names). A bus or a train belongs here; "
+              f"an airline means airlines.py needs it adding:")
+        for name, times in airlines.unknown.most_common(12):
+            print(f"  x{times:<4} {name!r}")
 
     spread = worst["cheapest"] - best["cheapest"]
     print(f"\nspread ${spread:,} "
