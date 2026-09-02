@@ -73,9 +73,14 @@ Each of these was tested rather than assumed:
   against about eight minutes one after another.
 
 The honest ceiling is blocking rather than engineering. Four sweeps by one
-person was enough to lose Skyscanner for a day, which is why the live service
-caches hard, throttles per site, and holds every visitor to ten searches an
-hour and the whole service to two hundred a day.
+person was enough to lose Skyscanner for a day, which is why the service caches
+hard and throttles per site.
+
+The live search runs locally, on your own key: the page above is a snapshot,
+and the recording shows a real search. It is deliberately not on a public URL —
+a search is about 1.2 browser-minutes, and a search button open to the internet
+spends a metered credit on strangers' behalf. `Dockerfile` and `fly.toml` are
+in the repo for anyone who wants to host it anyway, with limits sized for that.
 
 Where this still stops, and what would move it — Skyscanner's PerimeterX,
 geolocation at a scale worth trusting, thin routes in volume — is set out in

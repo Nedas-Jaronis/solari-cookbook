@@ -272,10 +272,12 @@ The honest list of where this stops, and what would move it:
   detail; Kiwi wants place slugs rather than IATA codes. Both are parser work,
   not platform work.
 
-### The limits on the public service
+### If you were to host it
 
-A search is four to thirty browsers against sites that push back, so the
-service is deliberately not open house:
+This runs locally: you start `server.py`, it uses your key, and the limits
+below are generous because you are the only one asking. `Dockerfile` and
+`fly.toml` are here for anyone who wants it on a URL, and they carry a much
+tighter set, because a search costs real money and strangers spend it:
 
 | | |
 |---|---|
@@ -298,8 +300,12 @@ putting a search button on the internet rather than after.
 
 Cached answers never reach the limiter, because they cost nothing — it counts
 browsers launched, which is the only thing that spends anything. Every figure
-is an environment variable, so tightening them needs no redeploy.
-`/api/health` reports `searches_today` against the daily limit.
+is an environment variable. `/api/health` reports `searches_today` against the
+daily limit.
+
+We chose not to put it on a URL. The arithmetic above is why: a public search
+button spends a metered credit on a stranger's behalf, and the recording below
+shows the same thing at no cost.
 
 The ceiling here is not engineering, it is welcome. Four sweeps by one person
 lost us Skyscanner for a day; an open endpoint without these would lose
