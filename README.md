@@ -74,7 +74,12 @@ Each of these was tested rather than assumed:
 
 The honest ceiling is blocking rather than engineering. Four sweeps by one
 person was enough to lose Skyscanner for a day, which is why the live service
-caches hard and throttles per site.
+caches hard, throttles per site, and holds every visitor to ten searches an
+hour and the whole service to two hundred a day.
+
+Where this still stops, and what would move it — Skyscanner's PerimeterX,
+geolocation at a scale worth trusting, thin routes in volume — is set out in
+[the write-up](flight-price-map/README.md#what-we-would-still-want-from-solari).
 
 ## What is in here
 

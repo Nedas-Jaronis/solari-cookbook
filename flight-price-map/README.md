@@ -220,6 +220,79 @@ No web framework — the standard library serves this shape of thing perfectly
 well, and an example is more useful when it runs on a bare Python. The API key
 stays server-side, which is the other reason this cannot be a page on its own.
 
+### What Solari actually does here
+
+One API surface, used hard.
+
+**`launch(stealth=True, proxy=...)`** is the whole foundation. Every search is
+a real Chromium in Solari's cloud on a residential IP, driven with the ordinary
+Playwright API — `new_page`, `goto`, `inner_text`. Three properties of that call
+are load-bearing:
+
+- **Stealth is not optional.** Expedia and Skyscanner wall us *with* it. Without
+  it there is no project.
+- **Residential egress** is why sites answer us like a person, and the only
+  reason the country question could be asked at all.
+- **Concurrency is the product.** Thirty browsers at once turns eight minutes of
+  sequential searching into 113 seconds. Everything interesting here is
+  downstream of that one fact.
+
+**`browser.proxy`** reports the country, tier and timezone the gateway
+resolved. That is what let the country board *prove* an egress was really in
+Tokyo rather than merely claim it.
+
+Tried and reported rather than quietly dropped: `captcha=True`,
+`proxy="smart"`, `web_bot_auth=True` and all three proxy tiers, side by side in
+`bypass.py`. Against Skyscanner, zero of six got through.
+
+**Not used:** sandboxes, desktops, session recording, profiles. This is a
+read-the-page problem, not a run-code or click-a-GUI one, and pretending
+otherwise would be padding.
+
+### What we would still want from Solari
+
+The honest list of where this stops, and what would move it:
+
+- **Skyscanner.** It runs PerimeterX — the page loads
+  `client.px-cloud.net/PXrf8vapwA/main.min.js` — which Solari lists as cleared,
+  but six launch configurations got through none of the time, on both US and GB
+  egress, hours after the last attempt. Not a rate limit and not the IP country.
+  This one needs an answer from Solari rather than more tuning from us.
+- **Geolocation at proper scale.** Non-US egress works but is measurably less
+  reliable: four of twenty-four searches in the country sweep died with
+  `ERR_TUNNEL_CONNECTION_FAILED` against none from `us`. The finding that
+  country barely moves fares rests on one route on one day; testing it properly
+  means many countries across many routes, which is more egress and more
+  budget.
+- **Thin routes at volume.** The single most valuable finding — $141 of spread
+  on Tampa–Barcelona against $23 on JFK–London — came from one search. Whether
+  that holds is a question about hundreds of routes, and hundreds of routes is
+  thousands of browsers.
+- **The sites we cannot read yet.** Priceline gives prices but no itinerary
+  detail; Kiwi wants place slugs rather than IATA codes. Both are parser work,
+  not platform work.
+
+### The limits on the public service
+
+A search is four to thirty browsers against sites that push back, so the
+service is deliberately not open house:
+
+| | |
+|---|---|
+| 10 searches an hour | per visitor |
+| 3 of those | may be re-checks, which skip the cache on purpose |
+| 200 a day | across everyone; past that it serves what it knows and says so |
+| 3 hour cache | on the public config, 45 minutes locally |
+
+Cached answers never reach the limiter, because they cost nothing — it counts
+browsers launched, which is the only thing that spends anything. Every figure
+is an environment variable, so tightening them needs no redeploy.
+`/api/health` reports `searches_today` against the daily limit.
+
+The ceiling here is not engineering, it is welcome. Four sweeps by one person
+lost us Skyscanner for a day; an open endpoint without these would lose
+everything, visibly, on the page being judged.
+
 ### Is this a good use of cloud browsers?
 
 For the gathering, yes, and each leg of it was tested rather than assumed:
