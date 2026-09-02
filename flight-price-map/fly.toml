@@ -17,10 +17,13 @@ primary_region = "iad"
   HOST = "0.0.0.0"
   PORT = "8080"
   FARE_DB = "/data/cache.db"
-  # Public defaults: one person planning a trip never notices these.
-  FARE_PER_IP_HOUR = "10"
+  # Public defaults, sized against a $20 monthly credit rather than against
+  # what feels generous. A quick search is ~1.2 browser-minutes; widening to
+  # every nearby airport is ~6.2, so the public build does not widen.
+  FARE_ALLOW_NEARBY = "0"
+  FARE_PER_IP_HOUR = "6"
   FARE_FRESH_PER_IP_HOUR = "3"
-  FARE_GLOBAL_PER_DAY = "200"
+  FARE_GLOBAL_PER_DAY = "25"
   # Longer than the local default: on a shared URL, a stored answer serves
   # more people, and fares do not move enough in three hours to matter.
   FARE_CACHE_TTL = "10800"

@@ -63,6 +63,12 @@ PER_IP_HOUR = int(os.environ.get("FARE_PER_IP_HOUR", 10))
 FRESH_PER_IP_HOUR = int(os.environ.get("FARE_FRESH_PER_IP_HOUR", 3))
 GLOBAL_PER_DAY = int(os.environ.get("FARE_GLOBAL_PER_DAY", 200))
 
+# Widening to every nearby airport is five times the work of the plain search:
+# four browsers becomes twenty. Worth it on your own machine, and not worth
+# handing to the internet -- so a public deploy turns it off and the quick
+# answer is what visitors get.
+ALLOW_NEARBY = os.environ.get("FARE_ALLOW_NEARBY", "1") not in ("0", "false", "")
+
 
 # --------------------------------------------------------------------------
 # The store: finished runs, so the same question is not paid for twice
@@ -289,7 +295,7 @@ class Handler(BaseHTTPRequestHandler):
         if not (q.origin.isalpha() and q.destination.isalpha()):
             return self.send_json(400, {"error": "airports are three letters"})
 
-        nearby = bool(body.get("nearby", True))
+        nearby = bool(body.get("nearby", True)) and ALLOW_NEARBY
         # A stored answer is the right default and the wrong one when somebody
         # is about to book: fares move, and asking again is the point of having
         # browsers. The result still goes back into the cache for the next
@@ -360,6 +366,8 @@ def main() -> None:
           f"once, {CACHE_TTL // 60} minute cache")
     print(f"  limits: {PER_IP_HOUR} searches an hour per visitor, "
           f"{FRESH_PER_IP_HOUR} of them re-checks, {GLOBAL_PER_DAY} a day")
+    print(f"  nearby airports: {'on' if ALLOW_NEARBY else 'off'} "
+          f"({'~6' if ALLOW_NEARBY else '~1.2'} browser-minutes a search)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

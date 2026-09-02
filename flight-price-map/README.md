@@ -279,10 +279,22 @@ service is deliberately not open house:
 
 | | |
 |---|---|
-| 10 searches an hour | per visitor |
+| 6 searches an hour | per visitor |
 | 3 of those | may be re-checks, which skip the cache on purpose |
-| 200 a day | across everyone; past that it serves what it knows and says so |
+| 25 a day | across everyone; past that it serves what it knows and says so |
+| no widening | the public build searches the airport asked for, not the metro |
 | 3 hour cache | on the public config, 45 minutes locally |
+
+Those numbers come from arithmetic rather than instinct. A browser averages
+19 seconds across the 124 launches measured here, so a four-site search is
+about 1.2 browser-minutes and widening to every nearby airport is about 6.2 —
+five times the bill for the part of the answer that arrives second.
+
+At 25 searches a day without widening that is roughly **16 browser-hours a
+month**. The first draft of this file said 200 a day with widening on, which
+is 617 browser-hours a month: a thousand times a full day of building this,
+every month, against a $20 credit. Worth doing that multiplication before
+putting a search button on the internet rather than after.
 
 Cached answers never reach the limiter, because they cost nothing — it counts
 browsers launched, which is the only thing that spends anything. Every figure
