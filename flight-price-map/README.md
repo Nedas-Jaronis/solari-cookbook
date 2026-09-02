@@ -93,7 +93,7 @@ python teaserboard.py         # -> teasers.html
 
 ## Holes closed on the way
 
-An audit turned up four things nothing was watching:
+An audit, and one search that answered oddly, turned up five things nothing was watching:
 
 - **`+1` was being thrown away.** Kayak marks a next-day arrival on 41 of 50
   fares and we stored none of them, so a flight landing 6:20 AM *tomorrow*
@@ -106,6 +106,15 @@ An audit turned up four things nothing was watching:
 - **Run files were listed by hand**, so a newly priced date was silently
   omitted from the page -- which looks complete and is not. They are discovered
   from disk now.
+- **A bus was winning.** Kayak and Momondo run one engine and it mixes ground
+  transport into flight results on short routes, so a Boston search answered
+  with a $44, seven-hour-fifty Flix coach out of Manchester sitting above every
+  flight. No price range excludes it -- it is a real price for a real journey
+  -- so it has to go by operator. A cached search had stored the carrier as
+  `"FlixBus, Bus"`, and that mode tag turned out to be the better filter than
+  any list of brands, because it catches operators the list has never heard of.
+  The cheapest number on the page is the one answer this whole thing exists to
+  get right, so a coach taking that spot is the worst shape this bug could have.
 
 Still open and worth knowing: nothing guards against a run coming back in a
 currency other than USD once non-US egress is in play. `compare.py` warns, the

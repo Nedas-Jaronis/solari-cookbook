@@ -17,7 +17,8 @@ import sys
 
 import itineraries
 import sites
-from common import HERE
+from common import HERE, Fare, ground, plausible
+from sites import CARD
 
 FIXTURES = HERE / "fixtures"
 
@@ -96,6 +97,33 @@ def main() -> int:
           "JetBlue")
     check("operated-by stripped",
           itineraries.carrier("SWISSOperated by Helvetic"), "SWISS")
+
+    print("\n-- buses and trains are not flights --")
+    # A real Boston-area search: Kayak put a seven-hour, $44 Flix coach out of
+    # Manchester above every flight, where being the lowest number on the page
+    # wins the headline.
+    coach = "\n".join([
+        CARD, "6:30 am - 2:20 pm", "Flix", "7h 50m", "MHT", "$44", "Kayak",
+        CARD, "9:35 am - 11:01 am", "JetBlue", "1h 26m", "Nonstop", "BOS",
+        "$117", "Kayak",
+        CARD, "7:15 am - 8:44 am", "Delta", "1h 29m", "Nonstop", "BOS",
+        "$119", "Kayak",
+    ])
+    read = sites.read_kayak(coach)
+    check("the coach is dropped", [f.airline for f in read],
+          ["JetBlue", "Delta"])
+    check("and the flights are not", [f.price for f in read], [117, 119])
+    check("brand variants too",
+          [ground(n) for n in ("Flix", "FlixBus", "Flixtrain", "Greyhound",
+                               "Amtrak", "ALSA", "peter pan", "OuiGo")],
+          [True] * 8)
+    check("airlines pass through",
+          [ground(n) for n in ("JetBlue", "Delta", "Air France", "Iberia",
+                               "Aer Lingus", "Alaska", "Spirit", "Vueling",
+                               "ITA Airways", "Norse Atlantic", "Play", None)],
+          [False] * 12)
+    check("a coach return leg disqualifies the trip too",
+          plausible([Fare(price=88, airline="Delta", back_airline="Flix")]), [])
 
     print(f"\nfailures: {failures or 'none'}")
     return 1 if failures else 0

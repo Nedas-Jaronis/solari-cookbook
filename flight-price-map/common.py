@@ -77,13 +77,56 @@ def money(line: str) -> tuple[str, int] | None:
     return None
 
 
+# Coach and rail operators. Kayak and Momondo run one engine and it mixes
+# ground transport into flight results on short routes, so a search out of
+# Boston answers with a seven-hour, forty-four-dollar Flix coach from
+# Manchester sitting above every flight. It is not a cheap fare and it is not
+# an outlier -- it is not a flight, and because it is the lowest number on the
+# page it takes the headline, which is the one answer this whole thing exists
+# to get right.
+GROUND = (
+    "flix", "greyhound", "megabus", "boltbus", "ourbus", "vamoose",
+    "tripper bus", "peter pan", "c&j", "concord coach", "trailways",
+    "jefferson lines", "redcoach", "amtrak", "brightline", "via rail",
+    "eurostar", "thalys", "ouigo", "italo", "trenitalia", "renfe", "sncf",
+    "deutsche bahn", "db fernverkehr", "obb", "öbb", "sbb", "westbahn",
+    "regiojet", "leo express", "eurolines", "alsa", "blablacar",
+    "national express",
+)
+
+
+def ground(carrier: str | None) -> bool:
+    """Is this operator a bus or a train rather than an airline?
+
+    Prefix rather than exact match: one brand ships as Flix, FlixBus and
+    Flixtrain depending on which page you caught it on.
+    """
+    if not carrier:
+        return False
+    # Kayak tags the mode next to the operator -- a real cached search stored
+    # "FlixBus, Bus" -- and that tag catches operators no list would have, so
+    # it is worth more than the names below. The names stay as the backstop
+    # for pages that give the operator and not the mode.
+    parts = [w.strip().lower().rstrip(".") for w in carrier.split(",")]
+    if any(w in ("bus", "train", "rail", "ferry") for w in parts):
+        return True
+    return any(parts[0].startswith(g) for g in GROUND)
+
+
 def plausible(fares: list[Fare], floor: int = 40, ceiling: int = 20000) -> list[Fare]:
     """Drop prices that cannot be airfares.
 
     Results pages are full of other numbers -- '$12 baggage', '2,024' years,
     hotel upsells. A fare below the floor or above the ceiling is noise.
+
+    A coach fare is noise of a more expensive kind: it is a real price for a
+    real journey, so no price range excludes it. It has to go by operator.
+    Either leg being a bus disqualifies the trip -- a flight out and a coach
+    back is not a flight either.
     """
-    return [f for f in fares if floor <= f.price <= ceiling]
+    return [f for f in fares
+            if floor <= f.price <= ceiling
+            and not ground(f.airline) and not ground(f.back_airline)]
 
 
 BLOCK_MARKERS = (
