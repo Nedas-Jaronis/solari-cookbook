@@ -8,6 +8,11 @@ which site is selling it for least.
 Built on [Solari](https://getsolari.com) cloud browsers, on a fork of their
 [cookbook](https://github.com/solari-sdk/solari-cookbook).
 
+**The problem.** Every booking site shows a different price for the same seat,
+and none of them tell you the airport an hour up the road is cheaper. Checking
+properly is a dozen tabs and twenty minutes, so almost nobody does it — which
+means almost nobody knows what that check is actually worth. This measures it.
+
 ![Searching a route it has never seen](flight-price-map/demo/demo.gif)
 
 Tampa to Barcelona, a route it had never priced: **10 seconds, $376**.
@@ -137,6 +142,16 @@ So the international version is waiting on Solari, in three specific ways:
 Currency is ours to fix, not Solari's: prices are forced to USD today so that a
 comparison is a comparison, and a real international build would show local
 currency with the conversion made explicit.
+
+**What it unlocks.** Booking sites quote by where you appear to be, and Solari's
+proxies are the only practical way to test that — the same flight, in the same
+second, priced from twenty countries at once. Our one sweep says the gap is
+small, but it is one route with three searches per country and a fifth of the
+non-US ones lost, so it settles nothing. The interesting version of this tool is
+the one that runs that sweep across hundreds of routes and can say which routes
+have a gap, how big, and in which direction. That needs non-US egress to hold up
+under parallel load, and the Solari team is moving on it quickly — it is the one
+piece between this and pricing a route the way a local sees it.
 
 
 The rest of the list — Priceline's missing itinerary detail, Kiwi's place
