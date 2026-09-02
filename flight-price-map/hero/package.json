@@ -1,0 +1,20 @@
+{
+  "name": "fare-board-hero",
+  "private": true,
+  "type": "module",
+  "description": "The hero sky, drawn on the GPU. Built to a single file that sky.py inlines.",
+  "scripts": {
+    "build": "node build.mjs",
+    "still": "node still.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "pngjs": "^7.0.0",
+    "vgpu": "^0.3.1"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "webgpu@0.4.0": true,
+    "@vgpu/adapter-node@0.3.1": true
+  }
+}

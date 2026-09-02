@@ -560,6 +560,7 @@ dashboard.py   results.json -> a single-study page
 teaserboard.py teasers.json -> teasers.html
 theme.py       the shared look: tokens, type, chart and table styles
 sky.py         the hero stage: dot-cloud aircraft, smoke, day and night
+hero/          the same sky on the GPU, in WGSL; builds to hero.js
 parse.py       the Google Flights reader
 capture.py     dev tool: dump each site's page text, for writing parsers
 preview.py     dev tool: screenshot a page in both themes
@@ -569,6 +570,38 @@ worldtest.py   dev tool: price real routes on six continents, live
 proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```
+
+### The hero, on the GPU
+
+`sky.py` draws the hero on a 2D canvas, and `hero/` draws the same sky in one
+WGSL fragment shader through [vgpu](https://vgpu.sh). The difference is the
+contrail. On the canvas it is 110 sprites, which is why it reads as a row of
+blurred stamps; in the shader every pixel asks the flight path how far behind
+the aircraft it sits and how long ago it was passed, so the plume is a field --
+it billows on noise, spreads with age, and costs the same whether the aircraft
+has just left the bottom of the frame or is halfway out of the top.
+
+It is an upgrade, not a requirement, and the canvas scene is still the one in
+the HTML:
+
+```
+cd hero && npm install && npm run build     # -> ../hero.js
+npm run still                               # render frames headless, to look at
+```
+
+Three decisions worth keeping:
+
+- **`hero.js` is a sibling file, not inlined.** Inlining costs 46 KB gzipped on
+  top of a 36 KB page, and every reader would pay it including the ones whose
+  browser has no WebGPU. The page checks `navigator.gpu` first and only then
+  asks for the file.
+- **The 2D context is taken late.** A canvas gets one kind of context for its
+  lifetime, so calling `getContext("2d")` up front -- which is what the file
+  used to do -- would make the WebGPU context impossible to create.
+- **It is verified on pixels, not by eye.** No browser in this project's test
+  setup has WebGPU, so `npm run still` renders the shader headless through Dawn
+  and writes PNGs, and flags a frame that came back one flat colour. That is
+  the only way the thing was looked at before it shipped.
 
 `pages/` holds captured page text — every failure is written there
 automatically, which is the first place to look when a parser stops finding

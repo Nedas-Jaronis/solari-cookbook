@@ -936,7 +936,12 @@ select option { background:var(--panel); color:var(--ink); }
 (() => {
   const canvas = document.getElementById("sky");
   if (!canvas) return;
-  const ctx = canvas.getContext("2d");
+  /* Not fetched yet, and that matters: a canvas gets exactly one kind of
+     context for its lifetime, so asking for "2d" here would make the WebGPU
+     context below impossible to create. It is taken at the moment we know the
+     GPU scene is not happening, and every entry point below refuses to draw
+     until it exists. */
+  let ctx = null;
 
   // The aircraft is a silhouette, not a picture: every filled cell becomes a
   // glowing dot, and cells on the outline burn brighter, which is what makes a
@@ -1169,6 +1174,7 @@ select option { background:var(--panel); color:var(--ink); }
     // the scene away and leaves the stage's flat background showing, which is
     // what you get on the way back. Stop instead, and let the observer below
     // start us again when the hero is on screen and has a size to draw into.
+    if (!ctx) return;            // the GPU has it, or nobody has decided yet
     if (!canvas.clientWidth || !canvas.clientHeight) return;
     pal = isDark() ? NIGHT : DAY;
     size();
@@ -1195,7 +1201,49 @@ select option { background:var(--panel); color:var(--ink); }
     if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
     else if (!document.hidden) start();
   });
-  start();
+
+  /* The GPU scene draws the same sky, but the contrail is a field rather than
+     a row of sprites: every pixel asks the flight path how far behind the
+     aircraft it sits and how long ago it was passed, so the plume billows and
+     spreads with age instead of being 110 stamps of the same blurred dot.
+
+     It is an upgrade, not a requirement. WebGPU is not in every browser, a
+     laptop can refuse a device on battery saver, and the headless browser this
+     project screenshots with has none at all -- so this asks first, loads the
+     bundle only where the answer is yes, and hands back to the canvas the
+     moment anything about it does not work. Everything below this point is
+     what happens when there is no GPU, which is also everything that happened
+     before there was a GPU path at all. */
+  const gpuTried = (async () => {
+    if (!navigator.gpu || still.matches) return false;
+    try {
+      await new Promise((ok, no) => {
+        const tag = document.createElement("script");
+        tag.src = "hero.js";
+        tag.onload = ok;
+        tag.onerror = () => no(new Error("hero.js did not load"));
+        document.head.appendChild(tag);
+      });
+      return await window.__heroGPU(canvas);
+    } catch (err) {
+      console.info("hero: staying on the canvas scene", err);
+      return false;
+    }
+  })();
+
+  gpuTried.then(onGpu => {
+    if (onGpu) {
+      // The GPU owns the canvas now. Anything the fallback had scheduled would
+      // be drawing into a context that is no longer ours.
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      canvas.dataset.hero = "gpu";
+      return;
+    }
+    canvas.dataset.hero = "canvas";
+    ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    start();
+  });
 })();
 </script>
 

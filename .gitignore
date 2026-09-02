@@ -6,3 +6,7 @@ __pycache__/
 .venv/
 venv/
 screenshot.png
+
+# the hero bundle is built and committed; its toolchain is not
+flight-price-map/hero/node_modules/
+flight-price-map/hero/stills/
