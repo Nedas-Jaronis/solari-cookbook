@@ -57,7 +57,7 @@ fn fbm(p: vec2f) -> f32 {
   var v = 0.0;
   var amp = 0.5;
   var q = p;
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 3; i++) {
     v += amp * vnoise(q);
     q = q * 2.02 + vec2f(11.3, 7.7);
     amp *= 0.5;
@@ -85,9 +85,53 @@ fn heading(u: f32) -> vec2f {
    that starts at full rate looks like a dropped frame rather than a manoeuvre.
    0.60 to 0.80 of the climb puts it in the upper third of the hero, above the
    copy and above the form. */
+const ROLL_A: f32 = 0.58;
+const ROLL_B: f32 = 0.84;
+const BARREL_R: f32 = 0.052;   // radius of the helix, in uv
+
+fn roll_phase(u: f32) -> f32 {
+  return clamp((u - ROLL_A) / (ROLL_B - ROLL_A), 0.0, 1.0);
+}
+
 fn roll_of(u: f32) -> f32 {
-  let t = clamp((u - 0.60) / 0.20, 0.0, 1.0);
-  return smoothstep(0.0, 1.0, t) * 6.2831853;
+  return smoothstep(0.0, 1.0, roll_phase(u)) * 6.2831853;
+}
+
+/* A barrel roll is a corkscrew flown around the original flight path, not a
+   spin on the spot -- that is an aileron roll, and it was what this did first.
+   The aircraft goes all the way round a circle whose axis is the direction of
+   travel, so from here the part of that circle that runs across the path shows
+   as a swing to one side, and the part that runs toward and away from us shows
+   as the aircraft getting nearer and then smaller.
+
+   Returned as (offset.x, offset.y, nearness). The envelope opens the radius
+   from nothing and closes it back to nothing, so the aircraft leaves the line
+   and rejoins it rather than jumping onto a circle already in progress. */
+fn barrel(u: f32) -> vec3f {
+  let t = roll_phase(u);
+  if (t <= 0.0 || t >= 1.0) { return vec3f(0.0); }
+  let r = roll_of(u);
+  let env = sin(3.14159265 * t);
+  let hd = heading(u);
+  let across = vec2f(-hd.y, hd.x);
+  return vec3f(across * (BARREL_R * env * sin(r)), env * cos(r));
+}
+
+/* Where the aircraft actually is: the climb, plus whatever the barrel is
+   doing. Everything that needs a position asks this rather than path(), which
+   is why the contrail corkscrews without being told about the manoeuvre. */
+fn flight(u: f32) -> vec2f {
+  return path(u) + barrel(u).xy;
+}
+
+fn flight_heading(u: f32) -> vec2f {
+  let a = flight(min(u + 0.010, 1.0));
+  let b = flight(u);
+  let d = a - b;
+  // On the exit the two samples can land on top of each other; fall back to
+  // the climb rather than normalising a zero.
+  if (length(d) < 1e-6) { return heading(u); }
+  return normalize(d);
 }
 
 /* Fade in at the bottom, out at the top, so neither end of the climb pops. */
@@ -191,7 +235,7 @@ fn aircraft(q: vec2f, cs: f32, sn: f32) -> Plane {
    equally-sized stamps. */
 fn trail_at(p: vec2f, u: f32) -> f32 {
   var acc = 0.0;
-  let steps = 40;
+  let steps = 52;
   for (var i = 0; i < steps; i++) {
     let t = f32(i) / f32(steps - 1);
     // Started clear of the aircraft: sampling from u puts the freshest smoke
@@ -200,13 +244,13 @@ fn trail_at(p: vec2f, u: f32) -> f32 {
     let s = u - back;
     if (s < 0.0) { break; }
     let age = clamp(back / TRAIL, 0.0, 1.0);
-    var c = path(s);
+    var c = flight(s);
     c.x *= params.aspect;
     // Billow: the older the air, the further the noise is allowed to push it.
     let n = fbm(c * 9.0 + vec2f(params.time * 0.05, -params.time * 0.08));
     let drift = (n - 0.5) * (0.006 + age * 0.055);
     let d = length(p - c - vec2f(drift * 0.6, drift));
-    let width = 0.0055 + age * 0.085;
+    let width = 0.0078 + age * 0.082;
     let fall = pow(1.0 - age, 2.4);
     acc += fall * exp(-(d * d) / (width * width)) * 0.23;
   }
@@ -218,12 +262,18 @@ fn trail_at(p: vec2f, u: f32) -> f32 {
    wings catch a highlight along the leading edge, and the whole thing sits on
    a soft shadow so it reads as an object in air rather than a decal. */
 fn aircraft_at(p: vec2f, u: f32) -> vec4f {
-  var c = path(u);
+  let bar = barrel(u);
+  var c = flight(u);
   c.x *= params.aspect;
-  let hd = heading(u);
+  let hd = flight_heading(u);
   let h = normalize(vec2f(hd.x * params.aspect, hd.y));
   let rel = p - c;
-  let q = vec2f(dot(rel, h), dot(rel, vec2f(-h.y, h.x)));
+  let raw = vec2f(dot(rel, h), dot(rel, vec2f(-h.y, h.x)));
+
+  // Round the near side of the barrel it is closer to the eye, so it is
+  // bigger. Without this the corkscrew reads as a weave along the ground.
+  let scale = 1.0 + 0.16 * bar.z;
+  let q = raw / scale;
 
   let roll = roll_of(u);
   let facing = cos(roll);      // how much of the span still faces us
@@ -232,13 +282,15 @@ fn aircraft_at(p: vec2f, u: f32) -> vec4f {
   let cs = select(min(facing, -0.085), max(facing, 0.085), facing >= 0.0);
   let a = aircraft(q, cs, sin(roll));
   let belly = facing < 0.0;
+  // Distances came back in the scaled frame, so they have to come out of it.
+  let d = a.d * scale;
   // Antialias against the pixel, not against a fixed number, so the aircraft
   // stays crisp on a phone and on a 4K display alike.
-  let px = fwidth(q.x) * 1.1 + 0.00002;
-  let cover = 1.0 - smoothstep(-px, px, a.d);
+  let px = fwidth(raw.x) * 1.1 + 0.00002;
+  let cover = 1.0 - smoothstep(-px, px, d);
   if (cover <= 0.001) {
     // Still worth a breath of glow, which is what keeps it from looking cut out.
-    let glow = exp(-max(a.d, 0.0) * 240.0) * 0.13;
+    let glow = exp(-max(d, 0.0) * 240.0) * 0.13;
     return vec4f(params.edge * glow, glow * 0.55);
   }
 
@@ -264,7 +316,7 @@ fn aircraft_at(p: vec2f, u: f32) -> vec4f {
     // Wing: darker than the body, with the leading edge picked out.
     col = mix(params.body, params.edge, 0.35);
     if (belly) { col *= 0.70; }
-    let ledge = 1.0 - smoothstep(0.0, 0.010, abs(a.d));
+    let ledge = 1.0 - smoothstep(0.0, 0.010, abs(d));
     col = mix(col, params.core, ledge * 0.18);
     shade *= 0.94;
   } else if (a.mat < 2.5) {
@@ -282,7 +334,7 @@ fn aircraft_at(p: vec2f, u: f32) -> vec4f {
 
   col *= shade;
   // Rim light along the silhouette, which is what separates it from the sky.
-  let rim = 1.0 - smoothstep(0.0, 0.0055, abs(a.d));
+  let rim = 1.0 - smoothstep(0.0, 0.0055, abs(d));
   col = mix(col, params.core, rim * 0.22);
 
   // Navigation lights: red to port, green to starboard, and a strobe that
