@@ -69,6 +69,21 @@ GLOBAL_PER_DAY = int(os.environ.get("FARE_GLOBAL_PER_DAY", 200))
 # answer is what visitors get.
 ALLOW_NEARBY = os.environ.get("FARE_ALLOW_NEARBY", "1") not in ("0", "false", "")
 
+# Where the browsers come out. This was hard-coded to "us" because non-US
+# exits kept dropping searches under load -- four of twenty-one, which for a
+# price comparison means quietly reporting the cheapest fare it managed to
+# read. That is fixed: re-tested across eight countries, every browser exited
+# where it was asked and every search came back.
+#
+# US stays the default because we measured what changing it buys, and the
+# answer is nothing: across ~1,400 matched per-flight comparisons on two
+# routes, not one flight was priced differently in any country. Reach for a
+# different exit when you want the page a local is shown, not because you
+# expect a cheaper number.
+EGRESS = os.environ.get("FARE_EGRESS", "us").lower()
+# Only countries this project has actually watched a browser come out of.
+EGRESS_OK = frozenset({"au", "br", "ca", "de", "gb", "in", "jp", "sg", "us"})
+
 
 # --------------------------------------------------------------------------
 # The store: finished runs, so the same question is not paid for twice
@@ -82,8 +97,12 @@ def connect() -> sqlite3.Connection:
     return db
 
 
-def cache_key(q: Query, nearby: bool) -> str:
-    return f"{q.origin}-{q.destination}-{q.date}-{q.ret or 'ow'}-{int(nearby)}"
+def cache_key(q: Query, nearby: bool, country: str = EGRESS) -> str:
+    # The country belongs in the key. Without it a search from Tokyo is
+    # answered with the page London was shown, which is the one thing this
+    # tool must never do quietly.
+    return (f"{q.origin}-{q.destination}-{q.date}-{q.ret or 'ow'}"
+            f"-{int(nearby)}-{country}")
 
 
 def remember(db, key: str, payload: dict) -> None:
@@ -198,13 +217,13 @@ async def stream(job_id: str, q: Query, started: float, results: list[dict],
 
 
 async def hunt(job_id: str, q: Query, nearby: bool, gate: asyncio.Semaphore,
-               db) -> None:
+               db, country: str = EGRESS) -> None:
     """Quick answer first, then widen to the nearby airports."""
     started = time.time()
     site_gates = {k: asyncio.Semaphore(2) for k in QUICK_SITES}
 
     def task(site, dest):
-        return compare.Task(site, q.origin, dest, "us")
+        return compare.Task(site, q.origin, dest, country)
 
     def go(t):
         return compare.run(SOLARI, gate, site_gates[t.site], t, q.date, q.ret,
@@ -227,7 +246,7 @@ async def hunt(job_id: str, q: Query, nearby: bool, gate: asyncio.Semaphore,
                          "widening")
 
         run = publish(job_id, q, results, time.time() - started, "done")
-        remember(db, cache_key(q, nearby), run)
+        remember(db, cache_key(q, nearby, country), run)
     except Exception as err:                      # a job must never hang
         with JOBS_LOCK:
             JOBS[job_id]["phase"] = "failed"
@@ -320,6 +339,16 @@ class Handler(BaseHTTPRequestHandler):
         if not (q.origin.isalpha() and q.destination.isalpha()):
             return self.send_json(400, {"error": "airports are three letters"})
 
+        # Which country to look from. Refused rather than silently ignored if
+        # it is one we have never watched a browser come out of -- answering a
+        # request for Tokyo with a page read from New York is worse than
+        # saying no.
+        country = str(body.get("country") or EGRESS).lower()[:2]
+        if country not in EGRESS_OK:
+            return self.send_json(400, {
+                "error": f"Cannot browse from {country!r}. Verified exits: "
+                         + ", ".join(sorted(EGRESS_OK))})
+
         nearby = bool(body.get("nearby", True)) and ALLOW_NEARBY
         # A stored answer is the right default and the wrong one when somebody
         # is about to book: fares move, and asking again is the point of having
@@ -330,10 +359,11 @@ class Handler(BaseHTTPRequestHandler):
         base = {"id": job_id, "phase": "queued", "trip": None, "error": None,
                 "searched": 0, "answered": 0, "seconds": 0, "cached_age": 0,
                 "asked": {"from": q.origin, "to": q.destination,
-                          "date": q.date, "ret": q.ret, "nearby": nearby}}
+                          "date": q.date, "ret": q.ret, "nearby": nearby,
+                          "country": country}}
 
-        stored, age = (None, 0.0) if fresh else recall(DB_CONN,
-                                                       cache_key(q, nearby))
+        stored, age = (None, 0.0) if fresh else recall(
+            DB_CONN, cache_key(q, nearby, country))
         if stored:
             built = tripslib.build([stored])
             base.update(phase="done", trip=built[0] if built else None,
@@ -352,7 +382,7 @@ class Handler(BaseHTTPRequestHandler):
         with JOBS_LOCK:
             JOBS[job_id] = base
         asyncio.run_coroutine_threadsafe(
-            hunt(job_id, q, nearby, GATE, DB_CONN), LOOP)
+            hunt(job_id, q, nearby, GATE, DB_CONN, country), LOOP)
         return self.send_json(202, {**base, "from_cache": False})
 
 

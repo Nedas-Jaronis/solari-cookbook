@@ -106,8 +106,13 @@ async def attempt(solari, task: Task, site, url: str, base: dict,
                 "cheapest": min((f.price for f in fares), default=None),
                 "median": sorted(f.price for f in fares)[len(fares) // 2]
                           if fares else None,
-                "fares": [asdict(f) for f in sorted(
-                    fares, key=lambda f: f.price)[:6]],
+                # Every fare the page gave us, not the cheapest handful. Six
+                # was enough while the question was "what does this route
+                # cost"; it is not enough to ask whether the same seat is
+                # priced differently in two countries, because that needs the
+                # same flight to appear on both pages and six deep is mostly
+                # a different six.
+                "fares": [asdict(f) for f in sorted(fares, key=lambda f: f.price)],
                 "timezone": getattr(resolved, "timezone_id", None),
                 "egress": getattr(resolved, "country", None),
                 "seconds": round(time.time() - started, 1),

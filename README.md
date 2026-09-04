@@ -114,81 +114,67 @@ The honest ceiling is blocking rather than engineering. Four sweeps by one
 person was enough to lose Skyscanner for a day, which is why the service caches
 hard and throttles per site.
 
-## Why it browses from the US only
+## Browsing from somewhere else
 
-To be clear about what is limited: Fare Board happily prices international
-*routes* — most of the findings on this page are Tampa to Barcelona and New
-York to London, and the live sweep prices eight routes across six continents.
-What is US-only is where it stands while it looks. Every search egresses from a US residential IP, so
-every price is the price a person in the US is shown.
+This section used to say the tool was US-only, and why. That is no longer true,
+so here is what changed and what it turned out to be worth.
 
-That is a real limit, because the same seat is not always the same price to a
-buyer in São Paulo. We ship it that way not because the rest of the world fails
-to connect — all thirteen country and tier combinations we tried came up in two
-to four seconds — but because of what happened when they were actually used.
-The country sweep ran 24 searches, three from each of eight countries. All
-three US searches came back. **Four of the twenty-one non-US ones did not:**
-two died with `ERR_TUNNEL_CONNECTION_FAILED` from Germany and Japan, and two
-loaded a page with no fares on it.
+**The blocker is gone.** We shipped US-only because non-US exits dropped
+searches under load: four of twenty-one, two of them
+`ERR_TUNNEL_CONNECTION_FAILED` from Germany and Japan. For a price comparison
+that is disqualifying — a search that quietly loses a site reports the cheapest
+fare *it managed to read*, and never says which one it missed. Re-tested since:
+**42 of 42 non-US searches came back**, across two routes and eight countries,
+plus every search in the geography tests below. Every browser exited in the
+country it was asked for, confirmed against the timezone the page itself
+reported:
 
-Twenty-four searches is not a reliability study, and we are not claiming it is
-one — that is rather the point of item 2 below. But the direction is the wrong
-way, and this particular tool is unusually sensitive to it: a price comparison
-that quietly loses some of its searches does not report the cheapest fare, it
-reports the cheapest fare *it managed to read*, and it never tells you which
-one it missed. Better to say "US only" than to be confidently wrong in a
-direction nobody can see.
+```
+asked for      came out as    timezone the page saw
+      in             in       Asia/Kolkata
+      jp             jp       Asia/Tokyo
+      br             br       America/Sao_Paulo
+      de             de       Europe/Berlin      ...and so on for au, gb, sg, us
+```
 
-So the international version is waiting on Solari, in three specific ways:
+So `server.py` no longer hard-codes the exit. Pass `country` on a search, or set
+`FARE_EGRESS`; anything outside the list of exits we have actually watched a
+browser come out of is refused rather than silently swapped for a US one.
 
-1. **Non-US egress as steady as US under parallel load.** This is the whole
-   blocker. Twenty browsers going at once is the normal case here, not a stress
-   test.
-2. **Egress budget across many countries and many routes.** Our finding that
-   *where you browse barely moves the price* is real but thin: one route, one
-   day, seven countries. Confirming or killing it means hundreds of routes,
-   which is thousands of browsers.
-3. **Skyscanner.** It runs PerimeterX, and six launch configurations got
-   through none of the time on both US and GB egress. Outside the US it is one
-   of the sites people actually book on, so an international build without it
-   is missing a wall, not a nice-to-have.
+**And the price is the same everywhere.** The interesting part is that having
+built it, the answer is no. Delhi–Mumbai and Johannesburg–Cape Town, eight
+countries, two sites, two rounds: about 1,400 comparisons of *the same physical
+flight* — same carrier, same departure, same arrival, same stops — and not one
+of them is priced differently by the country you look from.
 
-Currency is ours to fix, not Solari's: prices are forced to USD today so that a
+Getting that right needed a control we did not have at first. One sweep showed
+Delhi–Mumbai at $57 from seven countries and $69 from the US, on two sites at
+once, which looked conclusive enough that we believed it. Twenty-three minutes
+later it was $57 everywhere. The fare had simply moved, the move landed on the
+US search, and both sites agreed because both were read in the same minute —
+sharing an artifact rather than confirming each other. `geodiff.py` exists so
+that cannot happen twice: it runs the sweep twice and measures how much the
+same country differs *from itself* between rounds, and refuses to call a
+country difference real unless it beats that noise floor. On Johannesburg it
+caught exactly this — a $16 US gap in round one, gone in round two, and the
+same page moving $16 against itself in between.
+
+```
+python compare.py --from DEL --to BOM --date 2026-10-15     --countries us gb de jp au in br sg --sites kayak momondo --out geo/a.json
+python compare.py ... --out geo/b.json        # again, straight after
+python geodiff.py geo/a.json geo/b.json
+```
+
+This is the negative result the project is most confident in, and it is worth
+more than the positive one would have been: it says the expensive thing —
+pricing every route from every country — is not where the money is. The money
+is in the site you book on, which is worth $141 on a thin route.
+
+What is still ours to fix rather than Solari's: prices are forced to USD so a
 comparison is a comparison, and a real international build would show local
-currency with the conversion made explicit.
-
-### What geolocation unlocks
-
-This is the part we most want to build, and the part Solari is uniquely able to
-make possible.
-
-Booking sites quote by where you appear to be. Nobody can check that by hand —
-you cannot be in São Paulo and Frankfurt in the same second, and a VPN gives you
-one country at a time with a data-centre IP the sites already distrust. A
-residential exit per browser, thirty at once, is the only practical way to ask
-the question properly: **the same flight, on the same date, priced from twenty
-countries in the same moment.**
-
-We built the machinery and pointed it at one route. The answer was that it
-barely mattered — $14 was the widest spread on any site, currencies forced to
-USD so it is pricing and not exchange rates. That is a real finding and we have
-published it as one, but it is one route, one day, three searches per country,
-with four of the twenty-one non-US searches lost. It settles nothing.
-
-The version worth building runs that sweep across hundreds of routes and can
-say *which* routes carry a gap, how large, in which direction, and whether it
-tracks the buyer's currency, the airline's home market, or nothing at all. That
-is a genuinely unanswered question about how airline pricing works, and it is
-answerable with about a thousand browsers and nothing else.
-
-What stands between here and there is non-US egress holding up under parallel
-load. The Solari team is moving on it quickly, and it is the only piece missing
-— everything else, the fan-out, the dedupe, the reading, already works.
-
-
-The rest of the list — Priceline's missing itinerary detail, Kiwi's place
-slugs, thin routes at volume — is in
-[the write-up](flight-price-map/README.md#what-we-would-still-want-from-solari).
+currency with the conversion made explicit. Skyscanner also still refuses us
+everywhere — six launch configurations, US and GB egress, through none of the
+time — so an international build is missing a wall we cannot climb yet.
 
 ## What is in here
 

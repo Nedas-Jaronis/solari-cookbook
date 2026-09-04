@@ -131,7 +131,7 @@ An audit, and one search that answered oddly, turned up five things nothing was 
   stored: everything real kept, the train dropped.
 
 Still open and worth knowing: nothing guards against a run coming back in a
-currency other than USD once non-US egress is in play. `compare.py` warns, the
+currency other than USD now that non-US egress is in play. `compare.py` warns, the
 pages do not.
 
 ## Round trips
@@ -292,15 +292,19 @@ The honest list of where this stops, and what would move it:
   but six launch configurations got through none of the time, on both US and GB
   egress, hours after the last attempt. Not a rate limit and not the IP country.
   This one needs an answer from Solari rather than more tuning from us.
-- **Geolocation at proper scale.** Non-US egress connects fine — thirteen of
-  thirteen country and tier combinations came up in two to four seconds — but
-  it did worse when used. The sweep was 24 searches, three from each of eight
-  countries: all three US searches returned, four of the twenty-one non-US ones
-  did not (`ERR_TUNNEL_CONNECTION_FAILED` from `de` and `jp`, plus two that
-  loaded with no fares). Three searches per country proves nothing on its own,
-  which is exactly the problem — the finding that country barely moves fares
-  rests on one route on one day, and testing it properly means many countries
-  across many routes. More egress, more budget.
+- ~~**Geolocation at proper scale.**~~ **Answered.** This asked for non-US
+  egress that holds up when it is actually used: the original sweep lost four
+  of twenty-one non-US searches, two of them `ERR_TUNNEL_CONNECTION_FAILED`
+  from `de` and `jp`. Re-tested since, it is fixed — 42 of 42 non-US searches
+  returned, and every browser exited in the country asked for, checked against
+  the timezone the page reported. `server.py` takes a `country` now instead of
+  hard-coding `us`.
+
+  With it working, the question it was blocking has an answer, and the answer
+  is no: about 1,400 comparisons of the same physical flight across eight
+  countries, two sites and two rounds, and not one flight priced differently by
+  where you browse from. See `geodiff.py` and `geo/` — including the sweep that
+  said otherwise before a second round showed the fare had simply moved.
 - **Thin routes at volume.** The single most valuable finding — $141 of spread
   on Tampa–Barcelona against $23 on JFK–London — came from one search. Whether
   that holds is a question about hundreds of routes, and hundreds of routes is
@@ -570,6 +574,7 @@ preview.py     dev tool: screenshot a page in both themes
 flowtest.py    dev tool: drive the traveller flow end to end
 parsertest.py  dev tool: hold the readers to fixtures in fixtures/
 worldtest.py   dev tool: price real routes on six continents, live
+geodiff.py     dev tool: does the country you browse from change the price?
 proxycheck.py  which proxy countries and tiers actually connect
 probe.py       first-contact script: does stealth + proxy work at all
 ```
