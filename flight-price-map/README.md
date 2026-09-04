@@ -493,10 +493,33 @@ it answered. Google varied by $5 and Momondo by $14, and Momondo's was one
 country (Germany) against six that agreed. On this route, the folk wisdom about
 VPNing somewhere cheap to buy flights does not survive a controlled test.
 
-Worth being clear about the limits: one route, one date, six weeks out, economy
-one-way, on the most competitive air corridor in the world. Thin routes are
-exactly where you would expect geographic pricing to show up, and we have not
-tested those yet.
+Worth being clear about the limits of *that* run: one route, one date, six
+weeks out, economy one-way, on the most competitive air corridor in the world,
+and comparing the cheapest fare on each page rather than the same seat.
+
+**Since tested properly, and it still does not matter.** Once non-US egress was
+fixed we went back with the objections answered: thin domestic routes in
+foreign markets, where geographic pricing should show if it shows anywhere;
+every fare on the page instead of the cheapest; matched flight by flight on
+carrier, departure, arrival and stops; and each sweep run twice so a fare
+moving on its own could be told apart from a country being charged more. About
+1,400 matched comparisons across eight countries and two sites, and not one
+flight is priced differently by where you browse from.
+
+That control mattered. One sweep put Delhi–Mumbai at $57 from seven countries
+and $69 from the US, on two sites at once, and we believed it. Twenty-three
+minutes later it was $57 everywhere — the fare had moved, the move landed on
+the US search, and the two sites agreed only because they were read in the same
+minute. `geodiff.py` measures how far a country drifts from *itself* between
+rounds and refuses to call a difference real unless it beats that. It caught
+the same thing on Johannesburg: a $16 US gap in round one, gone in round two,
+with the page moving $16 against itself in between.
+
+```bash
+python compare.py --from DEL --to BOM --date 2026-10-15     --countries us gb de jp au in br sg --sites kayak momondo --out geo/a.json
+python compare.py ... --out geo/b.json        # again, straight after
+python geodiff.py geo/a.json geo/b.json
+```
 
 ### A note on the egress itself
 

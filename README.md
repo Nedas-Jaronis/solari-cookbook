@@ -3,7 +3,9 @@
 Ask for any flight, on any date. It launches a browser per search, reads
 Google Flights, Kayak, Momondo, Expedia and Priceline at the same time, adds
 every airport around your destination, and tells you which flight to take and
-which site is selling it for least.
+which site is selling it for least. It can run that search from any of nine
+countries, so you see the page a local is shown rather than the page shown to
+an American.
 
 Built on [Solari](https://getsolari.com) cloud browsers, on a fork of their
 [cookbook](https://github.com/solari-sdk/solari-cookbook).
@@ -41,7 +43,7 @@ is what it measured — including the times it disproved what we expected.
 |---|---|
 | **The site you book on is worth $141 on a thin route** | 39% on Tampa–Barcelona. On JFK–London it is $23. The tool is nearly worthless on the corridors everyone benchmarks and worth a lot on the routes nobody checks. |
 | **A nearby airport saved $80** | Gatwick under Heathrow. But Google and Kayak *both suggest that swap themselves* — against the best hint any single site gave, cross-site search won by **$12**. That is the honest number. |
-| **Where you browse from barely matters** | Kayak quoted the identical fare from all seven countries it answered. Widest spread on any site: $14, with prices forced to USD so this is pricing and not exchange rates. |
+| **Where you browse from does not matter at all** | ~1,400 comparisons of *the same physical flight* — same carrier, departure, arrival, stops — across eight countries, two sites and two rounds. Not one flight is priced differently. This began as a $12 gap we believed for twenty-three minutes; see [below](#browsing-from-somewhere-else). |
 | **The "from $175" teasers are real** | 8 of 8 held — 5 to the dollar, 3 *cheaper* than advertised. Our first run said otherwise, and that was our bug, not theirs. |
 | **Round trips invert all of it** | The airport is worth $24 and the site $125. |
 
@@ -61,6 +63,18 @@ python server.py                     # -> http://localhost:8080
 
 Type any two airports and any date. A straight answer takes about twenty
 seconds; the nearby airports fill in underneath it over the next minute.
+
+To look from somewhere else, pass a country — `au`, `br`, `ca`, `de`, `gb`,
+`in`, `jp`, `sg` or `us`, the exits we have actually watched a browser come out
+of. Anything else is refused rather than quietly swapped for a US one, and the
+country is part of the cache key, so a search from Tokyo is never answered with
+the page London was shown.
+
+```bash
+curl -s localhost:8080/api/search -H 'content-type: application/json'   -d '{"from":"DEL","to":"BOM","date":"2026-10-15","country":"in"}'
+
+FARE_EGRESS=jp python server.py     # or set the default for every search
+```
 
 Measured on routes that had never been searched:
 
@@ -101,8 +115,8 @@ thirteen seconds instead of the eight minutes it would take one at a time.
 | Where | The call | Why it has to be a cloud browser |
 |---|---|---|
 | **Every fare read** | `launch(stealth=True, proxy=...)`, then ordinary Playwright | No API exists. Without stealth there is no project — Expedia and Skyscanner wall us even with it. |
-| **Reading as a local** | `proxy=ProxyRequest(country=…, tier="residential")` | The only way to ask whether a fare is different in Tokyo than in Ohio. |
-| **Proving where we stood** | `browser.proxy` → country, tier, timezone | Turns *"we searched from Japan"* from a claim into a fact the board can print. |
+| **Reading as a local** | `proxy=ProxyRequest(country=…, tier="residential")` | The only way to ask whether a fare is different in Tokyo than in Ohio. The live service takes a country per search. |
+| **Proving where we stood** | `browser.proxy` → country, tier, timezone | Turns *"we searched from Japan"* from a claim into a fact. It is what proved every browser exited where it was asked, checked against the timezone the page itself reported — without which "the price is the same everywhere" could just mean the proxy never moved. |
 | **Thirty searches at once** | many `launch()` calls in parallel | 113 seconds instead of eight minutes. This one is the product, not an optimisation. |
 | **Getting through walls** | `captcha`, `web_bot_auth`, `proxy="smart"`, all three tiers | Tested side by side in `bypass.py`, and reported even where the answer was no. |
 
