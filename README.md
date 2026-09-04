@@ -184,11 +184,48 @@ more than the positive one would have been: it says the expensive thing —
 pricing every route from every country — is not where the money is. The money
 is in the site you book on, which is worth $141 on a thin route.
 
-What is still ours to fix rather than Solari's: prices are forced to USD so a
-comparison is a comparison, and a real international build would show local
-currency with the conversion made explicit. Skyscanner also still refuses us
-everywhere — six launch configurations, US and GB egress, through none of the
-time — so an international build is missing a wall we cannot climb yet.
+## Where this goes next
+
+One item on this list got answered while the project was being written, which
+is the reason the list is worth keeping.
+
+**Blocked on Solari.**
+
+- **Skyscanner.** It runs PerimeterX — the page loads
+  `client.px-cloud.net/PXrf8vapwA/main.min.js` — and six launch configurations
+  get through none of the time: stealth alone, `+captcha`, `+web_bot_auth`,
+  `proxy="smart"`, on both US and GB egress, at low concurrency hours after the
+  last attempt. Re-tested today, still 0 of 6. It is not the egress and it is
+  not a rate limit. Outside the US it is one of the sites people actually book
+  on, so an international build is missing a wall rather than a nice-to-have.
+- ~~**Non-US egress that survives being used.**~~ **Answered.** This was the
+  blocker that made the tool US-only: four of twenty-one non-US searches
+  dropped, two of them `ERR_TUNNEL_CONNECTION_FAILED`. Now 42 of 42 return, and
+  the tool browses from nine countries.
+
+**Blocked on browser time, not on Solari.**
+
+- **Thin routes at volume.** The best finding here — $141 of spread on
+  Tampa–Barcelona against $23 on JFK–London — rests on one search. It is the
+  strongest claim on this page and the least verified one. Whether it holds is
+  a question about hundreds of routes, and hundreds of routes is thousands of
+  browsers. `worldtest.py` is most of the harness already.
+- **Geography at real scale.** Two routes and eight countries say the country
+  you browse from changes nothing. Two routes is not the world; the interesting
+  version asks which markets, if any, price locally at all.
+
+**Ours to fix, nobody else's.**
+
+- **Session recording.** `recording=True` is in the SDK and this project does
+  not use it for the fare reads. Every claim on this page is empirical and a
+  reader currently has to take our word for it — a replay turns "the browser in
+  Delhi and the browser in New York were both shown $57" into something you can
+  watch. It would also have caught, in seconds, the geographic price gap we
+  believed for twenty-three minutes.
+- **Currency.** Prices are forced to USD so a comparison is a comparison. A
+  real international build shows local currency with the conversion explicit.
+- **The sites we read badly.** Priceline gives prices but no itinerary detail;
+  Kiwi wants place slugs rather than IATA codes. Parser work, not platform work.
 
 ## What is in here
 
