@@ -1,5 +1,7 @@
 """Shared plumbing: env loading, the Query/Fare types, money parsing."""
 
+import hashlib
+import math
 import os
 import pathlib
 import re
@@ -107,6 +109,61 @@ def plausible(fares: list[Fare], floor: int = 40, ceiling: int = 20000) -> list[
             if floor <= f.price <= ceiling
             and not unrecognised(f.airline)
             and not unrecognised(f.back_airline)]
+
+
+# --------------------------------------------------------------------------
+# Proxy egress
+# --------------------------------------------------------------------------
+
+# Solari's residential tier rotates by default: consecutive requests from one
+# browser can leave from different IPs. That is the right default for fetching a
+# page, and the wrong one for us. These sites poll for fares for up to a minute
+# after the document loads, so a search is a document plus a stream of XHRs that
+# have to look like one person -- and an IP that changes underneath them is the
+# cleanest bot signal there is. Pinning a session id holds one exit for the whole
+# search.
+STICKY_MINUTES = (1, 30)   # gateway's accepted range for session_duration
+
+
+def sticky_id(slug: str, attempt: int = 1) -> str:
+    """A proxy session id for one search: alphanumerics and dashes, <=32 chars.
+
+    The attempt number is part of the id on purpose. A block earns one retry on
+    a *fresh* IP, so the retry must not reuse the session that was just walled --
+    the whole point of a sticky session is that it would hand back the same
+    address.
+    """
+    stem = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")[:20].strip("-")
+    digest = hashlib.sha1(f"{slug}#{attempt}".encode()).hexdigest()[:6]
+    return "-".join(p for p in (stem, digest, str(attempt)) if p)[:32]
+
+
+def hold_minutes(seconds: float) -> int:
+    """How long to hold one exit IP, in the minutes the gateway accepts.
+
+    Rounded up and given a minute of headroom: a session that expires while the
+    page is still polling drops us back onto a rotating IP mid-search, which is
+    exactly the failure this is here to prevent.
+    """
+    low, high = STICKY_MINUTES
+    return max(low, min(high, math.ceil(seconds / 60) + 1))
+
+
+def egress(country: str, *, tier: str = "residential", session: str | None = None,
+           hold: float | None = None):
+    """Build the `proxy=` argument for `launch()`.
+
+    Returns the string untouched for the "smart" and "off" sentinels: smart is
+    rotate-on-block by design, and pinning a session to it would be asking for
+    two contradictory things.
+    """
+    from solari_browser import ProxyRequest
+
+    if country in ("smart", "off"):
+        return country
+    return ProxyRequest(
+        country=country, tier=tier, session=session,
+        session_duration=hold_minutes(hold) if (session and hold) else None)
 
 
 BLOCK_MARKERS = (

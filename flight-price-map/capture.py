@@ -11,7 +11,7 @@ import asyncio
 import os
 import time
 
-from common import HERE, Query, load_env
+from common import HERE, Query, load_env, egress, sticky_id
 import sites as siteslib
 
 PAGES = HERE / "pages"
@@ -21,8 +21,11 @@ async def grab(solari, gate, site, q, country: str, shot: bool) -> dict:
     url = site.build(q)
     async with gate:
         started = time.time()
+        session = sticky_id(f"{site.key}-{q.origin}-{q.destination}-{country}")
         try:
-            browser = await solari.launch(stealth=True, proxy=country)
+            browser = await solari.launch(
+                stealth=True,
+                proxy=egress(country, session=session, hold=site.patience))
         except Exception as err:
             return {"site": site.key, "ok": False, "stage": "launch",
                     "error": f"{type(err).__name__}: {err}"[:200], "secs": 0}

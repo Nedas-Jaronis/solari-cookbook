@@ -27,7 +27,7 @@ from itertools import product
 import airlines
 import airports
 import sites as siteslib
-from common import HERE, Query, blocked, load_env, no_results
+from common import HERE, Query, blocked, egress, load_env, no_results, sticky_id
 
 PAGES = HERE / "pages"
 
@@ -71,11 +71,22 @@ async def read_when_ready(page, site, grace: float = 6.0) -> tuple[str, list]:
 
 
 async def attempt(solari, task: Task, site, url: str, base: dict,
-                  dump: bool) -> dict:
-    """One browser, one load. Reports a block distinctly from an empty page."""
+                  dump: bool, attempt_no: int = 1) -> dict:
+    """One browser, one load. Reports a block distinctly from an empty page.
+
+    The egress is pinned to a session id for the length of the search. These
+    pages keep polling for fares after the document loads, and on the rotating
+    default those follow-up requests can arrive from a different IP than the one
+    that was served the page -- one visitor who teleports mid-search. The id
+    carries `attempt_no`, so a retry after a wall still lands on a fresh
+    address rather than the one that just refused us.
+    """
     started = time.time()
+    session = sticky_id(task.slug, attempt_no)
     try:
-        browser = await solari.launch(stealth=True, proxy=task.country)
+        browser = await solari.launch(
+            stealth=True,
+            proxy=egress(task.country, session=session, hold=site.patience))
     except Exception as err:
         return {**base, "ok": False, "stage": "launch", "blocked": False, "status": "error",
                 "error": f"{type(err).__name__}: {err}"[:200], "seconds": 0.0}
@@ -110,6 +121,8 @@ async def attempt(solari, task: Task, site, url: str, base: dict,
                     fares, key=lambda f: f.price)[:6]],
                 "timezone": getattr(resolved, "timezone_id", None),
                 "egress": getattr(resolved, "country", None),
+                "tier": getattr(resolved, "tier", None),
+                "session": session,
                 "seconds": round(time.time() - started, 1),
                 "error": None if fares else
                          ("anti-bot wall" if wall else
@@ -144,9 +157,11 @@ async def run(solari, gate, site_gate, task: Task, date: str, ret: str | None,
     async with gate, site_gate:
         await asyncio.sleep(random.uniform(0, 2.5))    # de-synchronise arrivals
         for tries_left in range(retries, -1, -1):
-            result = await attempt(solari, task, site, url, base, dump)
+            attempt_no = retries - tries_left + 1
+            result = await attempt(solari, task, site, url, base, dump,
+                                   attempt_no)
             if result["ok"] or not result.get("blocked") or not tries_left:
-                result["attempts"] = retries - tries_left + 1
+                result["attempts"] = attempt_no
                 return result
             await asyncio.sleep(random.uniform(10, 18))
 

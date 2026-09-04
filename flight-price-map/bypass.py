@@ -1,11 +1,17 @@
 """Dev tool: which launch options actually get past a site that walls us?
 
 Solari's browser has more anti-bot machinery than `stealth=True`: a `captcha`
-flag, and `proxy="smart"`, which picks the egress and rotates it when a site
-blocks. Both are off by default and neither is guessable from the failure -- a
-wall looks identical whichever option would have cleared it.
+flag, `proxy="smart"` (Solari picks the egress and rotates it when a site
+blocks), and -- the one this project missed for a long time -- a *sticky*
+session id that holds a single exit IP instead of rotating.
 
-So try them side by side against the site that is actually blocking.
+That last one is the hypothesis this tool now exists to test. Solari's
+residential tier rotates by default. These pages keep polling for fares for up
+to a minute after the document loads, so on the default a single search can be
+served the page from one address and fetch its fares from another; one visitor
+who teleports mid-search is a cleaner bot signal than any fingerprint. Rows
+marked `sticky` pin `ProxyRequest(session=...)` for the length of the search;
+rows marked `rotating` are the bare country string this repo used everywhere.
 
     python bypass.py --site skyscanner --from JFK --to LHR --date 2026-10-15
 
@@ -32,26 +38,26 @@ import os
 import time
 
 import sites as siteslib
-from common import HERE, Query, blocked, load_env, no_results
+from common import (HERE, Query, blocked, egress, load_env, no_results,
+                    sticky_id)
 from compare import read_when_ready
 
 PAGES = HERE / "pages"
 
-# (label, launch kwargs) -- one row per combination worth trying.
-#
-# `stealth + gb` earns its place by being the only row that puts non-US egress
-# against the wall itself: the captcha variant below it has never got far
-# enough to say anything about PerimeterX.
+# (label, country, extra launch flags, sticky) -- one row per combination worth
+# trying. The us and gb pairs are deliberately rotating-vs-sticky with nothing
+# else changed, so a difference between them is attributable to the egress
+# rather than to a flag. "smart" is rotate-on-block by design and cannot be
+# pinned, which is itself worth showing next to the sticky rows.
 VARIANTS = [
-    ("stealth + us", dict(stealth=True, proxy="us")),
-    ("stealth + captcha + us", dict(stealth=True, captcha=True, proxy="us")),
-    ("stealth + smart", dict(stealth=True, proxy="smart")),
-    ("stealth + captcha + smart",
-     dict(stealth=True, captcha=True, proxy="smart")),
-    ("stealth + gb", dict(stealth=True, proxy="gb")),
-    ("stealth + captcha + gb", dict(stealth=True, captcha=True, proxy="gb")),
-    ("stealth + web_bot_auth + us",
-     dict(stealth=True, web_bot_auth=True, proxy="us")),
+    ("stealth + us (rotating)", "us", {}, False),
+    ("stealth + us (sticky)", "us", {}, True),
+    ("stealth + captcha + us (sticky)", "us", {"captcha": True}, True),
+    ("stealth + smart", "smart", {}, False),
+    ("stealth + captcha + smart", "smart", {"captcha": True}, False),
+    ("stealth + gb (rotating)", "gb", {}, False),
+    ("stealth + gb (sticky)", "gb", {}, True),
+    ("stealth + web_bot_auth + us (sticky)", "us", {"web_bot_auth": True}, True),
 ]
 
 # The vendor's script, and the global it installs. Either one means the wall was
@@ -79,16 +85,20 @@ async def px_served(page) -> bool | None:
     return any(marker in html for marker in PX_MARKERS)
 
 
-async def probe_once(solari, site, url: str, label: str, kwargs: dict) -> dict:
+async def probe_once(solari, site, url: str, label: str, country: str,
+                     flags: dict, sticky: bool, attempt_no: int) -> dict:
     """One browser, one load. States are kept distinct on purpose."""
     started = time.time()
 
     def row(state: str, detail: str = "", px: bool | None = None) -> dict:
         return {"label": label, "state": state, "detail": detail, "px": px,
+                "sticky": sticky,
                 "seconds": round(time.time() - started, 1)}
 
+    session = sticky_id(f"bypass-{label}", attempt_no) if sticky else None
+    proxy = egress(country, session=session, hold=site.patience)
     try:
-        browser = await solari.launch(**kwargs)
+        browser = await solari.launch(stealth=True, proxy=proxy, **flags)
     except Exception as err:
         return row("launch failed", f"{type(err).__name__}: {err}"[:90])
     try:
@@ -113,18 +123,20 @@ async def probe_once(solari, site, url: str, label: str, kwargs: dict) -> dict:
         return row("error", f"{type(err).__name__}: {err}"[:90])
 
 
-async def try_one(solari, gate, site, url: str, label: str, kwargs: dict) -> dict:
+async def try_one(solari, gate, site, url: str, variant: tuple) -> dict:
     """Probe, and give a failed tunnel a second chance before believing it.
 
     Only the transport gets the retry. A block is a real answer from the site
     and re-asking it immediately would be the rate-limiting behaviour this whole
     tool exists to avoid.
     """
+    label, country, flags, sticky = variant
     async with gate:
-        row = await probe_once(solari, site, url, label, kwargs)
+        row = await probe_once(solari, site, url, label, country, flags, sticky, 1)
         if row["state"] in ("launch failed", "error") and egress_failure(row["detail"]):
             await asyncio.sleep(3)
-            retry = await probe_once(solari, site, url, label, kwargs)
+            retry = await probe_once(solari, site, url, label, country, flags,
+                                     sticky, 2)
             if retry["state"] in ("launch failed", "error") and egress_failure(retry["detail"]):
                 retry["state"] = "no egress"
             return retry
@@ -157,8 +169,7 @@ async def main() -> None:
     solari = Solari(api_key=os.environ["SOLARI_API_KEY"])
     gate = asyncio.Semaphore(args.concurrency)
     rows = await asyncio.gather(*(
-        try_one(solari, gate, site, url, label, kwargs)
-        for label, kwargs in VARIANTS))
+        try_one(solari, gate, site, url, v) for v in VARIANTS))
 
     width = max(len(r["label"]) for r in rows)
     for r in rows:
@@ -170,6 +181,15 @@ async def main() -> None:
     unreached = [r for r in rows if r["state"] == "no egress"]
     print(f"\n{len(won)}/{len(rows)} got through"
           + (f": {', '.join(r['label'] for r in won)}" if won else ""))
+
+    # The comparison this tool is really for: same flags, different egress.
+    stuck = [r for r in rows if r["sticky"]]
+    rot = [r for r in rows if not r["sticky"]]
+    if stuck and rot:
+        s_ok = sum(r["state"] == "READ" for r in stuck)
+        r_ok = sum(r["state"] == "READ" for r in rot)
+        print(f"  sticky {s_ok}/{len(stuck)}   rotating {r_ok}/{len(rot)}")
+
     # Reading fares off a page that never served the wall says nothing about
     # whether the wall can be cleared, so do not let it read as a win.
     if won and all(r["px"] is False for r in won):

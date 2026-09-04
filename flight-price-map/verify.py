@@ -29,19 +29,27 @@ from datetime import datetime, timezone
 import airports
 import claims as claimslib
 import sites as siteslib
-from common import HERE, Query, blocked, load_env, no_results
+from common import HERE, Query, blocked, egress, load_env, no_results, sticky_id
 from compare import read_when_ready
 
 PAGES = HERE / "pages"
 
 
 async def load(solari, gate, site_gate, site, url: str, country: str) -> dict:
-    """Open one page through a residential IP and read it."""
+    """Open one page through a residential IP and read it.
+
+    One pinned exit for the whole read: these pages fetch their fares after the
+    document, and the rotating default can serve those follow-ups from a
+    different address than the page itself.
+    """
     async with gate, site_gate:
         await asyncio.sleep(random.uniform(0, 2.0))
         started = time.time()
+        session = sticky_id(f"{site.key}-{country}-{abs(hash(url)) % 10**6}")
         try:
-            browser = await solari.launch(stealth=True, proxy=country)
+            browser = await solari.launch(
+                stealth=True,
+                proxy=egress(country, session=session, hold=site.patience))
         except Exception as err:
             return {"ok": False, "error": f"{type(err).__name__}: {err}"[:160],
                     "seconds": 0.0, "text": "", "fares": []}
