@@ -52,14 +52,41 @@ reports the findings it hoped for is not measuring anything.
 
 ## Run it
 
-```bash
-cd flight-price-map
-pip install -r requirements.txt
-cp .env.example .env                 # paste your slr_live_ key in
+**Nothing to install, no key.** Three boards are committed and open straight
+from a clone in any browser: [`trip.html`](flight-price-map/trip.html) is the
+traveller's page, [`board.html`](flight-price-map/board.html) is what the
+operator sees, [`teasers.html`](flight-price-map/teasers.html) is the
+advertised-price check. They hold real fares from real runs.
 
+**To search live**, you need Python 3.10 or newer and a Solari key from
+[console.getsolari.com](https://console.getsolari.com):
+
+```bash
+git clone https://github.com/Nedas-Jaronis/solari-cookbook
+cd solari-cookbook/flight-price-map
+
+pip install -r requirements.txt
+patchright install chromium          # the local browser the tests drive
+
+cp .env.example .env                 # paste your slr_live_ key into it
 python trip.py --live --out live.html
 python server.py                     # -> http://localhost:8080
 ```
+
+`patchright install chromium` is easy to miss and the error it causes later
+looks unrelated. Only the local tools need it — `flowtest.py`, `demo.py`,
+`preview.py` — because the searches themselves run on Solari's browsers, not
+yours. `.env` is gitignored; the key never enters the repo.
+
+Check it works without spending anything:
+
+```bash
+python parsertest.py                 # readers against committed fixtures
+python flowtest.py                   # drives the page in a real browser
+```
+
+Both run offline. Everything past this point launches cloud browsers and costs
+metered Solari time.
 
 Type any two airports and any date. A straight answer takes about twenty
 seconds; the nearby airports fill in underneath it over the next minute.
@@ -92,11 +119,6 @@ public URL: a search is about 1.2 browser-minutes, and a search button open to
 the internet spends a metered credit on strangers' behalf — which the recording
 above demonstrates for nothing. `Dockerfile` and `fly.toml` are in the repo for
 anyone who wants to host it anyway, with limits sized for that.
-
-There are also committed boards you can open straight from a clone, no key
-needed: [`trip.html`](flight-price-map/trip.html) for a traveller,
-[`board.html`](flight-price-map/board.html) for whoever ran it,
-[`teasers.html`](flight-price-map/teasers.html) for the advertised-price check.
 
 ## Where Solari is used
 
@@ -239,6 +261,12 @@ flight-price-map/
   demo.py         records the real thing searching, unstaged
   flowtest.py     drives the page in a browser
   parsertest.py   holds the readers to committed fixtures
+  worldtest.py    prices real routes on six continents, live
+  geodiff.py      does the country you browse from change the price?
+  airlines.py     who counts as an airline; a bus or a train does not
+  hero/           the landing page's sky, in WGSL — build with npm
+  geo/            the sweeps behind the geography result
+  fixtures/       captured pages the parser tests run against
 ```
 
 The **[full write-up](flight-price-map/README.md)** is worth more than this
